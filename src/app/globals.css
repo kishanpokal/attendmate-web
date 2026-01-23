@@ -3,6 +3,20 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Light mode colors */
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --secondary: #a855f7;
+  --accent: #ec4899;
+  
+  /* Subtle backgrounds */
+  --bg-subtle: #f9fafb;
+  --bg-elevated: #ffffff;
+  
+  /* Borders */
+  --border-color: #e5e7eb;
+  --border-hover: #d1d5db;
 }
 
 @theme inline {
@@ -10,17 +24,141 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Custom color tokens */
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    
+    /* Dark mode colors */
+    --primary: #6366f1;
+    --primary-dark: #818cf8;
+    --secondary: #a855f7;
+    --accent: #ec4899;
+    
+    /* Subtle backgrounds */
+    --bg-subtle: #111111;
+    --bg-elevated: #1a1a1a;
+    
+    /* Borders */
+    --border-color: #27272a;
+    --border-hover: #3f3f46;
   }
+}
+
+/* Force dark mode when class is applied */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --primary: #6366f1;
+  --primary-dark: #818cf8;
+  --secondary: #a855f7;
+  --accent: #ec4899;
+  --bg-subtle: #111111;
+  --bg-elevated: #1a1a1a;
+  --border-color: #27272a;
+  --border-hover: #3f3f46;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', 
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-subtle);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* Selection styling */
+::selection {
+  background-color: var(--primary);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* Focus visible for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Improve image rendering */
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Remove default button styles */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Utility classes */
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease-in-out infinite;
+}
+
+@keyframes gradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Glass morphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
