@@ -5,9 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 type ActiveLecture = {
   subjectId: string;
   subjectName: string;
-  startTime: string;
-  endTime: string;
+  startTime: Date;
+  endTime: Date;
 };
+
 
 export default function AttendanceDialog({
   lecture,
@@ -153,7 +154,7 @@ export default function AttendanceDialog({
                 </motion.div>
                 {/* Glow effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl sm:rounded-3xl blur-2xl opacity-50 animate-pulse" />
-                
+
                 {/* Floating particles */}
                 <motion.div
                   animate={{
@@ -253,7 +254,8 @@ export default function AttendanceDialog({
                   </svg>
                 </div>
                 <p className="text-indigo-700 dark:text-indigo-300 font-bold text-sm sm:text-base">
-                  {lecture.startTime} – {lecture.endTime}
+                  {lecture.startTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} –{" "}
+                  {lecture.endTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
             </motion.div>
