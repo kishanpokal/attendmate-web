@@ -14,7 +14,7 @@ export default function AttendanceSummaryCard({
   attended,
   loading,
 }: Props) {
-  const percentage = total === 0 ? 0 : Math.round((attended / total) * 100);
+  const percentage = total === 0 ? 0 : Number(((attended / total) * 100).toFixed(2));
   const [animatedPercent, setAnimatedPercent] = useState(0);
 
   // Animate percentage
@@ -27,7 +27,7 @@ export default function AttendanceSummaryCard({
 
     const animate = (now: number) => {
       const progress = Math.min((now - startTime) / duration, 1);
-      const value = Math.floor(start + (end - start) * progress);
+      const value = Number((start + (end - start) * progress).toFixed(2));
       setAnimatedPercent(value);
       if (progress < 1) requestAnimationFrame(animate);
     };
@@ -37,8 +37,8 @@ export default function AttendanceSummaryCard({
 
   // Determine status color based on percentage
   const getStatusColor = () => {
-    if (percentage >= 75) return "emerald";
-    if (percentage >= 60) return "amber";
+    if (percentage >= 75.0) return "emerald";
+    if (percentage >= 60.0) return "amber";
     return "rose";
   };
 
@@ -120,13 +120,12 @@ export default function AttendanceSummaryCard({
                   r="85"
                   strokeWidth="14"
                   strokeLinecap="round"
-                  className={`fill-none transition-colors duration-500 ${
-                    statusColor === "emerald"
-                      ? "stroke-emerald-500 dark:stroke-emerald-400"
-                      : statusColor === "amber"
+                  className={`fill-none transition-colors duration-500 ${statusColor === "emerald"
+                    ? "stroke-emerald-500 dark:stroke-emerald-400"
+                    : statusColor === "amber"
                       ? "stroke-amber-500 dark:stroke-amber-400"
                       : "stroke-rose-500 dark:stroke-rose-400"
-                  }`}
+                    }`}
                   strokeDasharray={2 * Math.PI * 85}
                   initial={{ strokeDashoffset: 2 * Math.PI * 85 }}
                   animate={{
@@ -149,13 +148,12 @@ export default function AttendanceSummaryCard({
                   className="text-center"
                 >
                   <span
-                    className={`block text-4xl font-bold leading-none ${
-                      statusColor === "emerald"
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : statusColor === "amber"
+                    className={`block text-4xl font-bold leading-none ${statusColor === "emerald"
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : statusColor === "amber"
                         ? "text-amber-600 dark:text-amber-400"
                         : "text-rose-600 dark:text-rose-400"
-                    }`}
+                      }`}
                   >
                     {animatedPercent}%
                   </span>
@@ -173,13 +171,12 @@ export default function AttendanceSummaryCard({
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className={`absolute -top-2 -right-2 w-6 h-6 rounded-full ${
-                  statusColor === "emerald"
-                    ? "bg-emerald-400"
-                    : statusColor === "amber"
+                className={`absolute -top-2 -right-2 w-6 h-6 rounded-full ${statusColor === "emerald"
+                  ? "bg-emerald-400"
+                  : statusColor === "amber"
                     ? "bg-amber-400"
                     : "bg-rose-400"
-                } blur-sm`}
+                  } blur-sm`}
               />
               <motion.div
                 animate={{
@@ -192,13 +189,12 @@ export default function AttendanceSummaryCard({
                   ease: "easeInOut",
                   delay: 0.5,
                 }}
-                className={`absolute -bottom-2 -left-2 w-5 h-5 rounded-full ${
-                  statusColor === "emerald"
-                    ? "bg-purple-400"
-                    : statusColor === "amber"
+                className={`absolute -bottom-2 -left-2 w-5 h-5 rounded-full ${statusColor === "emerald"
+                  ? "bg-purple-400"
+                  : statusColor === "amber"
                     ? "bg-indigo-400"
                     : "bg-pink-400"
-                } blur-sm`}
+                  } blur-sm`}
               />
             </div>
           </div>
@@ -284,28 +280,26 @@ export default function AttendanceSummaryCard({
             className="mt-4 text-center"
           >
             <div
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
-                statusColor === "emerald"
-                  ? "bg-emerald-100 dark:bg-emerald-900/30"
-                  : statusColor === "amber"
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${statusColor === "emerald"
+                ? "bg-emerald-100 dark:bg-emerald-900/30"
+                : statusColor === "amber"
                   ? "bg-amber-100 dark:bg-amber-900/30"
                   : "bg-rose-100 dark:bg-rose-900/30"
-              }`}
+                }`}
             >
               <span
-                className={`text-xs font-semibold ${
-                  statusColor === "emerald"
-                    ? "text-emerald-700 dark:text-emerald-300"
-                    : statusColor === "amber"
+                className={`text-xs font-semibold ${statusColor === "emerald"
+                  ? "text-emerald-700 dark:text-emerald-300"
+                  : statusColor === "amber"
                     ? "text-amber-700 dark:text-amber-300"
                     : "text-rose-700 dark:text-rose-300"
-                }`}
+                  }`}
               >
-                {percentage >= 75
+                {percentage >= 75.0
                   ? "🎉 Excellent! Keep it up!"
-                  : percentage >= 60
-                  ? "⚠️ Room for improvement"
-                  : "📉 Attend more classes"}
+                  : percentage >= 60.0
+                    ? "⚠️ Room for improvement"
+                    : "📉 Attend more classes"}
               </span>
             </div>
           </motion.div>

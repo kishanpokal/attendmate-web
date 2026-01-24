@@ -273,12 +273,17 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* POPUP */}
+      {/* POPUP - FIXED: onClose now properly closes the dialog */}
       {showDialog && activeLecture && (
         <AttendanceDialog
           lecture={activeLecture}
           saving={saving}
-          onClose={() => {}}
+          onClose={() => {
+            if (!saving) {
+              setShowDialog(false);
+              setActiveLecture(null);
+            }
+          }}
           onSubmit={async (status) => {
             setSaving(true);
 
