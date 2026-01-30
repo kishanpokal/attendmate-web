@@ -30,6 +30,7 @@ export default function AddAttendancePage() {
   const [loadingSubjects, setLoadingSubjects] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [showSubjectDropdown, setShowSubjectDropdown] = useState(false);
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -157,6 +158,10 @@ export default function AddAttendancePage() {
           attendanceData.lectureKey = lectureKey;
         }
 
+        if (note.trim() !== "") {
+          attendanceData.note = note.trim();
+        }
+
         transaction.set(attendanceRef, attendanceData);
 
         transaction.update(subjectRef, {
@@ -174,6 +179,7 @@ export default function AddAttendancePage() {
       setStartTime("");
       setEndTime("");
       setStatus("Present");
+      setNote("");
 
       alert("Attendance saved successfully!");
     } catch (error: any) {
@@ -578,6 +584,28 @@ export default function AddAttendancePage() {
                   </span>
                 </div>
               </button>
+            </div>
+          </div>
+
+          {/* Note Section */}
+          <div>
+            <h3 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-3 px-2 uppercase tracking-wide">
+              Note (Optional)
+            </h3>
+
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4 sm:p-5">
+              <textarea
+                value={note}
+                onChange={(e) => {
+                  if (e.target.value.length <= 200) setNote(e.target.value);
+                }}
+                rows={3}
+                placeholder="Reason / Note (max 200 characters)"
+                className="w-full resize-none bg-transparent text-sm sm:text-base text-gray-900 dark:text-gray-100 focus:outline-none"
+              />
+              <div className="text-right text-xs text-gray-500 mt-1">
+                {note.length} / 200
+              </div>
             </div>
           </div>
 

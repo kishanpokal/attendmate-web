@@ -9,6 +9,7 @@ import {
   collection,
   getDocs,
   Timestamp,
+  deleteField,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
@@ -36,6 +37,7 @@ export default function EditAttendancePage() {
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [showSubjectDropdown, setShowSubjectDropdown] = useState(false);
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -108,6 +110,8 @@ export default function EditAttendancePage() {
               setEndTime(new Date(data.endTime).toTimeString().slice(0, 5));
             }
 
+            setNote(data.note ?? "");
+
             found = true;
             break;
           }
@@ -158,12 +162,20 @@ export default function EditAttendancePage() {
       const start = new Date(`${date}T${startTime}`);
       const end = new Date(`${date}T${endTime}`);
 
-      await updateDoc(attendanceRef, {
+      const updateData: any = {
         status,
         date: Timestamp.fromDate(dateObj),
         startTime: Timestamp.fromDate(start),
         endTime: Timestamp.fromDate(end),
-      });
+      };
+
+      if (note.trim() !== "") {
+        updateData.note = note.trim();
+      } else {
+        updateData.note = deleteField();
+      }
+
+      await updateDoc(attendanceRef, updateData);
 
       alert("Attendance updated successfully!");
       router.back();
@@ -612,6 +624,28 @@ export default function EditAttendancePage() {
                   </span>
                 </div>
               </button>
+            </div>
+          </div>
+
+          {/* Note Section */}
+          <div>
+            <h3 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-3 px-2 uppercase tracking-wide">
+              Note (Optional)
+            </h3>
+
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4 sm:p-5">
+              <textarea
+                value={note}
+                onChange={(e) => {
+                  if (e.target.value.length <= 200) setNote(e.target.value);
+                }}
+                rows={3}
+                placeholder="Reason / Note (max 200 characters)"
+                className="w-full resize-none bg-transparent text-sm sm:text-base text-gray-900 dark:text-gray-100 focus:outline-none"
+              />
+              <div className="text-right text-xs text-gray-500 mt-1">
+                {note.length} / 200
+              </div>
             </div>
           </div>
 

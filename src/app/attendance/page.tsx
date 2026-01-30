@@ -36,6 +36,7 @@ type Attendance = {
   endTime: Timestamp | string;
   status: "PRESENT" | "ABSENT";
   lectureKey?: string;
+  note?: string;
 };
 
 type Subject = {
@@ -131,6 +132,7 @@ export default function AttendancePage() {
               endTime: data.endTime || "",
               status: status,
               lectureKey: docSnap.id,
+              note: typeof data.note === "string" ? data.note : undefined,
             });
           });
         }
@@ -492,6 +494,12 @@ export default function AttendancePage() {
                                 </span>
                               </div>
                             )}
+                            {item.note && (
+                              <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 line-clamp-2 flex items-start gap-1">
+                                <span>📝</span>
+                                <span className="truncate">{item.note}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -608,6 +616,17 @@ export default function AttendancePage() {
                   </span>
                 </div>
               </div>
+
+              {selectedAttendance.note && (
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Note
+                  </label>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-sm text-gray-800 dark:text-gray-200">
+                    {selectedAttendance.note}
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
                 <button

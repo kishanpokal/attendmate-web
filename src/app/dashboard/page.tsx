@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, doc, getDocs, getDoc, query, where, runTransaction } from "firebase/firestore";
+import { collection, doc, getDocs, getDoc, query, where, runTransaction, Timestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import AttendMateBottomNav from "@/components/navigation/AttendMateBottomNav";
 import AttendanceSummaryCard from "@/components/dashboard/AttendanceSummaryCard";
@@ -19,8 +19,8 @@ type TodayLecture = {
 type ActiveLecture = {
   subjectId: string;
   subjectName: string;
-  startTime: string;
-  endTime: string;
+  startTime: Date;
+  endTime: Date;
 };
 
 export default function DashboardPage() {
@@ -38,6 +38,7 @@ export default function DashboardPage() {
   const [showDialog, setShowDialog] = useState(false);
   const [saving, setSaving] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -90,7 +91,12 @@ export default function DashboardPage() {
             );
 
             if (!(await getDoc(attRef)).exists()) {
-              setActiveLecture({ subjectId, subjectName, startTime, endTime });
+              setActiveLecture({
+                subjectId,
+                subjectName,
+                startTime: new Date(`${dateKey}T${startTime}`),
+                endTime: new Date(`${dateKey}T${endTime}`),
+              });
               setShowDialog(true);
             }
             break;
@@ -278,10 +284,13 @@ export default function DashboardPage() {
         <AttendanceDialog
           lecture={activeLecture}
           saving={saving}
+          note={note}
+          onNoteChange={setNote}
           onClose={() => {
             if (!saving) {
               setShowDialog(false);
               setActiveLecture(null);
+              setNote("");
             }
           }}
           onSubmit={async (status) => {
@@ -299,19 +308,26 @@ export default function DashboardPage() {
 
                 const today = new Date();
                 const dateKey = today.toISOString().split("T")[0];
-                const lectureId = `${dateKey}_${activeLecture.startTime.replace(":", "")}_${activeLecture.endTime.replace(":", "")}`;
+                const lectureId = `${dateKey}_${activeLecture.startTime.toTimeString().slice(0,5).replace(":", "")}_${activeLecture.endTime.toTimeString().slice(0,5).replace(":", "")}`;
 
                 const attRef = doc(subjectRef, "attendance", lectureId);
                 if ((await tx.get(attRef)).exists()) throw new Error("Already marked");
 
                 const snap = await tx.get(subjectRef);
-                tx.set(attRef, {
+
+                const attendanceData: any = {
                   status,
-                  date: today,
-                  startTime: activeLecture.startTime,
-                  endTime: activeLecture.endTime,
-                  createdAt: new Date(),
-                });
+                  date: Timestamp.fromDate(today),
+                  startTime: Timestamp.fromDate(activeLecture.startTime),
+                  endTime: Timestamp.fromDate(activeLecture.endTime),
+                  createdAt: Timestamp.now(),
+                };
+
+                if (note.trim() !== "") {
+                  attendanceData.note = note.trim();
+                }
+
+                tx.set(attRef, attendanceData);
 
                 tx.update(subjectRef, {
                   totalClasses: (snap.data()?.totalClasses ?? 0) + 1,
@@ -323,6 +339,7 @@ export default function DashboardPage() {
 
               setSaving(false);
               setShowDialog(false);
+              setNote("");
               location.reload();
             } catch (error) {
               console.error("Error saving attendance:", error);

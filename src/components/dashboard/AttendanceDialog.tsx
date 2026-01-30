@@ -13,11 +13,15 @@ type ActiveLecture = {
 export default function AttendanceDialog({
   lecture,
   saving,
+  note,
+  onNoteChange,
   onSubmit,
   onClose,
 }: {
   lecture: ActiveLecture;
   saving: boolean;
+  note: string;
+  onNoteChange: (value: string) => void;
   onSubmit: (status: "Present" | "Absent") => void;
   onClose: () => void;
 }) {
@@ -259,6 +263,32 @@ export default function AttendanceDialog({
                 </p>
               </div>
             </motion.div>
+
+            {/* NOTE FIELD */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 }}
+              className="mb-4"
+            >
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Note (optional)
+              </label>
+
+              <textarea
+                value={note}
+                onChange={(e) => onNoteChange(e.target.value.slice(0, 200))}
+                maxLength={200}
+                rows={3}
+                placeholder="Why were you absent / any remark..."
+                className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+
+              <p className="text-xs text-gray-500 mt-1 text-right">
+                {note.length}/200
+              </p>
+            </motion.div>
+
 
             {/* BUTTONS */}
             <motion.div
