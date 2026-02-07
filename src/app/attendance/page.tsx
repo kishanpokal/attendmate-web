@@ -257,7 +257,7 @@ export default function AttendancePage() {
 
   /* ---------------- CIRCULAR PROGRESS CALCULATION ---------------- */
   const getCircularProgress = (percentage: number) => {
-    const radius = 85; // radius of the circle
+    const radius = 85;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentage / 100) * circumference;
     return { circumference, offset, radius };
@@ -268,17 +268,17 @@ export default function AttendancePage() {
   /* ---------------- LOADING STATE ---------------- */
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 dark:from-gray-950 dark:via-slate-900 dark:to-gray-950 flex items-center justify-center p-4 transition-colors duration-300">
         <div className="text-center space-y-6">
           <div className="relative w-20 h-20 mx-auto">
-            <div className="absolute inset-0 border-4 border-indigo-900/30 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-transparent border-t-indigo-500 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 border-4 border-indigo-200 dark:border-indigo-900/30 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-transparent border-t-indigo-600 dark:border-t-indigo-500 rounded-full animate-spin"></div>
           </div>
           <div className="space-y-2">
-            <p className="text-lg font-semibold text-white">
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">
               Loading Attendance
             </p>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Please wait while we fetch your records...
             </p>
           </div>
@@ -288,19 +288,19 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-950 pb-24 sm:pb-28">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 dark:from-gray-950 dark:via-slate-900 dark:to-gray-950 pb-24 sm:pb-28 transition-colors duration-300">
       {/* Header */}
-      <div className={`backdrop-blur-xl bg-gray-900/80 border-b border-gray-800/50 shadow-2xl sticky top-0 z-40 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'}`}>
+      <div className={`backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-800/50 shadow-lg sticky top-0 z-40 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 lg:py-8">
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
               <School className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                 Attendance Tracker
               </h1>
-              <p className="text-xs sm:text-sm lg:text-base text-gray-400 mt-1">
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
                 Monitor your academic progress
               </p>
             </div>
@@ -310,18 +310,18 @@ export default function AttendancePage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-6 sm:space-y-8">
         {/* Stats Overview Card */}
-        <div className={`bg-gradient-to-br from-gray-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl border border-gray-700/30 transition-all duration-1000 delay-100 ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+        <div className={`bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-8 lg:p-10 shadow-xl border border-gray-200/50 dark:border-gray-800/50 transition-all duration-1000 delay-100 ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
           <div className="flex items-center gap-3 mb-8">
             <div className="p-3 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-lg shadow-indigo-500/30">
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
               Performance Overview
             </h2>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            {/* Perfect Circular Progress */}
+            {/* Circular Progress */}
             <div className="flex items-center justify-center py-4">
               <div className="relative">
                 <svg className="w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72" viewBox="0 0 200 200">
@@ -331,8 +331,9 @@ export default function AttendancePage() {
                     cy="100"
                     r={radius}
                     fill="none"
-                    stroke="rgba(75, 85, 99, 0.3)"
+                    stroke="currentColor"
                     strokeWidth="16"
+                    className="text-gray-200 dark:text-gray-800"
                   />
                   {/* Progress Circle */}
                   <circle
@@ -362,14 +363,14 @@ export default function AttendancePage() {
                 
                 {/* Center Content */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-5xl sm:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent leading-none mb-3">
+                  <span className="text-5xl sm:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-none mb-3">
                     {stats.percentage}%
                   </span>
-                  <span className="text-sm sm:text-base lg:text-lg text-gray-400 font-semibold">
+                  <span className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400 font-semibold">
                     Attendance Rate
                   </span>
-                  <div className="mt-4 px-5 py-2 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 backdrop-blur-sm border border-indigo-500/30 rounded-full">
-                    <span className="text-sm sm:text-base font-bold text-indigo-300">
+                  <div className="mt-4 px-5 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 border border-indigo-300 dark:border-indigo-700/50 rounded-full">
+                    <span className="text-sm sm:text-base font-bold text-indigo-700 dark:text-indigo-300">
                       {stats.present} / {stats.total} Classes
                     </span>
                   </div>
@@ -380,49 +381,49 @@ export default function AttendancePage() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 lg:gap-5">
               {/* Present Card */}
-              <div className="bg-gradient-to-br from-emerald-900/30 to-green-900/20 border border-emerald-700/30 rounded-2xl p-6 shadow-lg hover:shadow-emerald-500/20 transition-all duration-300 hover:scale-105 group">
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-300 dark:border-emerald-800/50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-emerald-600/20 border border-emerald-500/30 rounded-xl group-hover:bg-emerald-600/30 transition-colors">
-                    <CheckCircle className="w-8 h-8 text-emerald-400" />
+                    <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  <TrendingUp className="w-6 h-6 text-emerald-500" />
+                  <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-500" />
                 </div>
-                <p className="text-4xl lg:text-5xl font-bold text-emerald-400 mb-2">
+                <p className="text-4xl lg:text-5xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
                   {stats.present}
                 </p>
-                <p className="text-sm text-emerald-300 font-semibold">
+                <p className="text-sm text-emerald-700 dark:text-emerald-300 font-semibold">
                   Classes Attended
                 </p>
               </div>
 
               {/* Absent Card */}
-              <div className="bg-gradient-to-br from-red-900/30 to-rose-900/20 border border-red-700/30 rounded-2xl p-6 shadow-lg hover:shadow-red-500/20 transition-all duration-300 hover:scale-105 group">
+              <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 border border-red-300 dark:border-red-800/50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-red-600/20 border border-red-500/30 rounded-xl group-hover:bg-red-600/30 transition-colors">
-                    <XCircle className="w-8 h-8 text-red-400" />
+                    <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
                   </div>
-                  <AlertCircle className="w-6 h-6 text-red-500" />
+                  <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-500" />
                 </div>
-                <p className="text-4xl lg:text-5xl font-bold text-red-400 mb-2">
+                <p className="text-4xl lg:text-5xl font-bold text-red-600 dark:text-red-400 mb-2">
                   {stats.absent}
                 </p>
-                <p className="text-sm text-red-300 font-semibold">
+                <p className="text-sm text-red-700 dark:text-red-300 font-semibold">
                   Classes Missed
                 </p>
               </div>
 
               {/* Total Card */}
-              <div className="bg-gradient-to-br from-blue-900/30 to-indigo-900/20 border border-blue-700/30 rounded-2xl p-6 shadow-lg hover:shadow-blue-500/20 transition-all duration-300 hover:scale-105 sm:col-span-2 lg:col-span-1 group">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-300 dark:border-blue-800/50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 sm:col-span-2 lg:col-span-1 group">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-blue-600/20 border border-blue-500/30 rounded-xl group-hover:bg-blue-600/30 transition-colors">
-                    <List className="w-8 h-8 text-blue-400" />
+                    <List className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <Calendar className="w-6 h-6 text-blue-500" />
+                  <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-500" />
                 </div>
-                <p className="text-4xl lg:text-5xl font-bold text-blue-400 mb-2">
+                <p className="text-4xl lg:text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                   {stats.total}
                 </p>
-                <p className="text-sm text-blue-300 font-semibold">
+                <p className="text-sm text-blue-700 dark:text-blue-300 font-semibold">
                   Total Classes
                 </p>
               </div>
@@ -431,21 +432,21 @@ export default function AttendancePage() {
         </div>
 
         {/* Filters Section */}
-        <div className={`bg-gradient-to-br from-gray-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-2xl border border-gray-700/30 space-y-5 transition-all duration-1000 delay-300 ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+        <div className={`bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-8 shadow-xl border border-gray-200/50 dark:border-gray-800/50 space-y-5 transition-all duration-1000 delay-300 ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
           {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Search by subject or date..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-14 pr-14 py-4 bg-gray-900/50 border border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white placeholder:text-gray-500 transition-all"
+              className="w-full pl-14 pr-14 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -461,7 +462,7 @@ export default function AttendancePage() {
                 className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all ${
                   filter === f
                     ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/30 scale-105"
-                    : "bg-gray-800/50 border border-gray-700 text-gray-300 hover:bg-gray-700/50 hover:scale-105"
+                    : "bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:scale-105"
                 }`}
               >
                 {f === "ALL" ? (
@@ -480,7 +481,7 @@ export default function AttendancePage() {
           <select
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value)}
-            className="w-full px-5 py-4 bg-gray-900/50 border border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white transition-all font-medium"
+            className="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 dark:text-white transition-all font-medium"
           >
             <option value="ALL">All Subjects</option>
             {subjects.map((s) => (
@@ -493,14 +494,14 @@ export default function AttendancePage() {
 
         {/* Attendance List */}
         {Object.keys(groupedAttendance).length === 0 ? (
-          <div className={`bg-gradient-to-br from-gray-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl p-16 shadow-2xl border-2 border-dashed border-gray-700 text-center transition-all duration-1000 delay-500 ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 border border-indigo-500/30 rounded-full mb-6">
-              <Calendar className="w-12 h-12 text-indigo-400" />
+          <div className={`bg-white dark:bg-gray-900 rounded-3xl p-16 shadow-xl border-2 border-dashed border-gray-300 dark:border-gray-700 text-center transition-all duration-1000 delay-500 ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 border border-indigo-300 dark:border-indigo-700/50 rounded-full mb-6">
+              <Calendar className="w-12 h-12 text-indigo-600 dark:text-indigo-400" />
             </div>
-            <h3 className="text-3xl font-bold text-white mb-3">
+            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
               No Records Found
             </h3>
-            <p className="text-lg text-gray-400 max-w-md mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mx-auto">
               {filter !== "ALL"
                 ? `No ${filter.toLowerCase()} attendance records match your filters`
                 : "Start tracking your attendance to see records here"}
@@ -515,11 +516,11 @@ export default function AttendancePage() {
                   <div className="p-2.5 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/30">
                     <Calendar className="w-5 h-5 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                     {date}
                   </h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-gray-700 to-transparent"></div>
-                  <span className="px-4 py-1.5 bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 rounded-full text-sm font-bold">
+                  <div className="flex-1 h-px bg-gradient-to-r from-gray-300 dark:from-gray-700 to-transparent"></div>
+                  <span className="px-4 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-300 dark:border-indigo-700/50 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-bold">
                     {items.length} {items.length === 1 ? 'Class' : 'Classes'}
                   </span>
                 </div>
@@ -530,14 +531,14 @@ export default function AttendancePage() {
                     <div
                       key={item.id}
                       onClick={() => setSelectedAttendance(item)}
-                      className="group bg-gradient-to-br from-gray-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-gray-700/30 hover:shadow-2xl hover:border-indigo-500/50 transition-all cursor-pointer hover:scale-105 duration-300"
+                      className="group bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-800 hover:shadow-xl hover:border-indigo-300 dark:hover:border-indigo-700 transition-all cursor-pointer hover:scale-105 duration-300"
                     >
                       <div className="flex items-start gap-4 mb-4">
                         <div
                           className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-lg ${
                             item.status === "PRESENT"
-                              ? "bg-gradient-to-br from-emerald-600 to-green-700 shadow-emerald-500/30"
-                              : "bg-gradient-to-br from-red-600 to-rose-700 shadow-red-500/30"
+                              ? "bg-gradient-to-br from-emerald-600 to-teal-600 shadow-emerald-500/30"
+                              : "bg-gradient-to-br from-red-600 to-orange-600 shadow-red-500/30"
                           }`}
                         >
                           {item.status === "PRESENT" ? (
@@ -547,11 +548,11 @@ export default function AttendancePage() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-white text-lg mb-1 truncate">
+                          <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-1 truncate">
                             {item.subjectName}
                           </h4>
                           {item.startTime && item.endTime && (
-                            <div className="flex items-center gap-2 text-sm text-gray-400">
+                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                               <Clock className="w-4 h-4 flex-shrink-0" />
                               <span className="truncate">
                                 {formatTime(item.startTime)} - {formatTime(item.endTime)}
@@ -562,20 +563,20 @@ export default function AttendancePage() {
                       </div>
 
                       {item.note && (
-                        <div className="mt-3 p-3 bg-gray-900/50 border border-gray-700/50 rounded-xl">
-                          <div className="flex items-start gap-2 text-sm text-gray-300">
+                        <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+                          <div className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
                             <span className="text-base">📝</span>
                             <p className="line-clamp-2 flex-1">{item.note}</p>
                           </div>
                         </div>
                       )}
 
-                      <div className="mt-4 pt-4 border-t border-gray-700/50">
+                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <span
                           className={`inline-flex items-center px-4 py-2 rounded-xl font-semibold text-sm ${
                             item.status === "PRESENT"
-                              ? "bg-emerald-600/20 border border-emerald-500/30 text-emerald-400"
-                              : "bg-red-600/20 border border-red-500/30 text-red-400"
+                              ? "bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700/50 text-emerald-700 dark:text-emerald-400"
+                              : "bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700/50 text-red-700 dark:text-red-400"
                           }`}
                         >
                           {item.status === "PRESENT" ? "✓ Present" : "✗ Absent"}
@@ -598,14 +599,14 @@ export default function AttendancePage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-gradient-to-br from-gray-800 to-slate-900 rounded-3xl max-w-md w-full shadow-2xl border border-gray-700 overflow-hidden animate-in zoom-in-95 duration-300"
+            className="bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden animate-in zoom-in-95 duration-300"
           >
             {/* Modal Header */}
             <div
               className={`p-8 ${
                 selectedAttendance.status === "PRESENT"
-                  ? "bg-gradient-to-br from-emerald-900/40 to-green-900/30 border-b border-emerald-700/30"
-                  : "bg-gradient-to-br from-red-900/40 to-rose-900/30 border-b border-red-700/30"
+                  ? "bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b border-emerald-300 dark:border-emerald-800/50"
+                  : "bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 border-b border-red-300 dark:border-red-800/50"
               }`}
             >
               <div className="flex items-start justify-between mb-4">
@@ -613,8 +614,8 @@ export default function AttendancePage() {
                   <div
                     className={`w-20 h-20 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${
                       selectedAttendance.status === "PRESENT"
-                        ? "bg-gradient-to-br from-emerald-600 to-green-700 shadow-emerald-500/30"
-                        : "bg-gradient-to-br from-red-600 to-rose-700 shadow-red-500/30"
+                        ? "bg-gradient-to-br from-emerald-600 to-teal-600 shadow-emerald-500/30"
+                        : "bg-gradient-to-br from-red-600 to-orange-600 shadow-red-500/30"
                     }`}
                   >
                     {selectedAttendance.status === "PRESENT" ? (
@@ -623,15 +624,15 @@ export default function AttendancePage() {
                       <XCircle className="w-10 h-10 text-white" />
                     )}
                   </div>
-                  <h3 className="text-2xl font-bold text-white truncate">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white truncate">
                     {selectedAttendance.subjectName}
                   </h3>
                 </div>
                 <button
                   onClick={() => setSelectedAttendance(null)}
-                  className="w-12 h-12 rounded-xl hover:bg-gray-700/50 flex items-center justify-center transition-colors flex-shrink-0 ml-2"
+                  className="w-12 h-12 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center transition-colors flex-shrink-0 ml-2"
                 >
-                  <X className="w-6 h-6 text-gray-400" />
+                  <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
               <div
@@ -649,12 +650,12 @@ export default function AttendancePage() {
             <div className="p-8 space-y-6">
               {/* Date */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+                <label className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Date
                 </label>
-                <div className="flex items-center gap-3 p-4 bg-gray-900/50 border border-gray-700 rounded-xl">
-                  <Calendar className="w-6 h-6 text-indigo-400 flex-shrink-0" />
-                  <span className="text-lg font-semibold text-white">
+                <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+                  <Calendar className="w-6 h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                  <span className="text-lg font-semibold text-gray-900 dark:text-white">
                     {selectedAttendance.date.toDate().toLocaleDateString("en-US", {
                       weekday: "long",
                       day: "numeric",
@@ -668,12 +669,12 @@ export default function AttendancePage() {
               {/* Time */}
               {selectedAttendance.startTime && selectedAttendance.endTime && (
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+                  <label className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Time
                   </label>
-                  <div className="flex items-center gap-3 p-4 bg-gray-900/50 border border-gray-700 rounded-xl">
-                    <Clock className="w-6 h-6 text-indigo-400 flex-shrink-0" />
-                    <span className="text-lg font-semibold text-white">
+                  <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+                    <Clock className="w-6 h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                    <span className="text-lg font-semibold text-gray-900 dark:text-white">
                       {formatTime(selectedAttendance.startTime)} - {formatTime(selectedAttendance.endTime)}
                     </span>
                   </div>
@@ -682,12 +683,12 @@ export default function AttendancePage() {
 
               {/* Subject */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+                <label className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Subject
                 </label>
-                <div className="flex items-center gap-3 p-4 bg-gray-900/50 border border-gray-700 rounded-xl">
-                  <School className="w-6 h-6 text-indigo-400 flex-shrink-0" />
-                  <span className="text-lg font-semibold text-white">
+                <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+                  <School className="w-6 h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                  <span className="text-lg font-semibold text-gray-900 dark:text-white">
                     {selectedAttendance.subjectName}
                   </span>
                 </div>
@@ -696,11 +697,11 @@ export default function AttendancePage() {
               {/* Note */}
               {selectedAttendance.note && (
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+                  <label className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Note
                   </label>
-                  <div className="bg-gray-900/50 border border-gray-700 rounded-xl p-4">
-                    <p className="text-base text-gray-300 leading-relaxed">
+                  <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                    <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed">
                       {selectedAttendance.note}
                     </p>
                   </div>
@@ -708,7 +709,7 @@ export default function AttendancePage() {
               )}
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t border-gray-700">
+              <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   onClick={() => {
                     router.push(
