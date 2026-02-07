@@ -8,35 +8,38 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // Generate particles with consistent random values
+  // Optimized particles with varied sizes and opacity for depth (Parallax effect)
   const particles = useMemo(() => {
-    return Array.from({ length: 15 }, (_, i) => ({
+    return Array.from({ length: 25 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
       top: Math.random() * 100,
-      delay: Math.random() * 4,
-      duration: 3 + Math.random() * 4,
+      size: Math.random() * 4 + 1, // varied sizes 1px to 5px
+      opacity: Math.random() * 0.5 + 0.1, // varied opacity
+      delay: Math.random() * 5,
+      duration: 10 + Math.random() * 10, // slower, more elegant movement
     }));
   }, []);
 
   useEffect(() => {
     setMounted(true);
-    
-    // Progress bar animation
+
+    // Non-linear progress simulation for a more realistic "loading" feel
     const progressInterval = setInterval(() => {
-      setProgress(prev => {
+      setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(progressInterval);
           return 100;
         }
-        return prev + 2;
+        // Slow down as it gets closer to 100%
+        const increment = prev > 80 ? 0.5 : prev > 50 ? 1 : 2;
+        return Math.min(prev + increment, 100);
       });
-    }, 50);
+    }, 30);
 
-    // Redirect after animation
     const redirectTimer = setTimeout(() => {
       router.push("/login");
-    }, 5500);
+    }, 4500);
 
     return () => {
       clearInterval(progressInterval);
@@ -44,240 +47,191 @@ export default function Home() {
     };
   }, [router]);
 
+  // Don't render until client-side hydration to prevent mismatch
+  if (!mounted) return null;
+
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-indigo-950 dark:to-purple-950">
-      {/* Animated gradient orbs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-400/30 dark:bg-purple-600/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-blue-400/30 dark:bg-blue-600/20 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute -bottom-40 right-1/3 w-80 h-80 bg-indigo-400/30 dark:bg-indigo-600/20 rounded-full blur-3xl animate-pulse delay-2000" />
+    <main className="relative min-h-[100dvh] w-full overflow-hidden bg-gray-50 dark:bg-[#0a0a0a] transition-colors duration-500">
+      
+      {/* --- Background Ambience --- */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Large rotating gradient blobs */}
+        <div className="absolute -top-[20%] -left-[10%] w-[70vw] h-[70vw] bg-blue-400/20 dark:bg-blue-600/10 rounded-full blur-[100px] animate-blob mix-blend-multiply dark:mix-blend-screen" />
+        <div className="absolute top-[20%] -right-[10%] w-[60vw] h-[60vw] bg-purple-400/20 dark:bg-purple-600/10 rounded-full blur-[100px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-screen" />
+        <div className="absolute -bottom-[20%] left-[20%] w-[60vw] h-[60vw] bg-indigo-400/20 dark:bg-indigo-600/10 rounded-full blur-[100px] animate-blob animation-delay-4000 mix-blend-multiply dark:mix-blend-screen" />
+        
+        {/* Grid Pattern Overlay for "Tech" feel */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
       </div>
 
-      {/* Main content */}
-      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
-        {/* Animated Character */}
-        <div className={`mb-16 transition-all duration-1000 ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
-          <svg
-            className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-72 lg:h-72"
-            viewBox="0 0 300 300"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            {/* Character body - Robot/Mascot style */}
-            <g className="animate-[float_3s_ease-in-out_infinite]">
-              {/* Head */}
-              <rect
-                x="100"
-                y="60"
-                width="100"
-                height="80"
-                rx="15"
-                className="fill-indigo-500 dark:fill-indigo-400"
-              />
-              
-              {/* Antenna */}
-              <line
-                x1="150"
-                y1="60"
-                x2="150"
-                y2="30"
-                className="stroke-indigo-500 dark:stroke-indigo-400"
-                strokeWidth="4"
-                strokeLinecap="round"
-              />
-              <circle
-                cx="150"
-                cy="30"
-                r="8"
-                className="fill-purple-500 dark:fill-purple-400 animate-ping"
-                style={{ animationDuration: '2s' }}
-              />
-              <circle
-                cx="150"
-                cy="30"
-                r="8"
-                className="fill-purple-500 dark:fill-purple-400"
-              />
+      {/* --- Floating Particles --- */}
+      <div className="absolute inset-0 z-0">
+        {particles.map((p) => (
+          <div
+            key={p.id}
+            className="absolute rounded-full bg-indigo-500/50 dark:bg-white/20 animate-float-slow"
+            style={{
+              left: `${p.left}%`,
+              top: `${p.top}%`,
+              width: `${p.size}px`,
+              height: `${p.size}px`,
+              opacity: p.opacity,
+              animationDelay: `${p.delay}s`,
+              animationDuration: `${p.duration}s`,
+            }}
+          />
+        ))}
+      </div>
 
-              {/* Eyes */}
-              <g className="animate-[blink_4s_ease-in-out_infinite]">
-                <circle
-                  cx="125"
-                  cy="95"
-                  r="12"
-                  className="fill-white dark:fill-gray-200"
-                />
-                <circle
-                  cx="125"
-                  cy="95"
-                  r="6"
-                  className="fill-gray-900 dark:fill-gray-800"
-                />
-                <circle
-                  cx="175"
-                  cy="95"
-                  r="12"
-                  className="fill-white dark:fill-gray-200"
-                />
-                <circle
-                  cx="175"
-                  cy="95"
-                  r="6"
-                  className="fill-gray-900 dark:fill-gray-800"
-                />
-              </g>
+      {/* --- Main Content Card --- */}
+      <div className="relative z-10 flex min-h-[100dvh] flex-col items-center justify-center p-4 sm:p-8">
+        
+        {/* Glassmorphism Container */}
+        <div className={`
+          relative w-full max-w-2xl 
+          backdrop-blur-xl bg-white/30 dark:bg-white/5 
+          border border-white/20 dark:border-white/10 
+          shadow-2xl shadow-indigo-500/10 dark:shadow-black/50
+          rounded-3xl p-8 sm:p-12 lg:p-16
+          transition-all duration-1000 ease-out
+          flex flex-col items-center text-center
+          ${mounted ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95'}
+        `}>
+          
+          {/* Futuristic Loading Visual (The "Core") */}
+          <div className="relative mb-12 w-48 h-48 sm:w-64 sm:h-64">
+             {/* Center Glow */}
+             <div className="absolute inset-0 bg-indigo-500/30 dark:bg-indigo-400/20 blur-3xl rounded-full animate-pulse-slow" />
+             
+             <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-lg">
+                <defs>
+                  <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#6366f1" />
+                    <stop offset="100%" stopColor="#a855f7" />
+                  </linearGradient>
+                </defs>
+                
+                {/* Outer Rotating Ring */}
+                <circle cx="100" cy="100" r="90" fill="none" stroke="url(#grad1)" strokeWidth="1" strokeDasharray="10 10" className="opacity-30 animate-spin-slow" />
+                
+                {/* Middle Rotating Ring (Reverse) */}
+                <circle cx="100" cy="100" r="70" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="200" strokeDashoffset="200" className="text-indigo-500 dark:text-indigo-400 opacity-50 animate-reverse-spin origin-center" />
+                
+                {/* Inner Pulsing Core */}
+                <g className="animate-float">
+                  <circle cx="100" cy="100" r="40" className="fill-white/10 dark:fill-white/5 stroke-indigo-500 dark:stroke-indigo-400" strokeWidth="2" />
+                  <circle cx="100" cy="100" r="20" className="fill-indigo-600 dark:fill-indigo-400 animate-pulse" />
+                </g>
+                
+                {/* Orbiting Satellite */}
+                <g className="animate-spin-fast origin-center">
+                   <circle cx="100" cy="20" r="4" className="fill-purple-500 shadow-glow" />
+                </g>
+             </svg>
+          </div>
 
-              {/* Smile */}
-              <path
-                d="M 130 115 Q 150 125 170 115"
-                className="stroke-gray-900 dark:stroke-gray-800"
-                strokeWidth="3"
-                strokeLinecap="round"
-                fill="none"
+          {/* Typography */}
+          <div className="space-y-4 mb-10 max-w-lg">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 animate-gradient-x">
+                Welcome Back
+              </span>
+            </h1>
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 font-light leading-relaxed">
+              Initiating secure environment. <br className="hidden sm:block" />
+              Please wait while we prepare your dashboard.
+            </p>
+          </div>
+
+          {/* Precision Progress Bar */}
+          <div className="w-full max-w-sm space-y-3">
+            <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-300 ease-out"
+                style={{ width: `${progress}%` }}
               />
-
-              {/* Body */}
-              <rect
-                x="90"
-                y="140"
-                width="120"
-                height="100"
-                rx="20"
-                className="fill-indigo-600 dark:fill-indigo-500"
-              />
-
-              {/* Chest detail */}
-              <circle
-                cx="150"
-                cy="190"
-                r="15"
-                className="fill-purple-500 dark:fill-purple-400 animate-pulse"
-              />
-
-              {/* Arms - animated waving */}
-              <g className="animate-[wave_2s_ease-in-out_infinite]" style={{ transformOrigin: '85px 160px' }}>
-                <rect
-                  x="50"
-                  y="150"
-                  width="40"
-                  height="60"
-                  rx="10"
-                  className="fill-indigo-500 dark:fill-indigo-400"
-                />
-              </g>
-
-              <rect
-                x="210"
-                y="150"
-                width="40"
-                height="60"
-                rx="10"
-                className="fill-indigo-500 dark:fill-indigo-400"
-              />
-
-              {/* Legs */}
-              <rect
-                x="105"
-                y="240"
-                width="35"
-                height="50"
-                rx="10"
-                className="fill-indigo-700 dark:fill-indigo-600"
-              />
-              <rect
-                x="160"
-                y="240"
-                width="35"
-                height="50"
-                rx="10"
-                className="fill-indigo-700 dark:fill-indigo-600"
-              />
-            </g>
-
-            {/* Sparkles around character */}
-            <g className="animate-[sparkle_2s_ease-in-out_infinite]">
-              <circle cx="60" cy="100" r="3" className="fill-yellow-400 dark:fill-yellow-300" />
-              <circle cx="240" cy="120" r="3" className="fill-yellow-400 dark:fill-yellow-300" />
-              <circle cx="80" cy="200" r="3" className="fill-yellow-400 dark:fill-yellow-300" />
-              <circle cx="220" cy="180" r="3" className="fill-yellow-400 dark:fill-yellow-300" />
-            </g>
-          </svg>
-        </div>
-
-        {/* Text content */}
-        <div className={`text-center mb-12 transition-all duration-1000 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent animate-[gradient_3s_ease-in-out_infinite]">
-            Welcome Aboard!
-          </h1>
-          <p className="text-lg sm:text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto px-4">
-            Preparing your amazing experience...
-          </p>
-        </div>
-
-        {/* Progress bar */}
-        <div className={`w-full max-w-md px-4 transition-all duration-1000 delay-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <div className="relative h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden shadow-inner">
-            <div
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-500 dark:via-purple-500 dark:to-pink-500 rounded-full transition-all duration-300 ease-out shadow-lg"
-              style={{ width: `${progress}%` }}
-            >
-              <div className="absolute inset-0 bg-white/30 animate-[shimmer_1.5s_ease-in-out_infinite]" />
+            </div>
+            <div className="flex justify-between text-xs font-mono text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+              <span>System Check</span>
+              <span>{Math.round(progress)}%</span>
             </div>
           </div>
-          <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400 font-medium">
-            {progress < 100 ? `Loading... ${progress}%` : 'Redirecting...'}
-          </p>
+
         </div>
 
-        {/* Floating particles */}
-        <div className="absolute inset-0 pointer-events-none">
-          {mounted && particles.map((particle) => (
-            <div
-              key={particle.id}
-              className="absolute w-2 h-2 bg-indigo-500/40 dark:bg-indigo-400/40 rounded-full animate-[float_4s_ease-in-out_infinite]"
-              style={{
-                left: `${particle.left}%`,
-                top: `${particle.top}%`,
-                animationDelay: `${particle.delay}s`,
-                animationDuration: `${particle.duration}s`,
-              }}
-            />
-          ))}
+        {/* Footer / Copyright */}
+        <div className="absolute bottom-6 text-xs text-gray-400 dark:text-gray-600 text-center w-full animate-fade-in-up">
+          <p>© {new Date().getFullYear()} Enterprise Platform. Secure Connection.</p>
         </div>
+
       </div>
 
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
+      {/* --- Global Custom CSS for Animations --- */}
+      <style jsx global>{`
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); transform-origin: 50% 50%; }
+          to { transform: rotate(360deg); transform-origin: 50% 50%; }
+        }
+        @keyframes reverse-spin {
+          from { transform: rotate(360deg); transform-origin: 50% 50%; }
+          to { transform: rotate(0deg); transform-origin: 50% 50%; }
+        }
+        @keyframes spin-fast {
+          from { transform: rotate(0deg); transform-origin: 100px 100px; }
+          to { transform: rotate(360deg); transform-origin: 100px 100px; }
+        }
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-20px); }
         }
-        
-        @keyframes wave {
-          0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(-15deg); }
-          75% { transform: rotate(15deg); }
-        }
-        
-        @keyframes blink {
-          0%, 90%, 100% { transform: scaleY(1); }
-          95% { transform: scaleY(0.1); }
-        }
-        
-        @keyframes sparkle {
+        @keyframes pulse-slow {
           0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.5); }
+          50% { opacity: 0.6; transform: scale(1.1); }
         }
-        
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        
-        @keyframes gradient {
-          0%, 100% { background-position: 0% 50%; }
+        @keyframes gradient-x {
+          0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+        .animate-spin-slow {
+          animation: spin-slow 12s linear infinite;
+        }
+        .animate-reverse-spin {
+          animation: reverse-spin 15s linear infinite;
+        }
+        .animate-spin-fast {
+          animation: spin-fast 3s linear infinite;
+        }
+        .animate-float-slow {
+          animation: float-slow 6s ease-in-out infinite;
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 4s ease-in-out infinite;
+        }
+        .animate-gradient-x {
+          background-size: 200% 200%;
+          animation: gradient-x 5s ease infinite;
+        }
+        .shadow-glow {
+          filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.6));
         }
       `}</style>
-    </div>
+    </main>
   );
 }
