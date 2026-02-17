@@ -21,8 +21,6 @@ import {
   X,
   List,
   Filter,
-  TrendingUp,
-  AlertCircle,
   BarChart3,
 } from "lucide-react";
 import AttendMateBottomNav from "@/components/navigation/AttendMateBottomNav";
@@ -56,26 +54,16 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true);
   const [selectedAttendance, setSelectedAttendance] = useState<Attendance | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  /* ---------------- HELPER: Parse Time Safely ---------------- */
+  /* ── Parse Time ── */
   const parseTime = (timeValue: any): Date => {
     if (!timeValue) return new Date();
-    if (timeValue.toDate && typeof timeValue.toDate === "function") {
-      return timeValue.toDate();
-    }
-    if (timeValue instanceof Date) {
-      return timeValue;
-    }
+    if (timeValue.toDate && typeof timeValue.toDate === "function") return timeValue.toDate();
+    if (timeValue instanceof Date) return timeValue;
     if (typeof timeValue === "string") {
       try {
         const today = new Date();
-        const timeStr = timeValue.trim();
-        const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+        const match = timeValue.trim().match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
         if (match) {
           let hours = parseInt(match[1]);
           const minutes = parseInt(match[2]);
@@ -85,28 +73,31 @@ export default function AttendancePage() {
           today.setHours(hours, minutes, 0, 0);
           return today;
         }
-      } catch (e) {
-        console.error("Error parsing time string:", e);
-      }
+      } catch (e) {}
     }
-    if (typeof timeValue === "number") {
-      return new Date(timeValue);
-    }
+    if (typeof timeValue === "number") return new Date(timeValue);
     return new Date();
   };
 
-  /* ---------------- FETCH DATA ---------------- */
+  const formatTime = (timeValue: any): string => {
+    try {
+      return parseTime(timeValue).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch {
+      return "";
+    }
+  };
+
+  /* ── Fetch Data ── */
   useEffect(() => {
     const loadData = async () => {
-      if (!auth.currentUser) {
-        router.push("/login");
-        return;
-      }
+      if (!auth.currentUser) { router.push("/login"); return; }
       const uid = auth.currentUser.uid;
       try {
-        const subjectSnap = await getDocs(
-          collection(db, "users", uid, "subjects")
-        );
+        const subjectSnap = await getDocs(collection(db, "users", uid, "subjects"));
         const subjectList: Subject[] = subjectSnap.docs.map((d) => ({
           id: d.id,
           name: d.data().name || "Unknown Subject",
@@ -114,6 +105,7 @@ export default function AttendancePage() {
           attendedClasses: d.data().attendedClasses || 0,
         }));
         setSubjects(subjectList);
+
         const attendanceList: Attendance[] = [];
         for (const subject of subjectSnap.docs) {
           const attSnap = await getDocs(
@@ -121,20 +113,15 @@ export default function AttendancePage() {
           );
           attSnap.forEach((docSnap) => {
             const data = docSnap.data();
-            let status: "PRESENT" | "ABSENT" = "ABSENT";
-            if (data.status) {
-              const statusStr = String(data.status).toUpperCase().trim();
-              status = statusStr === "PRESENT" ? "PRESENT" : "ABSENT";
-            }
-            const uniqueId = `${subject.id}_${docSnap.id}`;
+            const statusStr = String(data.status || "").toUpperCase().trim();
             attendanceList.push({
-              id: uniqueId,
+              id: `${subject.id}_${docSnap.id}`,
               subjectId: subject.id,
               subjectName: subject.data().name || "Unknown Subject",
               date: data.date || Timestamp.now(),
               startTime: data.startTime || "",
               endTime: data.endTime || "",
-              status: status,
+              status: statusStr === "PRESENT" ? "PRESENT" : "ABSENT",
               lectureKey: docSnap.id,
               note: typeof data.note === "string" ? data.note : undefined,
             });
@@ -151,601 +138,492 @@ export default function AttendancePage() {
     loadData();
   }, [router]);
 
-  /* ---------------- DELETE ATTENDANCE ---------------- */
+  /* ── Delete ── */
   const deleteAttendance = async (item: Attendance) => {
     if (!auth.currentUser) return;
     setDeleteLoading(true);
     const uid = auth.currentUser.uid;
     const subjectRef = doc(db, "users", uid, "subjects", item.subjectId);
     const attendanceRef = doc(
-      db,
-      "users",
-      uid,
-      "subjects",
-      item.subjectId,
-      "attendance",
-      item.lectureKey || item.id.split('_')[1]
+      db, "users", uid, "subjects", item.subjectId,
+      "attendance", item.lectureKey || item.id.split("_")[1]
     );
     try {
-      await runTransaction(db, async (transaction) => {
-        const subjectSnap = await transaction.get(subjectRef);
-        if (!subjectSnap.exists()) return;
-        const subject = subjectSnap.data();
-        transaction.delete(attendanceRef);
-        transaction.update(subjectRef, {
-          totalClasses: Math.max(0, subject.totalClasses - 1),
-          attendedClasses:
-            item.status === "PRESENT"
-              ? Math.max(0, subject.attendedClasses - 1)
-              : subject.attendedClasses,
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(subjectRef);
+        if (!snap.exists()) return;
+        const s = snap.data();
+        tx.delete(attendanceRef);
+        tx.update(subjectRef, {
+          totalClasses: Math.max(0, s.totalClasses - 1),
+          attendedClasses: item.status === "PRESENT"
+            ? Math.max(0, s.attendedClasses - 1)
+            : s.attendedClasses,
         });
       });
       setAttendance((prev) => prev.filter((a) => a.id !== item.id));
-      setSubjects((prev) =>
-        prev.map((s) => {
-          if (s.id === item.subjectId) {
-            return {
-              ...s,
-              totalClasses: Math.max(0, s.totalClasses - 1),
-              attendedClasses:
-                item.status === "PRESENT"
-                  ? Math.max(0, s.attendedClasses - 1)
-                  : s.attendedClasses,
-            };
-          }
-          return s;
-        })
-      );
+      setSubjects((prev) => prev.map((s) => s.id !== item.subjectId ? s : {
+        ...s,
+        totalClasses: Math.max(0, s.totalClasses - 1),
+        attendedClasses: item.status === "PRESENT"
+          ? Math.max(0, s.attendedClasses - 1)
+          : s.attendedClasses,
+      }));
       setSelectedAttendance(null);
     } catch (error) {
-      console.error("Error deleting attendance:", error);
-      alert("Failed to delete attendance. Please try again.");
+      console.error("Error deleting:", error);
+      alert("Failed to delete. Please try again.");
     } finally {
       setDeleteLoading(false);
     }
   };
 
-  /* ---------------- FILTER LOGIC (Memoized) ---------------- */
-  const filteredAttendance = useMemo(() => {
-    return attendance.filter((a) => {
-      const matchesStatus = filter === "ALL" || a.status === filter;
-      const matchesSubject =
-        selectedSubject === "ALL" || a.subjectId === selectedSubject;
-      const dateStr = a.date.toDate().toLocaleDateString();
-      const matchesSearch =
-        searchQuery === "" ||
-        a.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dateStr.includes(searchQuery);
-      return matchesStatus && matchesSubject && matchesSearch;
-    });
-  }, [attendance, filter, selectedSubject, searchQuery]);
+  /* ── Filters ── */
+  const filteredAttendance = useMemo(() => attendance.filter((a) => {
+    const matchesStatus = filter === "ALL" || a.status === filter;
+    const matchesSubject = selectedSubject === "ALL" || a.subjectId === selectedSubject;
+    const dateStr = a.date.toDate().toLocaleDateString();
+    const matchesSearch =
+      searchQuery === "" ||
+      a.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      dateStr.includes(searchQuery);
+    return matchesStatus && matchesSubject && matchesSearch;
+  }), [attendance, filter, selectedSubject, searchQuery]);
 
   const stats = useMemo(() => {
     const total = filteredAttendance.length;
     const present = filteredAttendance.filter((a) => a.status === "PRESENT").length;
     const absent = filteredAttendance.filter((a) => a.status === "ABSENT").length;
-    const percentage = total === 0 ? 0 : Number(((present / total) * 100).toFixed(1));
-    return { total, present, absent, percentage };
+    return {
+      total, present, absent,
+      percentage: total === 0 ? 0 : Number(((present / total) * 100).toFixed(1)),
+    };
   }, [filteredAttendance]);
 
-  const groupedAttendance = useMemo(() => {
-    return filteredAttendance.reduce((acc, item) => {
-      const dateKey = item.date.toDate().toLocaleDateString("en-US", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
+  const groupedAttendance = useMemo(() =>
+    filteredAttendance.reduce((acc, item) => {
+      const key = item.date.toDate().toLocaleDateString("en-US", {
+        day: "2-digit", month: "short", year: "numeric",
       });
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(item);
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item);
       return acc;
-    }, {} as Record<string, Attendance[]>);
-  }, [filteredAttendance]);
+    }, {} as Record<string, Attendance[]>),
+  [filteredAttendance]);
 
-  /* ---------------- FORMAT TIME ---------------- */
-  const formatTime = (timeValue: any): string => {
-    try {
-      const date = parseTime(timeValue);
-      return date.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      });
-    } catch (e) {
-      return "";
+  /* ── Circular Progress ── */
+  const radius = 72;
+  const circ = 2 * Math.PI * radius;
+  const offset = circ - (stats.percentage / 100) * circ;
+
+  /* ── Lock body scroll when modal open ── */
+  useEffect(() => {
+    if (selectedAttendance) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
     }
-  };
+    return () => { document.body.style.overflow = ""; };
+  }, [selectedAttendance]);
 
-  /* ---------------- CIRCULAR PROGRESS CALCULATION ---------------- */
-  const getCircularProgress = (percentage: number) => {
-    const radius = 85;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (percentage / 100) * circumference;
-    return { circumference, offset, radius };
-  };
-
-  const { circumference, offset, radius } = getCircularProgress(stats.percentage);
-
-  /* ---------------- LOADING STATE ---------------- */
+  /* ── Loading ── */
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 dark:from-gray-950 dark:via-slate-900 dark:to-gray-950 flex items-center justify-center p-4 transition-colors duration-300">
-        <div className="text-center space-y-6">
-          <div className="relative w-20 h-20 mx-auto">
-            <div className="absolute inset-0 border-4 border-indigo-200 dark:border-indigo-900/30 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-transparent border-t-indigo-600 dark:border-t-indigo-500 rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="relative w-12 h-12 mx-auto">
+            <div className="absolute inset-0 border-4 border-indigo-100 dark:border-indigo-900/30 rounded-full" />
+            <div className="absolute inset-0 border-4 border-transparent border-t-indigo-600 rounded-full animate-spin" />
           </div>
-          <div className="space-y-2">
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">
-              Loading Attendance
-            </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Please wait while we fetch your records...
-            </p>
-          </div>
+          <p className="text-sm font-medium text-gray-400">Loading records…</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 dark:from-gray-950 dark:via-slate-900 dark:to-gray-950 pb-24 sm:pb-28 transition-colors duration-300">
-      {/* Header */}
-      <div className={`backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-800/50 shadow-lg sticky top-0 z-40 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 lg:py-8">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
-              <School className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" />
+    <>
+      {/* ── PAGE WRAPPER ── */}
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24">
+
+        {/* ── HEADER ── */}
+        <div className="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-3 h-14 sm:h-16">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-indigo-500/25 flex-shrink-0">
+              <School className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-white" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 leading-none">
                 Attendance Tracker
               </h1>
-              <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
+              <p className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 leading-none mt-0.5">
                 Monitor your academic progress
               </p>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-6 sm:space-y-8">
-        {/* Stats Overview Card */}
-        <div className={`bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-8 lg:p-10 shadow-xl border border-gray-200/50 dark:border-gray-800/50 transition-all duration-1000 delay-100 ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-          <div className="flex items-center gap-3 mb-8">
-            <div className="p-3 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-lg shadow-indigo-500/30">
-              <BarChart3 className="w-6 h-6 text-white" />
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Performance Overview
-            </h2>
-          </div>
+        {/* ── CONTENT ── */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4">
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            {/* Circular Progress */}
-            <div className="flex items-center justify-center py-4">
-              <div className="relative">
-                <svg className="w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72" viewBox="0 0 200 200">
-                  {/* Background Circle */}
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r={radius}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="16"
-                    className="text-gray-200 dark:text-gray-800"
-                  />
-                  {/* Progress Circle */}
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r={radius}
-                    fill="none"
-                    stroke="url(#gradient)"
-                    strokeWidth="16"
-                    strokeLinecap="round"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={offset}
-                    transform="rotate(-90 100 100)"
-                    className="transition-all duration-1000 ease-out"
-                    style={{
-                      filter: "drop-shadow(0 0 10px rgba(99, 102, 241, 0.6))",
-                    }}
-                  />
-                  <defs>
-                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#6366f1" />
-                      <stop offset="50%" stopColor="#8b5cf6" />
-                      <stop offset="100%" stopColor="#a855f7" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                
-                {/* Center Content */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-5xl sm:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-none mb-3">
-                    {stats.percentage}%
-                  </span>
-                  <span className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400 font-semibold">
-                    Attendance Rate
-                  </span>
-                  <div className="mt-4 px-5 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 border border-indigo-300 dark:border-indigo-700/50 rounded-full">
-                    <span className="text-sm sm:text-base font-bold text-indigo-700 dark:text-indigo-300">
-                      {stats.present} / {stats.total} Classes
+          {/* Stats Card */}
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="p-4 sm:p-5">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md shadow-indigo-500/20 flex-shrink-0">
+                  <BarChart3 className="w-4 h-4 text-white" />
+                </div>
+                <h2 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
+                  Performance Overview
+                </h2>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-8">
+                {/* Circular */}
+                <div className="relative flex-shrink-0">
+                  <svg
+                    width="160" height="160" viewBox="0 0 200 200"
+                    style={{ filter: "drop-shadow(0 4px 12px rgba(99,102,241,0.18))" }}
+                  >
+                    <circle cx="100" cy="100" r={radius} fill="none" stroke="currentColor"
+                      strokeWidth="14" className="text-gray-100 dark:text-gray-800" />
+                    <circle cx="100" cy="100" r={radius} fill="none" stroke="url(#attGrad)"
+                      strokeWidth="14" strokeLinecap="round"
+                      strokeDasharray={circ} strokeDashoffset={offset}
+                      transform="rotate(-90 100 100)"
+                      style={{ transition: "stroke-dashoffset 1s ease-out" }} />
+                    <defs>
+                      <linearGradient id="attGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#6366f1" />
+                        <stop offset="50%" stopColor="#8b5cf6" />
+                        <stop offset="100%" stopColor="#a855f7" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-bold bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-none">
+                      {stats.percentage}%
+                    </span>
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 font-medium">Attendance</span>
+                    <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 mt-1">
+                      {stats.present}/{stats.total}
                     </span>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 lg:gap-5">
-              {/* Present Card */}
-              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-300 dark:border-emerald-800/50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-emerald-600/20 border border-emerald-500/30 rounded-xl group-hover:bg-emerald-600/30 transition-colors">
-                    <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
-                  </div>
-                  <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-500" />
-                </div>
-                <p className="text-4xl lg:text-5xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
-                  {stats.present}
-                </p>
-                <p className="text-sm text-emerald-700 dark:text-emerald-300 font-semibold">
-                  Classes Attended
-                </p>
-              </div>
-
-              {/* Absent Card */}
-              <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 border border-red-300 dark:border-red-800/50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-red-600/20 border border-red-500/30 rounded-xl group-hover:bg-red-600/30 transition-colors">
-                    <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
-                  </div>
-                  <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-500" />
-                </div>
-                <p className="text-4xl lg:text-5xl font-bold text-red-600 dark:text-red-400 mb-2">
-                  {stats.absent}
-                </p>
-                <p className="text-sm text-red-700 dark:text-red-300 font-semibold">
-                  Classes Missed
-                </p>
-              </div>
-
-              {/* Total Card */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-300 dark:border-blue-800/50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 sm:col-span-2 lg:col-span-1 group">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-blue-600/20 border border-blue-500/30 rounded-xl group-hover:bg-blue-600/30 transition-colors">
-                    <List className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-500" />
-                </div>
-                <p className="text-4xl lg:text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                  {stats.total}
-                </p>
-                <p className="text-sm text-blue-700 dark:text-blue-300 font-semibold">
-                  Total Classes
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Filters Section */}
-        <div className={`bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-8 shadow-xl border border-gray-200/50 dark:border-gray-800/50 space-y-5 transition-all duration-1000 delay-300 ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search by subject or date..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-14 pr-14 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
-          </div>
-
-          {/* Status Filter Buttons */}
-          <div className="flex flex-wrap gap-3">
-            {(["ALL", "PRESENT", "ABSENT"] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all ${
-                  filter === f
-                    ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/30 scale-105"
-                    : "bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:scale-105"
-                }`}
-              >
-                {f === "ALL" ? (
-                  <Filter className="w-5 h-5" />
-                ) : f === "PRESENT" ? (
-                  <CheckCircle className="w-5 h-5" />
-                ) : (
-                  <XCircle className="w-5 h-5" />
-                )}
-                {f.charAt(0) + f.slice(1).toLowerCase()}
-              </button>
-            ))}
-          </div>
-
-          {/* Subject Filter Dropdown */}
-          <select
-            value={selectedSubject}
-            onChange={(e) => setSelectedSubject(e.target.value)}
-            className="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 dark:text-white transition-all font-medium"
-          >
-            <option value="ALL">All Subjects</option>
-            {subjects.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Attendance List */}
-        {Object.keys(groupedAttendance).length === 0 ? (
-          <div className={`bg-white dark:bg-gray-900 rounded-3xl p-16 shadow-xl border-2 border-dashed border-gray-300 dark:border-gray-700 text-center transition-all duration-1000 delay-500 ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 border border-indigo-300 dark:border-indigo-700/50 rounded-full mb-6">
-              <Calendar className="w-12 h-12 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-              No Records Found
-            </h3>
-            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-              {filter !== "ALL"
-                ? `No ${filter.toLowerCase()} attendance records match your filters`
-                : "Start tracking your attendance to see records here"}
-            </p>
-          </div>
-        ) : (
-          <div className={`space-y-8 transition-all duration-1000 delay-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            {Object.entries(groupedAttendance).map(([date, items]) => (
-              <div key={date} className="space-y-5">
-                {/* Date Header */}
-                <div className="flex items-center gap-4 px-2">
-                  <div className="p-2.5 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/30">
-                    <Calendar className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    {date}
-                  </h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-gray-300 dark:from-gray-700 to-transparent"></div>
-                  <span className="px-4 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-300 dark:border-indigo-700/50 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-bold">
-                    {items.length} {items.length === 1 ? 'Class' : 'Classes'}
-                  </span>
-                </div>
-
-                {/* Attendance Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {items.map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => setSelectedAttendance(item)}
-                      className="group bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-800 hover:shadow-xl hover:border-indigo-300 dark:hover:border-indigo-700 transition-all cursor-pointer hover:scale-105 duration-300"
-                    >
-                      <div className="flex items-start gap-4 mb-4">
-                        <div
-                          className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-lg ${
-                            item.status === "PRESENT"
-                              ? "bg-gradient-to-br from-emerald-600 to-teal-600 shadow-emerald-500/30"
-                              : "bg-gradient-to-br from-red-600 to-orange-600 shadow-red-500/30"
-                          }`}
-                        >
-                          {item.status === "PRESENT" ? (
-                            <CheckCircle className="w-7 h-7 text-white" />
-                          ) : (
-                            <XCircle className="w-7 h-7 text-white" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-gray-900 dark:text-white text-lg mb-1 truncate">
-                            {item.subjectName}
-                          </h4>
-                          {item.startTime && item.endTime && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                              <Clock className="w-4 h-4 flex-shrink-0" />
-                              <span className="truncate">
-                                {formatTime(item.startTime)} - {formatTime(item.endTime)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                {/* Stat rows */}
+                <div className="flex-1 w-full space-y-2.5">
+                  {[
+                    { label: "Attended", val: stats.present, col: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-900/20", icon: <CheckCircle className="w-4 h-4 text-emerald-500" /> },
+                    { label: "Missed",   val: stats.absent,  col: "text-red-600 dark:text-red-400",         bg: "bg-red-50 dark:bg-red-900/20",         icon: <XCircle className="w-4 h-4 text-red-500" /> },
+                    { label: "Total",    val: stats.total,   col: "text-indigo-600 dark:text-indigo-400",   bg: "bg-indigo-50 dark:bg-indigo-900/20",   icon: <List className="w-4 h-4 text-indigo-500" /> },
+                  ].map((row) => (
+                    <div key={row.label} className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl ${row.bg}`}>
+                      <div className="flex items-center gap-2">
+                        {row.icon}
+                        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{row.label}</span>
                       </div>
-
-                      {item.note && (
-                        <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
-                          <div className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                            <span className="text-base">📝</span>
-                            <p className="line-clamp-2 flex-1">{item.note}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <span
-                          className={`inline-flex items-center px-4 py-2 rounded-xl font-semibold text-sm ${
-                            item.status === "PRESENT"
-                              ? "bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700/50 text-emerald-700 dark:text-emerald-400"
-                              : "bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700/50 text-red-700 dark:text-red-400"
-                          }`}
-                        >
-                          {item.status === "PRESENT" ? "✓ Present" : "✗ Absent"}
-                        </span>
-                      </div>
+                      <span className={`text-lg font-bold ${row.col}`}>{row.val}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-        )}
+
+          {/* Filters Card */}
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-4 space-y-3">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by subject or date…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-9 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Chips + Dropdown */}
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <div className="flex gap-2">
+                {(["ALL", "PRESENT", "ABSENT"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                      filter === f
+                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    {f === "ALL" ? <Filter className="w-3.5 h-3.5" /> :
+                     f === "PRESENT" ? <CheckCircle className="w-3.5 h-3.5" /> :
+                     <XCircle className="w-3.5 h-3.5" />}
+                    {f === "ALL" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
+                  </button>
+                ))}
+              </div>
+              <select
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                className="flex-1 px-3.5 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-all"
+              >
+                <option value="ALL">All Subjects</option>
+                {subjects.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Attendance List */}
+          {Object.keys(groupedAttendance).length === 0 ? (
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 p-10 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center mx-auto mb-3">
+                <Calendar className="w-6 h-6 text-indigo-400" />
+              </div>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">No records found</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {filter !== "ALL"
+                  ? `No ${filter.toLowerCase()} records match your filters`
+                  : "Start tracking to see records here"}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {Object.entries(groupedAttendance).map(([date, items]) => (
+                <div key={date} className="space-y-2.5">
+                  {/* Date header */}
+                  <div className="flex items-center gap-2 px-1">
+                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                      <Calendar className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="text-xs font-bold text-gray-900 dark:text-white">{date}</span>
+                    <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+                    <span className="text-[10px] font-bold px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full">
+                      {items.length} {items.length === 1 ? "class" : "classes"}
+                    </span>
+                  </div>
+
+                  {/* Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {items.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => setSelectedAttendance(item)}
+                        className={`w-full text-left p-3.5 rounded-2xl border-2 transition-all hover:shadow-md active:scale-[0.98] ${
+                          item.status === "PRESENT"
+                            ? "bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/50"
+                            : "bg-red-50/70 dark:bg-red-950/30 border-red-200 dark:border-red-800/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                            item.status === "PRESENT"
+                              ? "bg-gradient-to-br from-emerald-500 to-teal-500 shadow-sm shadow-emerald-500/20"
+                              : "bg-gradient-to-br from-red-500 to-orange-500 shadow-sm shadow-red-500/20"
+                          }`}>
+                            {item.status === "PRESENT"
+                              ? <CheckCircle className="w-5 h-5 text-white" />
+                              : <XCircle className="w-5 h-5 text-white" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
+                              {item.subjectName}
+                            </p>
+                            {item.startTime && item.endTime && (
+                              <p className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
+                                <Clock className="w-3 h-3 flex-shrink-0" />
+                                {formatTime(item.startTime)} – {formatTime(item.endTime)}
+                              </p>
+                            )}
+                            {item.note && (
+                              <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 truncate">
+                                📝 {item.note}
+                              </p>
+                            )}
+                          </div>
+                          <span className={`w-7 h-7 rounded-lg text-xs font-bold flex-shrink-0 flex items-center justify-center ${
+                            item.status === "PRESENT"
+                              ? "bg-emerald-500 text-white"
+                              : "bg-red-500 text-white"
+                          }`}>
+                            {item.status === "PRESENT" ? "✓" : "✗"}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Detail Modal */}
+      {/* ── BOTTOM NAV (always on top of everything except modal) ── */}
+      <AttendMateBottomNav />
+
+      {/* ── DETAIL MODAL — perfectly centered, above everything including nav ── */}
       {selectedAttendance && (
         <div
           onClick={() => setSelectedAttendance(null)}
-          className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-300"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.65)" }}
         >
+          {/* Backdrop blur layer */}
+          <div className="absolute inset-0 backdrop-blur-sm" />
+
+          {/* Modal */}
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-gray-900 rounded-3xl max-w-md w-full shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden animate-in zoom-in-95 duration-300"
+            className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden"
+            style={{
+              animation: "modalIn 0.2s ease-out",
+            }}
           >
-            {/* Modal Header */}
-            <div
-              className={`p-8 ${
-                selectedAttendance.status === "PRESENT"
-                  ? "bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b border-emerald-300 dark:border-emerald-800/50"
-                  : "bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 border-b border-red-300 dark:border-red-800/50"
-              }`}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div
-                    className={`w-20 h-20 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${
-                      selectedAttendance.status === "PRESENT"
-                        ? "bg-gradient-to-br from-emerald-600 to-teal-600 shadow-emerald-500/30"
-                        : "bg-gradient-to-br from-red-600 to-orange-600 shadow-red-500/30"
-                    }`}
-                  >
-                    {selectedAttendance.status === "PRESENT" ? (
-                      <CheckCircle className="w-10 h-10 text-white" />
-                    ) : (
-                      <XCircle className="w-10 h-10 text-white" />
-                    )}
+            {/* Colored header */}
+            <div className={`px-5 py-4 ${
+              selectedAttendance.status === "PRESENT"
+                ? "bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border-b border-emerald-200/70 dark:border-emerald-800/40"
+                : "bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/40 dark:to-orange-950/40 border-b border-red-200/70 dark:border-red-800/40"
+            }`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md ${
+                    selectedAttendance.status === "PRESENT"
+                      ? "bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-500/25"
+                      : "bg-gradient-to-br from-red-500 to-orange-500 shadow-red-500/25"
+                  }`}>
+                    {selectedAttendance.status === "PRESENT"
+                      ? <CheckCircle className="w-6 h-6 text-white" />
+                      : <XCircle className="w-6 h-6 text-white" />}
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white truncate">
-                    {selectedAttendance.subjectName}
-                  </h3>
+                  <div className="min-w-0">
+                    <p className="font-bold text-base text-gray-900 dark:text-gray-100 truncate leading-tight">
+                      {selectedAttendance.subjectName}
+                    </p>
+                    <span className={`text-xs font-bold ${
+                      selectedAttendance.status === "PRESENT"
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-red-600 dark:text-red-400"
+                    }`}>
+                      {selectedAttendance.status === "PRESENT" ? "✓ Attended" : "✗ Missed"}
+                    </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => setSelectedAttendance(null)}
-                  className="w-12 h-12 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-800 flex items-center justify-center transition-colors flex-shrink-0 ml-2"
+                  className="w-8 h-8 rounded-xl bg-white/70 dark:bg-gray-800/70 flex items-center justify-center hover:bg-white dark:hover:bg-gray-800 transition-colors flex-shrink-0 border border-gray-200/50 dark:border-gray-700/50"
                 >
-                  <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                  <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                 </button>
-              </div>
-              <div
-                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold shadow-lg ${
-                  selectedAttendance.status === "PRESENT"
-                    ? "bg-emerald-600 text-white shadow-emerald-600/30"
-                    : "bg-red-600 text-white shadow-red-600/30"
-                }`}
-              >
-                {selectedAttendance.status === "PRESENT" ? "✓ Attended" : "✗ Missed"}
               </div>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-8 space-y-6">
+            {/* Body */}
+            <div className="p-5 space-y-2.5">
               {/* Date */}
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Date
-                </label>
-                <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
-                  <Calendar className="w-6 h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">
+              <div className="flex items-center gap-3 px-3.5 py-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl">
+                <Calendar className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Date</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                     {selectedAttendance.date.toDate().toLocaleDateString("en-US", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
+                      weekday: "long", day: "numeric", month: "long", year: "numeric",
                     })}
-                  </span>
+                  </p>
                 </div>
               </div>
 
               {/* Time */}
               {selectedAttendance.startTime && selectedAttendance.endTime && (
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Time
-                  </label>
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
-                    <Clock className="w-6 h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
-                    <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {formatTime(selectedAttendance.startTime)} - {formatTime(selectedAttendance.endTime)}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Subject */}
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Subject
-                </label>
-                <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
-                  <School className="w-6 h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {selectedAttendance.subjectName}
-                  </span>
-                </div>
-              </div>
-
-              {/* Note */}
-              {selectedAttendance.note && (
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Note
-                  </label>
-                  <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
-                    <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed">
-                      {selectedAttendance.note}
+                <div className="flex items-center gap-3 px-3.5 py-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl">
+                  <Clock className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Time</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      {formatTime(selectedAttendance.startTime)} – {formatTime(selectedAttendance.endTime)}
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              {/* Subject */}
+              <div className="flex items-center gap-3 px-3.5 py-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl">
+                <School className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Subject</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+                    {selectedAttendance.subjectName}
+                  </p>
+                </div>
+              </div>
+
+              {/* Note */}
+              {selectedAttendance.note && (
+                <div className="px-3.5 py-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl">
+                  <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1">Note</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    📝 {selectedAttendance.note}
+                  </p>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2.5 pt-1">
                 <button
                   onClick={() => {
                     router.push(
-                      `/attendance/edit/${selectedAttendance.subjectId}/${selectedAttendance.lectureKey || selectedAttendance.id.split('_')[1]}`
+                      `/attendance/edit/${selectedAttendance.subjectId}/${selectedAttendance.lectureKey || selectedAttendance.id.split("_")[1]}`
                     );
                     setSelectedAttendance(null);
                   }}
-                  className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-200 hover:scale-105 shadow-lg shadow-indigo-600/30"
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-sm flex items-center justify-center gap-1.5 transition-all shadow-md shadow-indigo-500/20 active:scale-95"
                 >
-                  <Edit2 className="w-5 h-5" />
-                  <span>Edit</span>
+                  <Edit2 className="w-4 h-4" />
+                  Edit
                 </button>
                 <button
                   onClick={() => deleteAttendance(selectedAttendance)}
                   disabled={deleteLoading}
-                  className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 disabled:from-red-400 disabled:to-rose-400 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-200 hover:scale-105 shadow-lg shadow-red-600/30 disabled:cursor-not-allowed disabled:scale-100"
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-1.5 transition-all shadow-md shadow-red-500/20 active:scale-95 disabled:cursor-not-allowed"
                 >
                   {deleteLoading ? (
                     <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Deleting...</span>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Deleting…
                     </>
                   ) : (
                     <>
-                      <Trash2 className="w-5 h-5" />
-                      <span>Delete</span>
+                      <Trash2 className="w-4 h-4" />
+                      Delete
                     </>
                   )}
                 </button>
               </div>
             </div>
           </div>
+
+          {/* Modal animation keyframe */}
+          <style>{`
+            @keyframes modalIn {
+              from { opacity: 0; transform: scale(0.92) translateY(8px); }
+              to   { opacity: 1; transform: scale(1) translateY(0); }
+            }
+          `}</style>
         </div>
       )}
-
-      <AttendMateBottomNav />
-    </div>
+    </>
   );
 }
