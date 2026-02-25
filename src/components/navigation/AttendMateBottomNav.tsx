@@ -20,206 +20,105 @@ const navItems: {
   path: string;
   accent: string;
 }[] = [
-  {
-    key: "home",
-    label: "Home",
-    icon: Home,
-    path: "/dashboard",
-    accent: "#6C63FF",
-  },
-  {
-    key: "attendance",
-    label: "Attend",
-    icon: ListAlt,
-    path: "/attendance",
-    accent: "#06B6D4",
-  },
-  {
-    key: "analytics",
-    label: "Analytics",
-    icon: BarChart,
-    path: "/analytics",
-    accent: "#10B981",
-  },
-  {
-    key: "settings",
-    label: "Settings",
-    icon: Settings,
-    path: "/settings",
-    accent: "#F59E0B",
-  },
+  { key: "home", label: "Home", icon: Home, path: "/dashboard", accent: "#6C63FF" },
+  { key: "attendance", label: "Attend", icon: ListAlt, path: "/attendance", accent: "#06B6D4" },
+  { key: "analytics", label: "Analytics", icon: BarChart, path: "/analytics", accent: "#10B981" },
+  { key: "settings", label: "Settings", icon: Settings, path: "/settings", accent: "#F59E0B" },
 ];
 
 export default function AttendMateBottomNav() {
   const router = useRouter();
   const pathname = usePathname();
-  const [ripple, setRipple] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const active =
-    navItems.find((n) => pathname?.startsWith(n.path))?.key ?? "home";
+  const active = navItems.find((n) => pathname?.startsWith(n.path))?.key ?? "home";
   const activeItem = navItems.find((n) => n.key === active);
-
-  const handleNav = (key: string, path: string) => {
-    setRipple(key);
-    setTimeout(() => setRipple(null), 500);
-    router.push(path);
-  };
 
   if (!mounted) return null;
 
   return (
     <>
-      {/* Glow orb that follows active route */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
         .nav-root * {
-          font-family: 'DM Sans', sans-serif;
-          -webkit-font-smoothing: antialiased;
+          font-family: 'Inter', system-ui, sans-serif;
+          -webkit-tap-highlight-color: transparent;
         }
 
-        .nav-glass {
-          background: rgba(15, 15, 20, 0.82);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          box-shadow:
-            0 -1px 0 rgba(255,255,255,0.06) inset,
-            0 0 0 1px rgba(0,0,0,0.3),
-            0 24px 64px rgba(0,0,0,0.6),
-            0 8px 24px rgba(0,0,0,0.4);
+        /* Professional Glassmorphism */
+        .premium-glass {
+          background: rgba(18, 18, 23, 0.85);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
         }
 
-        .nav-glass-light {
-          background: rgba(255, 255, 255, 0.88);
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          box-shadow:
-            0 -1px 0 rgba(255,255,255,0.9) inset,
-            0 24px 64px rgba(0,0,0,0.12),
-            0 8px 24px rgba(0,0,0,0.08);
+        /* Safe area support for modern iOS/Android devices */
+        .safe-padding {
+          padding-bottom: env(safe-area-inset-bottom, 16px);
         }
 
-        .fab-glow {
-          box-shadow:
-            0 0 0 1px rgba(108,99,255,0.3),
-            0 4px 20px rgba(108,99,255,0.6),
-            0 8px 40px rgba(108,99,255,0.3),
-            0 0 80px rgba(108,99,255,0.15);
-        }
-
-        .fab-glow:hover {
-          box-shadow:
-            0 0 0 1px rgba(108,99,255,0.5),
-            0 4px 20px rgba(108,99,255,0.8),
-            0 8px 48px rgba(108,99,255,0.4),
-            0 0 100px rgba(108,99,255,0.2);
-        }
-
-        .pip {
-          width: 4px;
-          height: 4px;
-          border-radius: 50%;
-          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .nav-item-bg {
-          transition: background 0.25s ease, border-color 0.25s ease;
-        }
-
-        @keyframes ripple-out {
-          0% { transform: scale(0.5); opacity: 0.6; }
-          100% { transform: scale(2.5); opacity: 0; }
-        }
-        .ripple-ring {
-          animation: ripple-out 0.5s ease-out forwards;
+        /* Sleek FAB styling */
+        .fab-premium {
+          background: linear-gradient(135deg, #6C63FF 0%, #4338CA 100%);
+          box-shadow: 0 8px 24px rgba(108, 99, 255, 0.35),
+                      inset 0 1px 1px rgba(255, 255, 255, 0.2);
         }
       `}</style>
 
-      <div className="nav-root fixed bottom-0 left-0 right-0 z-50 pb-5 px-4">
-        <div className="relative mx-auto max-w-[420px]">
-
-          {/* Active accent line at very top of bar */}
+      {/* Full width wrapper. 
+        Uses safe-padding to lift icons above the iOS home bar.
+      */}
+      <div className="nav-root fixed bottom-0 left-0 right-0 z-50 premium-glass safe-padding transition-all duration-300">
+        
+        {/* Active Top Indicator Line */}
+        <div className="absolute top-0 left-0 right-0 h-[1px] overflow-hidden">
           <motion.div
-            className="absolute -top-[1px] left-1/2 h-[2px] rounded-full z-10"
+            className="absolute top-0 h-[2px] rounded-full"
             style={{ backgroundColor: activeItem?.accent }}
+            initial={false}
             animate={{
-              width: "40%",
+              // Calculate position based on a 5-column grid
+              left: active === "home" ? "10%" :
+                    active === "attendance" ? "30%" :
+                    active === "analytics" ? "70%" : "90%",
               x: "-50%",
-              opacity: 1,
+              width: "40px",
             }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ type: "spring", stiffness: 350, damping: 30 }}
           />
+        </div>
 
-          {/* Main glass bar */}
-          <div className="nav-glass relative h-[68px] rounded-[24px] flex items-center justify-between px-3 backdrop-blur-2xl">
+        {/* 5-Column Grid ensures perfect spacing on all screen sizes */}
+        <div className="max-w-md mx-auto relative h-[68px] grid grid-cols-5 items-center px-2">
+          
+          {/* Left Items */}
+          <NavItem item={navItems[0]} isActive={active === navItems[0].key} onClick={() => router.push(navItems[0].path)} />
+          <NavItem item={navItems[1]} isActive={active === navItems[1].key} onClick={() => router.push(navItems[1].path)} />
 
-            {/* Left two items */}
-            <div className="flex items-center gap-1">
-              {navItems.slice(0, 2).map((item) => (
-                <NavItem
-                  key={item.key}
-                  item={item}
-                  isActive={active === item.key}
-                  hasRipple={ripple === item.key}
-                  onClick={() => handleNav(item.key, item.path)}
-                />
-              ))}
-            </div>
-
-            {/* Center spacer for FAB */}
-            <div className="w-[72px] flex-shrink-0" />
-
-            {/* Right two items */}
-            <div className="flex items-center gap-1">
-              {navItems.slice(2).map((item) => (
-                <NavItem
-                  key={item.key}
-                  item={item}
-                  isActive={active === item.key}
-                  hasRipple={ripple === item.key}
-                  onClick={() => handleNav(item.key, item.path)}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* FAB */}
-          <div className="absolute left-1/2 -translate-x-1/2 -top-[22px]">
-            {/* Pulse ring */}
-            <motion.div
-              className="absolute inset-0 rounded-full"
-              style={{ backgroundColor: "rgba(108,99,255,0.25)" }}
-              animate={{ scale: [1, 1.35, 1], opacity: [0.5, 0, 0.5] }}
-              transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-            />
-
+          {/* Center FAB Spacer & Button */}
+          <div className="relative flex justify-center items-center h-full">
             <motion.button
-              whileHover={{ scale: 1.08, rotate: 45 }}
-              whileTap={{ scale: 0.92, rotate: 90 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.9, rotate: 45 }}
               onClick={() => router.push("/attendance/add")}
-              transition={{ type: "spring", stiffness: 400, damping: 22 }}
-              className="fab-glow relative h-[56px] w-[56px] rounded-[18px] flex items-center justify-center"
-              style={{
-                background:
-                  "linear-gradient(135deg, #7C6FFF 0%, #5B4FFF 50%, #4338CA 100%)",
-              }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="fab-premium absolute -top-5 w-14 h-14 rounded-2xl flex items-center justify-center z-10"
             >
-              {/* Shine */}
-              <div
-                className="absolute inset-0 rounded-[18px]"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgba(255,255,255,0.22) 0%, transparent 60%)",
-                }}
-              />
-              <Add
-                style={{ color: "#fff", fontSize: 26, position: "relative", zIndex: 1 }}
-              />
+              <Add style={{ color: "#fff", fontSize: 28 }} />
             </motion.button>
           </div>
+
+          {/* Right Items */}
+          <NavItem item={navItems[2]} isActive={active === navItems[2].key} onClick={() => router.push(navItems[2].path)} />
+          <NavItem item={navItems[3]} isActive={active === navItems[3].key} onClick={() => router.push(navItems[3].path)} />
+          
         </div>
       </div>
     </>
@@ -231,96 +130,65 @@ export default function AttendMateBottomNav() {
 function NavItem({
   item,
   isActive,
-  hasRipple,
   onClick,
 }: {
   item: (typeof navItems)[number];
   isActive: boolean;
-  hasRipple: boolean;
   onClick: () => void;
 }) {
   const Icon = item.icon;
 
   return (
-    <motion.button
+    <button
       onClick={onClick}
-      whileTap={{ scale: 0.88 }}
-      className="relative flex flex-col items-center justify-center w-[68px] h-[52px] rounded-[16px] overflow-hidden select-none"
+      className="relative flex flex-col items-center justify-center w-full h-full select-none outline-none group"
     >
-      {/* Active background pill */}
-      <AnimatePresence>
-        {isActive && (
-          <motion.div
-            key="active-bg"
-            layoutId="active-nav-bg"
-            className="absolute inset-0 rounded-[16px]"
-            style={{
-              backgroundColor: `${item.accent}18`,
-              border: `1px solid ${item.accent}30`,
-            }}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-          />
-        )}
-      </AnimatePresence>
+      {/* Background Pill */}
+      <div className="absolute inset-2 rounded-xl flex items-center justify-center overflow-hidden">
+        <AnimatePresence>
+          {isActive && (
+            <motion.div
+              layoutId="active-nav-bg"
+              className="absolute inset-0"
+              style={{ backgroundColor: `${item.accent}15` }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            />
+          )}
+        </AnimatePresence>
+      </div>
 
-      {/* Ripple effect */}
-      {hasRipple && (
-        <div
-          className="ripple-ring absolute inset-0 rounded-[16px]"
-          style={{ border: `2px solid ${item.accent}50` }}
-        />
-      )}
-
-      {/* Icon */}
+      {/* Icon & Label Container */}
       <motion.div
-        animate={{
-          y: isActive ? -1 : 0,
-          scale: isActive ? 1.1 : 1,
-        }}
-        transition={{ type: "spring", stiffness: 400, damping: 28 }}
+        className="relative z-10 flex flex-col items-center gap-1"
+        animate={{ y: isActive ? -2 : 0 }}
+        transition={{ type: "spring", stiffness: 400, damping: 30 }}
       >
-        <Icon
-          style={{
-            fontSize: 22,
-            color: isActive ? item.accent : "rgba(180,180,190,0.7)",
-            transition: "color 0.2s ease",
-          }}
-        />
-      </motion.div>
-
-      {/* Label */}
-      <AnimatePresence>
-        {isActive && (
-          <motion.span
-            key="label"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.18 }}
-            className="mt-[2px] text-[10px] font-semibold tracking-wide leading-none"
-            style={{ color: item.accent }}
-          >
-            {item.label}
-          </motion.span>
-        )}
-      </AnimatePresence>
-
-      {/* Dot indicator when inactive */}
-      <AnimatePresence>
-        {!isActive && (
-          <motion.div
-            key="dot"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 0, scale: 0 }} // hidden until hovered via CSS
-            exit={{ opacity: 0, scale: 0 }}
-            className="mt-[3px] pip"
-            style={{ backgroundColor: "transparent" }}
+        <motion.div
+          animate={{ scale: isActive ? 1.1 : 1 }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        >
+          <Icon
+            style={{
+              fontSize: 24,
+              color: isActive ? item.accent : "#8b8b99",
+              transition: "color 0.3s ease",
+            }}
           />
-        )}
-      </AnimatePresence>
-    </motion.button>
+        </motion.div>
+
+        <span
+          className="text-[10px] font-medium tracking-wide transition-all duration-300"
+          style={{
+            color: isActive ? item.accent : "#8b8b99",
+            opacity: isActive ? 1 : 0.7,
+          }}
+        >
+          {item.label}
+        </span>
+      </motion.div>
+    </button>
   );
 }

@@ -135,7 +135,7 @@ export default function LoginPage() {
     const snap = await getDoc(userRef);
 
     const setupDone = snap.data()?.setupDone ?? false;
-    router.replace(setupDone ? "/dashboard" : "/setup");
+    router.replace(setupDone ? "/dashboard" : "/subjects");
   };
 
   return (
