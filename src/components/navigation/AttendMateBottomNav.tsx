@@ -50,15 +50,6 @@ export default function AttendMateBottomNav() {
           -webkit-tap-highlight-color: transparent;
         }
 
-        /* Professional Glassmorphism */
-        .premium-glass {
-          background: rgba(18, 18, 23, 0.85);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
-          box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
-        }
-
         /* Safe area support for modern iOS/Android devices */
         .safe-padding {
           padding-bottom: env(safe-area-inset-bottom, 16px);
@@ -72,16 +63,14 @@ export default function AttendMateBottomNav() {
         }
       `}</style>
 
-      {/* Full width wrapper. 
-        Uses safe-padding to lift icons above the iOS home bar.
-      */}
-      <div className="nav-root fixed bottom-0 left-0 right-0 z-50 premium-glass safe-padding transition-all duration-300">
+      {/* Full width wrapper with Tailwind Dark Mode support for Glassmorphism */}
+      <div className="nav-root fixed bottom-0 left-0 right-0 z-50 safe-padding transition-all duration-300 bg-white/85 dark:bg-[#121217]/85 backdrop-blur-[20px] border-t border-black/5 dark:border-white/10 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
         
         {/* Active Top Indicator Line */}
         <div className="absolute top-0 left-0 right-0 h-[1px] overflow-hidden">
           <motion.div
             className="absolute top-0 h-[2px] rounded-full"
-            style={{ backgroundColor: activeItem?.accent }}
+            style={{ backgroundColor: activeItem?.accent || "#6C63FF" }}
             initial={false}
             animate={{
               // Calculate position based on a 5-column grid
@@ -171,19 +160,19 @@ function NavItem({
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
         >
           <Icon
+            className={`transition-colors duration-300 ${isActive ? "" : "text-slate-500 dark:text-[#8b8b99]"}`}
             style={{
               fontSize: 24,
-              color: isActive ? item.accent : "#8b8b99",
-              transition: "color 0.3s ease",
+              color: isActive ? item.accent : undefined,
             }}
           />
         </motion.div>
 
         <span
-          className="text-[10px] font-medium tracking-wide transition-all duration-300"
+          className={`text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? "" : "text-slate-500 dark:text-[#8b8b99]"}`}
           style={{
-            color: isActive ? item.accent : "#8b8b99",
-            opacity: isActive ? 1 : 0.7,
+            color: isActive ? item.accent : undefined,
+            opacity: isActive ? 1 : 0.8,
           }}
         >
           {item.label}
