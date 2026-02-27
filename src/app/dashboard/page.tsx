@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, doc, getDocs, getDoc, query, where, runTransaction, Timestamp } from "firebase/firestore";
+import { collection, doc, getDocs, getDoc, query, where, runTransaction, Timestamp, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import AttendMateBottomNav from "@/components/navigation/AttendMateBottomNav";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,6 +12,7 @@ type TodayLecture = {
   status: "PRESENT" | "ABSENT";
   startTime: string;
   endTime: string;
+  note?: string; // Added note property
 };
 
 type ActiveLecture = {
@@ -104,11 +105,14 @@ export default function DashboardPage() {
             const date = att.data().date?.toDate?.().toISOString().split("T")[0] ?? att.data().date;
             if (date !== new Date().toISOString().split("T")[0]) continue;
 
+            const attNote = att.data().note || ""; // Extracting note
+
             todayList.push({
               subjectName,
               status,
               startTime: att.data().startTime?.toDate?.().toTimeString().slice(0, 5) ?? att.data().startTime,
               endTime: att.data().endTime?.toDate?.().toTimeString().slice(0, 5) ?? att.data().endTime,
+              note: attNote, // Saving note
             });
           }
 
@@ -122,10 +126,15 @@ export default function DashboardPage() {
           }
         }
 
-        setTodayLectures(todayList.sort((a, b) => a.startTime.localeCompare(b.startTime)));
-        setSubjectStats(Array.from(statsMap.values()).sort((a, b) => b.percentage - a.percentage));
+        const sortedTodayList = todayList.sort((l1, l2) => l1.startTime.localeCompare(l2.startTime));
+        setTodayLectures(sortedTodayList);
+        setSubjectStats(Array.from(statsMap.values()).sort((s1, s2) => s2.percentage - s1.percentage));
         setTotal(t);
         setAttended(a);
+
+        // ✅ Save daily snapshot exactly like the Android app
+        await saveDailySnapshot(user.uid, sortedTodayList, t, a);
+
       } catch (e: any) {
         setError(e.message);
       } finally {
@@ -256,6 +265,43 @@ export default function DashboardPage() {
       <AttendMateBottomNav />
     </main>
   );
+}
+
+/* ──────────────────────────────────────────
+   SNAPSHOT HELPER FUNCTION
+────────────────────────────────────────── */
+async function saveDailySnapshot(userId: string, todayLectures: TodayLecture[], total: number, attended: number) {
+  try {
+    const todayDate = new Date().toISOString().split("T")[0];
+    const percentage = total === 0 ? 0 : Number(((attended * 100) / total).toFixed(1));
+
+    const lectureMap: Record<string, any> = {};
+    todayLectures.forEach((lecture) => {
+      const uniqueKey = `${lecture.subjectName}_${lecture.startTime.replace(":", "")}`;
+      lectureMap[uniqueKey] = {
+        subjectName: lecture.subjectName,
+        status: lecture.status,
+        startTime: lecture.startTime,
+        endTime: lecture.endTime,
+        note: lecture.note || ""
+      };
+    });
+
+    const snapshotRef = doc(db, "users", userId, "dailySnapshot", todayDate);
+    const data = {
+      date: todayDate,
+      totalClasses: total,
+      attendedClasses: attended,
+      percentage: percentage,
+      lectures: lectureMap,
+      updatedAt: serverTimestamp()
+    };
+
+    await setDoc(snapshotRef, data);
+    console.log("Successfully saved snapshot with multiple same-subject lectures!");
+  } catch (error) {
+    console.error("Failed to save snapshot", error);
+  }
 }
 
 /* ──────────────────────────────────────────
@@ -582,7 +628,6 @@ function AttendanceDialog({ lecture, saving, note, onNoteChange, onClose, onSubm
       animate={{ opacity: 1 }} 
       exit={{ opacity: 0 }}
       onClick={onClose}
-      /* This absolute centering fixes the mobile layout bug */
       className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0b0f19]/80 backdrop-blur-xl p-4 sm:p-6"
     >
       <motion.div

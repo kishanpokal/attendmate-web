@@ -56,34 +56,26 @@ export default function SettingsPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 pb-28">
-      {/* HEADER */}
-      <div className={`bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'}`}>
-        <div className="px-6 py-6 flex items-center gap-4">
+      {/* HEADER - Centered for large screens */}
+      <div className={`bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-all duration-1000 sticky top-0 z-30 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'}`}>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center gap-4">
           <button
             onClick={() => router.back()}
             className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300"
           >
-            <svg
-              className="w-5 h-5 text-gray-700 dark:text-gray-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
+            <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
             Settings
           </h1>
         </div>
       </div>
 
-      <div className={`px-6 py-6 space-y-6 transition-all duration-1000 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+      {/* MAIN CONTENT CONTAINER - Responsive Width */}
+      <div className={`max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 transition-all duration-1000 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        
         {/* PROFILE CARD */}
         {loading ? (
           <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 border border-gray-200 dark:border-gray-800 animate-pulse">
@@ -100,114 +92,96 @@ export default function SettingsPage() {
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 rounded-3xl p-6 shadow-xl"
+            className="bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 rounded-3xl p-6 sm:p-8 shadow-xl"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <svg
-                  className="w-8 h-8 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
+            <div className="flex items-center gap-5 sm:gap-6">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
+                <span className="text-2xl sm:text-3xl font-bold text-white uppercase">
+                  {username.charAt(0)}
+                </span>
               </div>
-              <div className="flex-1">
-                <p className="text-xl font-bold text-white">{username}</p>
-                <p className="text-indigo-100 text-sm">{email}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xl sm:text-2xl font-bold text-white truncate">{username}</p>
+                <p className="text-indigo-100 text-sm sm:text-base truncate">{email}</p>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* ACCOUNT SECTION */}
-        <Section title="Account" icon={
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-        }>
-          <SettingItem
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            }
-            title="Change Username"
-            subtitle="Update your display name"
-            onClick={() => setShowUsername(true)}
-          />
-          <SettingItem
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            }
-            title="Change Password"
-            subtitle="Keep your account secure"
-            onClick={() => setShowPassword(true)}
-          />
-        </Section>
+        <div className="space-y-8">
+          {/* ACCOUNT SECTION */}
+          <Section title="Account" icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+          }>
+            <SettingItem
+              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
+              title="Change Username"
+              subtitle="Update your display name"
+              onClick={() => setShowUsername(true)}
+            />
+            <SettingItem
+              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
+              title="Change Password"
+              subtitle="Keep your account secure"
+              onClick={() => setShowPassword(true)}
+            />
+          </Section>
 
-        {/* SUBJECTS SECTION */}
-        <Section title="Subjects" icon={
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-        }>
-          <SettingItem
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            }
-            title="Manage Subjects"
-            subtitle="Add, edit or remove subjects"
-            onClick={() => router.push("/subjects")}
-          />
-        </Section>
+          {/* SUBJECTS SECTION */}
+          <Section title="Subjects" icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+          }>
+            <SettingItem
+              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
+              title="Manage Subjects"
+              subtitle="Add, edit or remove subjects"
+              onClick={() => router.push("/subjects")}
+            />
+          </Section>
 
-        {/* TIMETABLE SECTION */}
-        <Section title="Attendance Automation" icon={
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        }>
-          <SettingItem
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-            }
-            title="Smart Timetable"
-            subtitle="Lecture reminders & auto attendance"
-            onClick={() => router.push("/timetable")}
-          />
-        </Section>
+          {/* TIMETABLE SECTION */}
+          <Section title="Attendance Automation" icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          }>
+            <SettingItem
+              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>}
+              title="Smart Timetable"
+              subtitle="Lecture reminders & auto attendance"
+              onClick={() => router.push("/timetable")}
+            />
+          </Section>
 
-        {/* SESSION SECTION */}
-        <Section title="Session" icon={
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-        }>
-          <SettingItem
-            icon={
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            }
-            title="Logout"
-            subtitle="Sign out from this device"
-            destructive
-            onClick={() => setShowLogout(true)}
-          />
-        </Section>
+          {/* FRIENDS SECTION (NEW) */}
+          <Section title="Friends" icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          }>
+            <SettingItem
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+              }
+              title="Manage Friends"
+              subtitle="Add friends & view profiles"
+              onClick={() => router.push("/friends")}
+            />
+          </Section>
+
+          {/* SESSION SECTION */}
+          <Section title="Session" icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+          }>
+            <SettingItem
+              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>}
+              title="Logout"
+              subtitle="Sign out from this device"
+              destructive
+              onClick={() => setShowLogout(true)}
+            />
+          </Section>
+        </div>
       </div>
 
       {/* DIALOGS */}
@@ -260,7 +234,7 @@ function Section({ title, icon, children }: any) {
           {title}
         </h2>
       </div>
-      <div className="space-y-2">{children}</div>
+      <div className="space-y-2 sm:space-y-3">{children}</div>
     </div>
   );
 }
@@ -270,40 +244,30 @@ function SettingItem({ icon, title, subtitle, onClick, destructive = false }: an
     <motion.button
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className={`w-full bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-300 ${
+      className={`w-full bg-white dark:bg-gray-900 rounded-2xl p-4 sm:p-5 border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-300 shadow-sm hover:shadow-md ${
         destructive ? "border-red-200 dark:border-red-900/50" : ""
       }`}
     >
       <div className="flex items-center gap-4">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 ${
           destructive
             ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
             : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
         }`}>
           {icon}
         </div>
-        <div className="flex-1 text-left">
-          <p className={`font-semibold ${
+        <div className="flex-1 text-left min-w-0">
+          <p className={`font-semibold sm:text-lg truncate ${
             destructive
               ? "text-red-600 dark:text-red-400"
               : "text-gray-900 dark:text-gray-100"
           }`}>
             {title}
           </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{subtitle}</p>
         </div>
-        <svg
-          className="w-5 h-5 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5l7 7-7 7"
-          />
+        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </div>
     </motion.button>
@@ -347,14 +311,14 @@ function UsernameDialog({ initial, onSave, onClose }: any) {
       <Actions>
         <button
           onClick={onClose}
-          className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
+          className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium w-full sm:w-auto"
         >
           Cancel
         </button>
         <button
           onClick={handleSave}
           disabled={loading}
-          className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white transition-colors font-medium disabled:opacity-50"
+          className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white transition-colors font-medium disabled:opacity-50 w-full sm:w-auto"
         >
           {loading ? "Saving..." : "Save"}
         </button>
@@ -405,43 +369,16 @@ function PasswordDialog({ email, onClose }: any) {
         Change Password
       </h3>
       <div className="space-y-3">
-        <PasswordInput
-          value={oldPass}
-          onChange={setOldPass}
-          placeholder="Current password"
-          show={showOld}
-          onToggle={() => setShowOld(!showOld)}
-        />
-        <PasswordInput
-          value={newPass}
-          onChange={setNewPass}
-          placeholder="New password"
-          show={showNew}
-          onToggle={() => setShowNew(!showNew)}
-        />
-        <PasswordInput
-          value={confirm}
-          onChange={setConfirm}
-          placeholder="Confirm new password"
-          show={showConfirm}
-          onToggle={() => setShowConfirm(!showConfirm)}
-        />
+        <PasswordInput value={oldPass} onChange={setOldPass} placeholder="Current password" show={showOld} onToggle={() => setShowOld(!showOld)} />
+        <PasswordInput value={newPass} onChange={setNewPass} placeholder="New password" show={showNew} onToggle={() => setShowNew(!showNew)} />
+        <PasswordInput value={confirm} onChange={setConfirm} placeholder="Confirm new password" show={showConfirm} onToggle={() => setShowConfirm(!showConfirm)} />
       </div>
-      {error && (
-        <p className="text-red-500 dark:text-red-400 text-sm mt-2">{error}</p>
-      )}
+      {error && <p className="text-red-500 dark:text-red-400 text-sm mt-2">{error}</p>}
       <Actions>
-        <button
-          onClick={onClose}
-          className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
-        >
+        <button onClick={onClose} className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium w-full sm:w-auto">
           Cancel
         </button>
-        <button
-          onClick={update}
-          disabled={loading || !oldPass || !newPass || !confirm}
-          className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white transition-colors font-medium disabled:opacity-50"
-        >
+        <button onClick={update} disabled={loading || !oldPass || !newPass || !confirm} className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white transition-colors font-medium disabled:opacity-50 w-full sm:w-auto">
           {loading ? "Updating..." : "Update"}
         </button>
       </Actions>
@@ -459,20 +396,11 @@ function PasswordInput({ value, onChange, placeholder, show, onToggle }: any) {
         className="w-full p-4 pr-12 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition-colors"
         placeholder={placeholder}
       />
-      <button
-        type="button"
-        onClick={onToggle}
-        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-      >
+      <button type="button" onClick={onToggle} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 p-2">
         {show ? (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-          </svg>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
         ) : (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
         )}
       </button>
     </div>
@@ -487,16 +415,10 @@ function ConfirmDialog({ title, message, action, onConfirm, onCancel }: any) {
       </h3>
       <p className="text-gray-600 dark:text-gray-400 mb-6">{message}</p>
       <Actions>
-        <button
-          onClick={onCancel}
-          className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
-        >
+        <button onClick={onCancel} className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium w-full sm:w-auto">
           Cancel
         </button>
-        <button
-          onClick={onConfirm}
-          className="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white transition-colors font-medium"
-        >
+        <button onClick={onConfirm} className="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white transition-colors font-medium w-full sm:w-auto">
           {action}
         </button>
       </Actions>
@@ -512,14 +434,14 @@ function Modal({ children, onClose }: any) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4"
+        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
       >
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
+          initial={{ scale: 0.95, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 20 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white dark:bg-gray-900 rounded-3xl p-6 w-full max-w-md border border-gray-200 dark:border-gray-800 shadow-2xl"
+          className="bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-8 w-full max-w-md md:max-w-lg border border-gray-200 dark:border-gray-800 shadow-2xl"
         >
           {children}
         </motion.div>
@@ -529,5 +451,5 @@ function Modal({ children, onClose }: any) {
 }
 
 function Actions({ children }: any) {
-  return <div className="flex justify-end gap-3 mt-6">{children}</div>;
+  return <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">{children}</div>;
 }
