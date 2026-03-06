@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { collection, doc, getDocs, getDoc, query, where, runTransaction, Timestamp, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -107,14 +108,14 @@ export default function DashboardPage() {
             const date = att.data().date?.toDate?.().toISOString().split("T")[0] ?? att.data().date;
             if (date !== new Date().toISOString().split("T")[0]) continue;
 
-            const attNote = att.data().note || ""; 
+            const attNote = att.data().note || "";
 
             todayList.push({
               subjectName,
               status,
               startTime: att.data().startTime?.toDate?.().toTimeString().slice(0, 5) ?? att.data().startTime,
               endTime: att.data().endTime?.toDate?.().toTimeString().slice(0, 5) ?? att.data().endTime,
-              note: attNote, 
+              note: attNote,
             });
           }
 
@@ -153,7 +154,7 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen relative bg-[#F8FAFC] dark:bg-[#0B1120] pb-24 overflow-x-hidden selection:bg-indigo-500/30 font-sans">
-      
+
       {/* ── ANIMATED BACKGROUND ORBS ── */}
       <AnimatedBackground />
 
@@ -207,13 +208,13 @@ export default function DashboardPage() {
 
               {/* Main Layout Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-                
+
                 {/* Center / Left Column */}
                 <div className="lg:col-span-8 xl:col-span-8 space-y-6 lg:space-y-8">
                   <AttendanceOverviewCard total={total} attended={attended} percentage={percentage} />
                   <TodayLecturesSection lectures={todayLectures} />
                 </div>
-                
+
                 {/* Right Sidebar Column */}
                 <div className="lg:col-span-4 xl:col-span-4 lg:sticky lg:top-32">
                   <SubjectPerformanceCard subjects={subjectStats} />
@@ -242,7 +243,7 @@ export default function DashboardPage() {
                   const subjectRef = doc(db, "users", user!.uid, "subjects", activeLecture.subjectId);
                   const today = new Date();
                   const dateKey = today.toISOString().split("T")[0];
-                  const lectureId = `${dateKey}_${activeLecture.startTime.toTimeString().slice(0,5).replace(":", "")}_${activeLecture.endTime.toTimeString().slice(0,5).replace(":", "")}`;
+                  const lectureId = `${dateKey}_${activeLecture.startTime.toTimeString().slice(0, 5).replace(":", "")}_${activeLecture.endTime.toTimeString().slice(0, 5).replace(":", "")}`;
                   const attRef = doc(subjectRef, "attendance", lectureId);
                   if ((await tx.get(attRef)).exists()) throw new Error("Already marked");
                   const snap = await tx.get(subjectRef);
@@ -382,8 +383,8 @@ function CircularProgress({ percentage }: { percentage: number }) {
   return (
     <div className="relative inline-flex items-center justify-center filter drop-shadow-2xl">
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size/2} cy={size/2} r={r} stroke="currentColor" strokeWidth={sw} fill="none" className="text-gray-100 dark:text-gray-800/50" />
-        <circle cx={size/2} cy={size/2} r={r} stroke="url(#cpGrad)" strokeWidth={sw} fill="none"
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="currentColor" strokeWidth={sw} fill="none" className="text-gray-100 dark:text-gray-800/50" />
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="url(#cpGrad)" strokeWidth={sw} fill="none"
           strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
           className="transition-all duration-[1.5s] ease-out drop-shadow-[0_0_12px_rgba(99,102,241,0.4)]" />
         <defs>
@@ -407,8 +408,8 @@ function AttendanceOverviewCard({ total, attended, percentage }: any) {
   const absent = total - attended;
   const { color, text, icon } =
     percentage >= 75 ? { color: "emerald", text: "On Track", icon: "🔥" } :
-    percentage >= 60 ? { color: "amber",   text: "Warning", icon: "⚠️" } :
-                       { color: "red",     text: "Critical", icon: "🚨" };
+      percentage >= 60 ? { color: "amber", text: "Warning", icon: "⚠️" } :
+        { color: "red", text: "Critical", icon: "🚨" };
 
   return (
     <motion.div
@@ -428,11 +429,10 @@ function AttendanceOverviewCard({ total, attended, percentage }: any) {
                 <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Performance Overview</h2>
                 <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1">Your current attendance standing.</p>
               </div>
-              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-wider ${
-                color === "emerald" ? "bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" :
-                color === "amber"   ? "bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20" :
-                                      "bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
-              }`}>
+              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-wider ${color === "emerald" ? "bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" :
+                  color === "amber" ? "bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20" :
+                    "bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
+                }`}>
                 <span>{icon}</span>
                 <span>{text}</span>
               </div>
@@ -441,8 +441,8 @@ function AttendanceOverviewCard({ total, attended, percentage }: any) {
             <div className="grid grid-cols-3 gap-3 sm:gap-4">
               {[
                 { label: "Attended", val: attended, col: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50/50 dark:bg-emerald-500/5 border-emerald-100 dark:border-emerald-500/10" },
-                { label: "Missed",   val: absent,   col: "text-rose-600 dark:text-rose-400",       bg: "bg-rose-50/50 dark:bg-rose-500/5 border-rose-100 dark:border-rose-500/10" },
-                { label: "Total",    val: total,    col: "text-indigo-600 dark:text-indigo-400",   bg: "bg-indigo-50/50 dark:bg-indigo-500/5 border-indigo-100 dark:border-indigo-500/10" },
+                { label: "Missed", val: absent, col: "text-rose-600 dark:text-rose-400", bg: "bg-rose-50/50 dark:bg-rose-500/5 border-rose-100 dark:border-rose-500/10" },
+                { label: "Total", val: total, col: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-50/50 dark:bg-indigo-500/5 border-indigo-100 dark:border-indigo-500/10" },
               ].map((row) => (
                 <div key={row.label} className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border ${row.bg}`}>
                   <span className={`text-2xl sm:text-3xl font-black ${row.col} mb-1`}>{row.val}</span>
@@ -465,7 +465,7 @@ function TodayLecturesSection({ lectures }: { lectures: TodayLecture[] }) {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-2xl rounded-[2.5rem] border border-gray-200/50 dark:border-gray-800/50 p-6 sm:p-8 xl:p-10 shadow-sm">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3 tracking-tight">
-          Today's Timeline 
+          Today's Timeline
           <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl text-sm font-black border border-indigo-200 dark:border-indigo-500/20">
             {lectures.length}
           </span>
@@ -497,7 +497,7 @@ function EmptyLectures() {
 
 function LectureTimelineCard({ lecture, index }: { lecture: TodayLecture; index: number }) {
   const isPresent = lecture.status === "PRESENT";
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -506,19 +506,16 @@ function LectureTimelineCard({ lecture, index }: { lecture: TodayLecture; index:
       className="relative"
     >
       {/* Timeline Node */}
-      <div className={`absolute -left-[35px] sm:-left-[43px] top-6 w-5 h-5 rounded-full border-4 border-white dark:border-gray-900 shadow-sm z-10 ${
-        isPresent ? "bg-emerald-500" : "bg-rose-500"
-      }`} />
+      <div className={`absolute -left-[35px] sm:-left-[43px] top-6 w-5 h-5 rounded-full border-4 border-white dark:border-gray-900 shadow-sm z-10 ${isPresent ? "bg-emerald-500" : "bg-rose-500"
+        }`} />
 
       {/* Card */}
-      <div className={`group relative overflow-hidden flex flex-col sm:flex-row sm:items-center gap-4 p-5 sm:p-6 rounded-[2rem] border transition-all duration-300 hover:shadow-md ${
-        isPresent
+      <div className={`group relative overflow-hidden flex flex-col sm:flex-row sm:items-center gap-4 p-5 sm:p-6 rounded-[2rem] border transition-all duration-300 hover:shadow-md ${isPresent
           ? "bg-white dark:bg-gray-800/50 border-emerald-100 dark:border-emerald-500/20 hover:border-emerald-300 dark:hover:border-emerald-500/50"
           : "bg-white dark:bg-gray-800/50 border-rose-100 dark:border-rose-500/20 hover:border-rose-300 dark:hover:border-rose-500/50"
-      }`}>
-        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[1.2rem] flex items-center justify-center flex-shrink-0 shadow-inner ${
-          isPresent ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500" : "bg-rose-50 dark:bg-rose-500/10 text-rose-500"
         }`}>
+        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[1.2rem] flex items-center justify-center flex-shrink-0 shadow-inner ${isPresent ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500" : "bg-rose-50 dark:bg-rose-500/10 text-rose-500"
+          }`}>
           <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d={isPresent ? "M5 13l4 4L19 7" : "M6 18L18 6M6 6l12 12"} />
           </svg>
@@ -540,10 +537,9 @@ function LectureTimelineCard({ lecture, index }: { lecture: TodayLecture; index:
           </div>
         </div>
 
-        <span className={`px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest flex-shrink-0 border self-start sm:self-auto ${
-          isPresent ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" 
-                    : "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20"
-        }`}>
+        <span className={`px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest flex-shrink-0 border self-start sm:self-auto ${isPresent ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
+            : "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20"
+          }`}>
           {lecture.status}
         </span>
       </div>
@@ -588,21 +584,19 @@ function SubjectPerformanceCard({ subjects }: { subjects: SubjectStats[] }) {
                       </span>
                       <span className="text-base font-black text-gray-900 dark:text-gray-100 truncate">{s.name}</span>
                     </div>
-                    <span className={`text-sm font-black px-3 py-1.5 rounded-xl flex-shrink-0 ml-2 border ${
-                      color === "emerald" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20" :
-                      color === "amber"   ? "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200 dark:border-amber-500/20" :
-                                            "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 border-red-200 dark:border-red-500/20"
-                    }`}>
+                    <span className={`text-sm font-black px-3 py-1.5 rounded-xl flex-shrink-0 ml-2 border ${color === "emerald" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20" :
+                        color === "amber" ? "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200 dark:border-amber-500/20" :
+                          "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 border-red-200 dark:border-red-500/20"
+                      }`}>
                       {s.percentage}%
                     </span>
                   </div>
                   <div className="h-2.5 bg-gray-100 dark:bg-gray-900 rounded-full overflow-hidden shadow-inner">
                     <div
-                      className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                        color === "emerald" ? "bg-gradient-to-r from-emerald-400 to-teal-500" :
-                        color === "amber"   ? "bg-gradient-to-r from-amber-400 to-orange-500" :
-                                              "bg-gradient-to-r from-red-400 to-rose-500"
-                      }`}
+                      className={`h-full rounded-full transition-all duration-1000 ease-out ${color === "emerald" ? "bg-gradient-to-r from-emerald-400 to-teal-500" :
+                          color === "amber" ? "bg-gradient-to-r from-amber-400 to-orange-500" :
+                            "bg-gradient-to-r from-red-400 to-rose-500"
+                        }`}
                       style={{ width: `${s.percentage}%` }}
                     />
                   </div>
@@ -663,10 +657,15 @@ function LoadingState() {
    ATTENDANCE DIALOG (NATIVE MODAL STYLE)
 ────────────────────────────────────────── */
 function AttendanceDialog({ lecture, saving, note, onNoteChange, onClose, onSubmit }: any) {
-  return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
       className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 dark:bg-black/60 backdrop-blur-sm p-4 sm:p-6"
@@ -722,12 +721,14 @@ function AttendanceDialog({ lecture, saving, note, onNoteChange, onClose, onSubm
         </div>
       </motion.div>
 
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.3); border-radius: 20px; }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(75, 85, 99, 0.5); }
       `}} />
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }
