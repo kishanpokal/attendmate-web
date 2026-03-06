@@ -10,6 +10,7 @@ import {
   getDocs,
   Timestamp,
   deleteField,
+  runTransaction,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
@@ -38,6 +39,8 @@ export default function EditAttendancePage() {
   const [mounted, setMounted] = useState(false);
   const [showSubjectDropdown, setShowSubjectDropdown] = useState(false);
   const [note, setNote] = useState("");
+  const [originalSubjectId, setOriginalSubjectId] = useState("");
+  const [originalStatus, setOriginalStatus] = useState<"Present" | "Absent">("Present");
 
   useEffect(() => {
     setMounted(true);
@@ -85,9 +88,11 @@ export default function EditAttendancePage() {
           if (snap.exists()) {
             const data = snap.data();
 
+            setOriginalSubjectId(subject.id);
             setSubjectId(subject.id);
             setSubjectName(subject.name);
             setStatus(data.status || "Present");
+            setOriginalStatus(data.status || "Present");
 
             // Handle date
             if (data.date?.toDate) {
@@ -140,7 +145,7 @@ export default function EditAttendancePage() {
       return;
     }
 
-    if (startTime >= endTime) {
+    if (startTime >= endTime && parseInt(endTime.split(":")[0]) !== 0) {
       alert("End time must be after start time");
       return;
     }
@@ -148,34 +153,104 @@ export default function EditAttendancePage() {
     setSaving(true);
 
     try {
-      const attendanceRef = doc(
-        db,
-        "users",
-        user.uid,
-        "subjects",
-        subjectId,
-        "attendance",
-        attendanceId
-      );
-
       const dateObj = new Date(date);
       const start = new Date(`${date}T${startTime}`);
       const end = new Date(`${date}T${endTime}`);
 
-      const updateData: any = {
-        status,
-        date: Timestamp.fromDate(dateObj),
-        startTime: Timestamp.fromDate(start),
-        endTime: Timestamp.fromDate(end),
-      };
+      const startHour = parseInt(startTime.split(":")[0]);
+      const endHour = parseInt(endTime.split(":")[0]);
+      if (endHour < startHour) end.setDate(end.getDate() + 1);
 
-      if (note.trim() !== "") {
-        updateData.note = note.trim();
-      } else {
-        updateData.note = deleteField();
-      }
+      const dateKey = date;
+      const startKey = startTime.replace(":", "");
+      const endKey = endTime.replace(":", "");
+      const newAttendanceId = `${dateKey}_${startKey}_${endKey}`;
 
-      await updateDoc(attendanceRef, updateData);
+      const slotIndex = startHour - 9;
+      const durationHours = endHour < startHour ? (24 - startHour + endHour) : (endHour - startHour);
+      const dayName = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"][dateObj.getDay()];
+      const lectureKey = slotIndex >= 0 && durationHours > 0 ? `${dayName}_${slotIndex}_${durationHours}` : null;
+
+      await runTransaction(db, async (transaction) => {
+        // References
+        const oldSubjectRef = doc(db, "users", user.uid, "subjects", originalSubjectId);
+        const newSubjectRef = subjectId === originalSubjectId ? oldSubjectRef : doc(db, "users", user.uid, "subjects", subjectId);
+
+        const oldAttendanceRef = doc(db, "users", user.uid, "subjects", originalSubjectId, "attendance", attendanceId);
+        const newAttendanceRef = doc(db, "users", user.uid, "subjects", subjectId, "attendance", newAttendanceId);
+
+        // Fetch subjects
+        const oldSubjectSnap = await transaction.get(oldSubjectRef);
+        if (!oldSubjectSnap.exists()) throw new Error("Original subject not found");
+
+        let newSubjectSnap: any = oldSubjectSnap;
+        if (oldSubjectRef.id !== newSubjectRef.id) {
+          newSubjectSnap = await transaction.get(newSubjectRef);
+          if (!newSubjectSnap.exists()) throw new Error("New subject not found");
+        }
+
+        const oldSubjectData = oldSubjectSnap.data() || {};
+        const newSubjectData = newSubjectSnap.data() || {};
+
+        // Adjust counts
+        let oldTotal = oldSubjectData.totalClasses || 0;
+        let oldAttended = oldSubjectData.attendedClasses || 0;
+
+        // Remove old attendance stats
+        oldTotal = Math.max(0, oldTotal - 1);
+        if (originalStatus === "Present") {
+          oldAttended = Math.max(0, oldAttended - 1);
+        }
+
+        let newTotal = oldSubjectRef.id === newSubjectRef.id ? oldTotal : (newSubjectData.totalClasses || 0);
+        let newAttended = oldSubjectRef.id === newSubjectRef.id ? oldAttended : (newSubjectData.attendedClasses || 0);
+
+        // Add new attendance stats
+        newTotal++;
+        if (status === "Present") {
+          newAttended++;
+        }
+
+        // Write Operations
+        if (oldAttendanceRef.path !== newAttendanceRef.path) {
+          transaction.delete(oldAttendanceRef);
+        }
+
+        const attendanceData: any = {
+          status,
+          date: Timestamp.fromDate(dateObj),
+          startTime: Timestamp.fromDate(start),
+          endTime: Timestamp.fromDate(end),
+          updatedAt: Timestamp.now()
+        };
+
+        if (lectureKey) attendanceData.lectureKey = lectureKey;
+        if (note.trim() !== "") attendanceData.note = note.trim();
+
+        // 1. Update/Set Attendance
+        if (oldAttendanceRef.path !== newAttendanceRef.path) {
+          transaction.set(newAttendanceRef, attendanceData);
+        } else {
+          transaction.update(newAttendanceRef, attendanceData);
+        }
+
+        // 2. Update Subjects
+        if (oldSubjectRef.id === newSubjectRef.id) {
+          transaction.update(oldSubjectRef, {
+            totalClasses: newTotal,
+            attendedClasses: newAttended,
+          });
+        } else {
+          transaction.update(oldSubjectRef, {
+            totalClasses: oldTotal,
+            attendedClasses: oldAttended,
+          });
+          transaction.update(newSubjectRef, {
+            totalClasses: newTotal,
+            attendedClasses: newAttended,
+          });
+        }
+      });
 
       alert("Attendance updated successfully!");
       router.back();
@@ -215,9 +290,8 @@ export default function EditAttendancePage() {
 
       {/* HEADER */}
       <div
-        className={`relative z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-all duration-1000 ${
-          mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10"
-        }`}
+        className={`relative z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-all duration-1000 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10"
+          }`}
       >
         <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
@@ -252,9 +326,8 @@ export default function EditAttendancePage() {
       </div>
 
       <div
-        className={`relative z-10 px-4 sm:px-6 lg:px-8 py-6 max-w-4xl mx-auto transition-all duration-1000 delay-200 ${
-          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-        }`}
+        className={`relative z-10 px-4 sm:px-6 lg:px-8 py-6 max-w-4xl mx-auto transition-all duration-1000 delay-200 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+          }`}
       >
         {error && (
           <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 flex items-center gap-3">
@@ -345,9 +418,8 @@ export default function EditAttendancePage() {
                     </div>
                   </div>
                   <svg
-                    className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${
-                      showSubjectDropdown ? "rotate-180" : ""
-                    }`}
+                    className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${showSubjectDropdown ? "rotate-180" : ""
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -372,11 +444,10 @@ export default function EditAttendancePage() {
                         setSubjectName(subject.name);
                         setShowSubjectDropdown(false);
                       }}
-                      className={`w-full p-4 text-left hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors first:rounded-t-2xl last:rounded-b-2xl flex items-center gap-3 ${
-                        subjectId === subject.id
-                          ? "bg-indigo-50 dark:bg-indigo-900/20"
-                          : ""
-                      }`}
+                      className={`w-full p-4 text-left hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors first:rounded-t-2xl last:rounded-b-2xl flex items-center gap-3 ${subjectId === subject.id
+                        ? "bg-indigo-50 dark:bg-indigo-900/20"
+                        : ""
+                        }`}
                     >
                       <svg
                         className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0"
@@ -534,26 +605,23 @@ export default function EditAttendancePage() {
               {/* Present */}
               <button
                 onClick={() => setStatus("Present")}
-                className={`group rounded-2xl border-2 p-6 sm:p-8 transition-all duration-300 ${
-                  status === "Present"
-                    ? "bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-400 scale-105"
-                    : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-green-300 dark:hover:border-green-700"
-                }`}
+                className={`group rounded-2xl border-2 p-6 sm:p-8 transition-all duration-300 ${status === "Present"
+                  ? "bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-400 scale-105"
+                  : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-green-300 dark:hover:border-green-700"
+                  }`}
               >
                 <div className="flex flex-col items-center gap-3 sm:gap-4">
                   <div
-                    className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all ${
-                      status === "Present"
-                        ? "bg-green-500 dark:bg-green-600"
-                        : "bg-gray-100 dark:bg-gray-800"
-                    }`}
+                    className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all ${status === "Present"
+                      ? "bg-green-500 dark:bg-green-600"
+                      : "bg-gray-100 dark:bg-gray-800"
+                      }`}
                   >
                     <svg
-                      className={`w-6 h-6 sm:w-7 sm:h-7 ${
-                        status === "Present"
-                          ? "text-white"
-                          : "text-gray-600 dark:text-gray-400"
-                      }`}
+                      className={`w-6 h-6 sm:w-7 sm:h-7 ${status === "Present"
+                        ? "text-white"
+                        : "text-gray-600 dark:text-gray-400"
+                        }`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -567,11 +635,10 @@ export default function EditAttendancePage() {
                     </svg>
                   </div>
                   <span
-                    className={`text-lg sm:text-xl font-bold ${
-                      status === "Present"
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-gray-900 dark:text-gray-100"
-                    }`}
+                    className={`text-lg sm:text-xl font-bold ${status === "Present"
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-gray-900 dark:text-gray-100"
+                      }`}
                   >
                     Present
                   </span>
@@ -581,26 +648,23 @@ export default function EditAttendancePage() {
               {/* Absent */}
               <button
                 onClick={() => setStatus("Absent")}
-                className={`group rounded-2xl border-2 p-6 sm:p-8 transition-all duration-300 ${
-                  status === "Absent"
-                    ? "bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-400 scale-105"
-                    : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-red-300 dark:hover:border-red-700"
-                }`}
+                className={`group rounded-2xl border-2 p-6 sm:p-8 transition-all duration-300 ${status === "Absent"
+                  ? "bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-400 scale-105"
+                  : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-red-300 dark:hover:border-red-700"
+                  }`}
               >
                 <div className="flex flex-col items-center gap-3 sm:gap-4">
                   <div
-                    className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all ${
-                      status === "Absent"
-                        ? "bg-red-500 dark:bg-red-600"
-                        : "bg-gray-100 dark:bg-gray-800"
-                    }`}
+                    className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all ${status === "Absent"
+                      ? "bg-red-500 dark:bg-red-600"
+                      : "bg-gray-100 dark:bg-gray-800"
+                      }`}
                   >
                     <svg
-                      className={`w-6 h-6 sm:w-7 sm:h-7 ${
-                        status === "Absent"
-                          ? "text-white"
-                          : "text-gray-600 dark:text-gray-400"
-                      }`}
+                      className={`w-6 h-6 sm:w-7 sm:h-7 ${status === "Absent"
+                        ? "text-white"
+                        : "text-gray-600 dark:text-gray-400"
+                        }`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -614,11 +678,10 @@ export default function EditAttendancePage() {
                     </svg>
                   </div>
                   <span
-                    className={`text-lg sm:text-xl font-bold ${
-                      status === "Absent"
-                        ? "text-red-600 dark:text-red-400"
-                        : "text-gray-900 dark:text-gray-100"
-                    }`}
+                    className={`text-lg sm:text-xl font-bold ${status === "Absent"
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-gray-900 dark:text-gray-100"
+                      }`}
                   >
                     Absent
                   </span>

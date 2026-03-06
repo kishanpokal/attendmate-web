@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { collection, doc, getDocs, getDoc, query, where, runTransaction, Timestamp, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
 import AttendMateBottomNav from "@/components/navigation/AttendMateBottomNav";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -31,7 +32,8 @@ type SubjectStats = {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const user = auth.currentUser;
+  const { user, loading: authLoading } = useAuth();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [username, setUsername] = useState("User");
   const [todayLectures, setTodayLectures] = useState<TodayLecture[]>([]);
   const [subjectStats, setSubjectStats] = useState<SubjectStats[]>([]);
@@ -46,8 +48,8 @@ export default function DashboardPage() {
 
   /* 🔐 AUTH GUARD */
   useEffect(() => {
-    if (!user) router.replace("/login");
-  }, [user, router]);
+    if (!authLoading && !user) router.replace("/login");
+  }, [user, authLoading, router]);
 
   /* 🔄 DATA LOAD */
   useEffect(() => {
@@ -142,7 +144,7 @@ export default function DashboardPage() {
     };
 
     load();
-  }, [user]);
+  }, [user, refreshTrigger]);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Morning" : hour < 17 ? "Afternoon" : hour < 21 ? "Evening" : "Night";
@@ -258,7 +260,7 @@ export default function DashboardPage() {
                   });
                 });
                 setSaving(false); setShowDialog(false); setNote("");
-                location.reload();
+                setRefreshTrigger(prev => prev + 1);
               } catch (error) {
                 console.error("Error saving attendance:", error);
                 setSaving(false);

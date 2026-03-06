@@ -10,6 +10,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
 
 type Subject = {
   id: string;
@@ -24,6 +25,7 @@ type Toast = {
 export default function AddAttendancePage() {
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user, loading: authLoading } = useAuth();
 
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subjectId, setSubjectId] = useState("");
@@ -47,8 +49,8 @@ export default function AddAttendancePage() {
   }, []);
 
   useEffect(() => {
-    if (!auth.currentUser) router.replace("/login");
-  }, [router]);
+    if (!authLoading && !user) router.replace("/login");
+  }, [router, user, authLoading]);
 
   /* ---------------- OUTSIDE CLICK & TOAST CLEAR ---------------- */
   useEffect(() => {
@@ -75,10 +77,11 @@ export default function AddAttendancePage() {
   /* ---------------- LOAD SUBJECTS ---------------- */
   useEffect(() => {
     const loadSubjects = async () => {
-      if (!auth.currentUser) return;
+      if (authLoading) return;
+      if (!user) return;
       setLoadingSubjects(true);
       try {
-        const snap = await getDocs(collection(db, "users", auth.currentUser.uid, "subjects"));
+        const snap = await getDocs(collection(db, "users", user.uid, "subjects"));
         setSubjects(snap.docs.map((d) => ({ id: d.id, name: d.data().name })));
       } catch (error) {
         showToast("Error loading subjects", "error");
@@ -87,7 +90,7 @@ export default function AddAttendancePage() {
       }
     };
     loadSubjects();
-  }, []);
+  }, [user, authLoading]);
 
   /* ---------------- SMART TIME HANDLERS ---------------- */
   const handleStartTimeChange = (val: string) => {
@@ -115,7 +118,7 @@ export default function AddAttendancePage() {
 
   /* ---------------- SAVE ATTENDANCE ---------------- */
   const saveAttendance = async () => {
-    if (!auth.currentUser) return;
+    if (!user) return;
 
     if (!subjectId || !date || !startTime || !endTime) {
       showToast("Please fill in all required fields", "error");
@@ -130,7 +133,7 @@ export default function AddAttendancePage() {
     setLoading(true);
 
     try {
-      const uid = auth.currentUser.uid;
+      const uid = user.uid;
       const dateKey = date;
       const startKey = startTime.replace(":", "");
       const endKey = endTime.replace(":", "");
@@ -198,11 +201,11 @@ export default function AddAttendancePage() {
   /* ---------------- UI RENDER ---------------- */
   return (
     <main className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1120] text-gray-900 dark:text-gray-100 font-sans selection:bg-indigo-500/30 pb-12">
-      
+
       {/* Toast Notification */}
       <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 transform ${toast.message ? 'translate-y-0 opacity-100' : '-translate-y-8 opacity-0 pointer-events-none'}`}>
         <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-md border ${toast.type === 'success' ? 'bg-emerald-500/90 border-emerald-400/50 text-white' : 'bg-rose-500/90 border-rose-400/50 text-white'}`}>
-          {toast.type === 'success' 
+          {toast.type === 'success'
             ? <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
             : <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           }
@@ -234,7 +237,7 @@ export default function AddAttendancePage() {
       {/* Main Form */}
       <div className={`relative z-10 px-4 sm:px-6 lg:px-8 py-8 max-w-3xl mx-auto transition-all duration-1000 delay-100 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
         <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-gray-800 p-6 sm:p-10 space-y-10">
-          
+
           {/* --- SUBJECT SELECTION --- */}
           <section className="space-y-4">
             <div className="flex items-center justify-between">
@@ -245,11 +248,10 @@ export default function AddAttendancePage() {
               <button
                 onClick={() => setShowSubjectDropdown(!showSubjectDropdown)}
                 disabled={loadingSubjects || subjects.length === 0}
-                className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 transition-all ${
-                  showSubjectDropdown 
-                    ? "border-indigo-500 bg-indigo-50/30 dark:bg-indigo-900/10 dark:border-indigo-500" 
+                className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 transition-all ${showSubjectDropdown
+                    ? "border-indigo-500 bg-indigo-50/30 dark:bg-indigo-900/10 dark:border-indigo-500"
                     : "border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-700"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-500/10 flex items-center justify-center">
@@ -289,7 +291,7 @@ export default function AddAttendancePage() {
           {/* --- DATE & TIME --- */}
           <section className="space-y-5">
             <h3 className="text-sm font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">2. Timing Details</h3>
-            
+
             {/* Date Input with Quick Select */}
             <div className="bg-gray-50 dark:bg-gray-800/30 rounded-2xl p-4 sm:p-5 border border-gray-100 dark:border-gray-800">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -354,8 +356,8 @@ export default function AddAttendancePage() {
                 {/* Quick Add Hour Pills */}
                 {startTime && (
                   <div className="absolute top-4 right-4 flex flex-col gap-1.5">
-                     <button onClick={() => addHoursToEndTime(1)} className="px-2 py-1 rounded bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-[10px] font-bold text-gray-500 dark:text-gray-300 hover:bg-gray-100 transition-colors">+1 hr</button>
-                     <button onClick={() => addHoursToEndTime(2)} className="px-2 py-1 rounded bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-[10px] font-bold text-gray-500 dark:text-gray-300 hover:bg-gray-100 transition-colors">+2 hr</button>
+                    <button onClick={() => addHoursToEndTime(1)} className="px-2 py-1 rounded bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-[10px] font-bold text-gray-500 dark:text-gray-300 hover:bg-gray-100 transition-colors">+1 hr</button>
+                    <button onClick={() => addHoursToEndTime(2)} className="px-2 py-1 rounded bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-[10px] font-bold text-gray-500 dark:text-gray-300 hover:bg-gray-100 transition-colors">+2 hr</button>
                   </div>
                 )}
               </div>
@@ -366,15 +368,14 @@ export default function AddAttendancePage() {
           <section className="space-y-4">
             <h3 className="text-sm font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">3. Mark Status</h3>
             <div className="grid grid-cols-2 gap-4">
-              
+
               {/* Present Card */}
               <button
                 onClick={() => setStatus("Present")}
-                className={`relative overflow-hidden group rounded-3xl p-6 sm:p-8 transition-all duration-300 border-2 text-left ${
-                  status === "Present"
+                className={`relative overflow-hidden group rounded-3xl p-6 sm:p-8 transition-all duration-300 border-2 text-left ${status === "Present"
                     ? "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-500 dark:border-emerald-400 shadow-lg shadow-emerald-500/20"
                     : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 hover:border-emerald-200 dark:hover:border-emerald-900"
-                }`}
+                  }`}
               >
                 {status === "Present" && <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/20 rounded-full blur-3xl -mr-10 -mt-10" />}
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300 ${status === "Present" ? "bg-emerald-500 text-white shadow-md scale-110" : "bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:bg-emerald-100 group-hover:text-emerald-500"}`}>
@@ -387,11 +388,10 @@ export default function AddAttendancePage() {
               {/* Absent Card */}
               <button
                 onClick={() => setStatus("Absent")}
-                className={`relative overflow-hidden group rounded-3xl p-6 sm:p-8 transition-all duration-300 border-2 text-left ${
-                  status === "Absent"
+                className={`relative overflow-hidden group rounded-3xl p-6 sm:p-8 transition-all duration-300 border-2 text-left ${status === "Absent"
                     ? "bg-rose-50 dark:bg-rose-500/10 border-rose-500 dark:border-rose-400 shadow-lg shadow-rose-500/20"
                     : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 hover:border-rose-200 dark:hover:border-rose-900"
-                }`}
+                  }`}
               >
                 {status === "Absent" && <div className="absolute top-0 right-0 w-32 h-32 bg-rose-400/20 rounded-full blur-3xl -mr-10 -mt-10" />}
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300 ${status === "Absent" ? "bg-rose-500 text-white shadow-md scale-110" : "bg-gray-100 dark:bg-gray-800 text-gray-400 group-hover:bg-rose-100 group-hover:text-rose-500"}`}>
@@ -433,7 +433,7 @@ export default function AddAttendancePage() {
           >
             {/* Hover Gradient Effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 dark:group-hover:opacity-10 transition-opacity duration-500 bg-[length:200%_auto] animate-gradient" />
-            
+
             <div className="relative flex items-center justify-center gap-3">
               {loading ? (
                 <>
@@ -451,7 +451,8 @@ export default function AddAttendancePage() {
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.3); border-radius: 20px; }

@@ -105,6 +105,13 @@ export default function TimetablePage() {
     duration: 1,
   });
 
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" }>({ message: "", type: "success" });
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast({ message: "", type: "success" }), 3000);
+  };
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -159,9 +166,9 @@ export default function TimetablePage() {
 
       DAYS.forEach(
         (d) =>
-          (map[d] = map[d].sort(
-            (a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime)
-          ))
+        (map[d] = map[d].sort(
+          (a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime)
+        ))
       );
 
       setTimetable(map);
@@ -230,7 +237,7 @@ export default function TimetablePage() {
 
     await batch.commit();
     setSaving(false);
-    alert("Timetable saved successfully");
+    showToast("Timetable saved successfully! 🎉", "success");
   }
 
   function copyPreviousDay() {
@@ -255,11 +262,22 @@ export default function TimetablePage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 pb-8 transition-colors duration-300">
+
+      {/* Toast Notification */}
+      <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 transform ${toast.message ? 'translate-y-0 opacity-100' : '-translate-y-8 opacity-0 pointer-events-none'}`}>
+        <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-md border ${toast.type === 'success' ? 'bg-emerald-500/90 border-emerald-400/50 text-white' : 'bg-rose-500/90 border-rose-400/50 text-white'}`}>
+          {toast.type === 'success'
+            ? <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+            : <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          }
+          <span className="font-bold tracking-wide">{toast.message}</span>
+        </div>
+      </div>
+
       {/* HEADER */}
       <div
-        className={`bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-all duration-1000 ${
-          mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10"
-        }`}
+        className={`bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-all duration-1000 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10"
+          }`}
       >
         <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
@@ -294,9 +312,8 @@ export default function TimetablePage() {
       </div>
 
       <div
-        className={`px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto transition-all duration-1000 delay-200 ${
-          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-        }`}
+        className={`px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto transition-all duration-1000 delay-200 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+          }`}
       >
         {/* DAY SELECTOR */}
         <div className="mb-6">
@@ -316,28 +333,25 @@ export default function TimetablePage() {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.2, delay: index * 0.05 }}
                   onClick={() => setSelectedDay(d)}
-                  className={`flex-shrink-0 flex flex-col items-center min-w-[4rem] sm:min-w-[4.5rem] p-3 sm:p-4 rounded-2xl transition-all duration-300 ${
-                    isSelected
+                  className={`flex-shrink-0 flex flex-col items-center min-w-[4rem] sm:min-w-[4.5rem] p-3 sm:p-4 rounded-2xl transition-all duration-300 ${isSelected
                       ? "bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 shadow-lg scale-105"
                       : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-indigo-300 dark:hover:border-indigo-700"
-                  }`}
+                    }`}
                 >
                   <span
-                    className={`text-xs sm:text-sm font-bold mb-1 ${
-                      isSelected
+                    className={`text-xs sm:text-sm font-bold mb-1 ${isSelected
                         ? "text-white"
                         : "text-gray-900 dark:text-gray-100"
-                    }`}
+                      }`}
                   >
                     {d.slice(0, 3)}
                   </span>
                   {lectureCount > 0 && (
                     <span
-                      className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full ${
-                        isSelected
+                      className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full ${isSelected
                           ? "bg-white/20 text-white"
                           : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
-                      }`}
+                        }`}
                     >
                       {lectureCount}
                     </span>
@@ -670,18 +684,16 @@ export default function TimetablePage() {
                       <button
                         key={hour}
                         onClick={() => setForm({ ...form, duration: hour })}
-                        className={`p-4 rounded-xl border-2 transition-all ${
-                          form.duration === hour
+                        className={`p-4 rounded-xl border-2 transition-all ${form.duration === hour
                             ? "bg-indigo-100 dark:bg-indigo-900/30 border-indigo-500 dark:border-indigo-400"
                             : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600"
-                        }`}
+                          }`}
                       >
                         <div
-                          className={`text-2xl font-bold ${
-                            form.duration === hour
+                          className={`text-2xl font-bold ${form.duration === hour
                               ? "text-indigo-600 dark:text-indigo-400"
                               : "text-gray-900 dark:text-gray-100"
-                          }`}
+                            }`}
                         >
                           {hour}
                         </div>

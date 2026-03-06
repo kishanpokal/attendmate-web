@@ -24,6 +24,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import AttendMateBottomNav from "@/components/navigation/AttendMateBottomNav";
+import { useAuth } from "@/context/AuthContext";
 
 type Attendance = {
   id: string;
@@ -46,6 +47,7 @@ type Subject = {
 
 export default function AttendancePage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [filter, setFilter] = useState<"ALL" | "PRESENT" | "ABSENT">("ALL");
@@ -73,7 +75,7 @@ export default function AttendancePage() {
           today.setHours(hours, minutes, 0, 0);
           return today;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     if (typeof timeValue === "number") return new Date(timeValue);
     return new Date();
@@ -94,8 +96,9 @@ export default function AttendancePage() {
   /* ── Fetch Data ── */
   useEffect(() => {
     const loadData = async () => {
-      if (!auth.currentUser) { router.push("/login"); return; }
-      const uid = auth.currentUser.uid;
+      if (authLoading) return;
+      if (!user) { router.replace("/login"); return; }
+      const uid = user.uid;
       try {
         const subjectSnap = await getDocs(collection(db, "users", uid, "subjects"));
         const subjectList: Subject[] = subjectSnap.docs.map((d) => ({
@@ -136,13 +139,13 @@ export default function AttendancePage() {
       }
     };
     loadData();
-  }, [router]);
+  }, [router, user, authLoading]);
 
   /* ── Delete ── */
   const deleteAttendance = async (item: Attendance) => {
-    if (!auth.currentUser) return;
+    if (!user) return;
     setDeleteLoading(true);
-    const uid = auth.currentUser.uid;
+    const uid = user.uid;
     const subjectRef = doc(db, "users", uid, "subjects", item.subjectId);
     const attendanceRef = doc(
       db, "users", uid, "subjects", item.subjectId,
@@ -209,7 +212,7 @@ export default function AttendancePage() {
       acc[key].push(item);
       return acc;
     }, {} as Record<string, Attendance[]>),
-  [filteredAttendance]);
+    [filteredAttendance]);
 
   /* ── Circular Progress ── */
   const radius = 72;
@@ -315,8 +318,8 @@ export default function AttendancePage() {
                 <div className="flex-1 w-full space-y-2.5">
                   {[
                     { label: "Attended", val: stats.present, col: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-900/20", icon: <CheckCircle className="w-4 h-4 text-emerald-500" /> },
-                    { label: "Missed",   val: stats.absent,  col: "text-red-600 dark:text-red-400",         bg: "bg-red-50 dark:bg-red-900/20",         icon: <XCircle className="w-4 h-4 text-red-500" /> },
-                    { label: "Total",    val: stats.total,   col: "text-indigo-600 dark:text-indigo-400",   bg: "bg-indigo-50 dark:bg-indigo-900/20",   icon: <List className="w-4 h-4 text-indigo-500" /> },
+                    { label: "Missed", val: stats.absent, col: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-900/20", icon: <XCircle className="w-4 h-4 text-red-500" /> },
+                    { label: "Total", val: stats.total, col: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-50 dark:bg-indigo-900/20", icon: <List className="w-4 h-4 text-indigo-500" /> },
                   ].map((row) => (
                     <div key={row.label} className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl ${row.bg}`}>
                       <div className="flex items-center gap-2">
@@ -360,15 +363,14 @@ export default function AttendancePage() {
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
-                      filter === f
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${filter === f
                         ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20"
                         : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                    }`}
+                      }`}
                   >
                     {f === "ALL" ? <Filter className="w-3.5 h-3.5" /> :
-                     f === "PRESENT" ? <CheckCircle className="w-3.5 h-3.5" /> :
-                     <XCircle className="w-3.5 h-3.5" />}
+                      f === "PRESENT" ? <CheckCircle className="w-3.5 h-3.5" /> :
+                        <XCircle className="w-3.5 h-3.5" />}
                     {f === "ALL" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
                   </button>
                 ))}
@@ -421,18 +423,16 @@ export default function AttendancePage() {
                       <button
                         key={item.id}
                         onClick={() => setSelectedAttendance(item)}
-                        className={`w-full text-left p-3.5 rounded-2xl border-2 transition-all hover:shadow-md active:scale-[0.98] ${
-                          item.status === "PRESENT"
+                        className={`w-full text-left p-3.5 rounded-2xl border-2 transition-all hover:shadow-md active:scale-[0.98] ${item.status === "PRESENT"
                             ? "bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/50"
                             : "bg-red-50/70 dark:bg-red-950/30 border-red-200 dark:border-red-800/50"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                            item.status === "PRESENT"
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${item.status === "PRESENT"
                               ? "bg-gradient-to-br from-emerald-500 to-teal-500 shadow-sm shadow-emerald-500/20"
                               : "bg-gradient-to-br from-red-500 to-orange-500 shadow-sm shadow-red-500/20"
-                          }`}>
+                            }`}>
                             {item.status === "PRESENT"
                               ? <CheckCircle className="w-5 h-5 text-white" />
                               : <XCircle className="w-5 h-5 text-white" />}
@@ -453,11 +453,10 @@ export default function AttendancePage() {
                               </p>
                             )}
                           </div>
-                          <span className={`w-7 h-7 rounded-lg text-xs font-bold flex-shrink-0 flex items-center justify-center ${
-                            item.status === "PRESENT"
+                          <span className={`w-7 h-7 rounded-lg text-xs font-bold flex-shrink-0 flex items-center justify-center ${item.status === "PRESENT"
                               ? "bg-emerald-500 text-white"
                               : "bg-red-500 text-white"
-                          }`}>
+                            }`}>
                             {item.status === "PRESENT" ? "✓" : "✗"}
                           </span>
                         </div>
@@ -493,18 +492,16 @@ export default function AttendancePage() {
             }}
           >
             {/* Colored header */}
-            <div className={`px-5 py-4 ${
-              selectedAttendance.status === "PRESENT"
+            <div className={`px-5 py-4 ${selectedAttendance.status === "PRESENT"
                 ? "bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border-b border-emerald-200/70 dark:border-emerald-800/40"
                 : "bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/40 dark:to-orange-950/40 border-b border-red-200/70 dark:border-red-800/40"
-            }`}>
+              }`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md ${
-                    selectedAttendance.status === "PRESENT"
+                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md ${selectedAttendance.status === "PRESENT"
                       ? "bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-500/25"
                       : "bg-gradient-to-br from-red-500 to-orange-500 shadow-red-500/25"
-                  }`}>
+                    }`}>
                     {selectedAttendance.status === "PRESENT"
                       ? <CheckCircle className="w-6 h-6 text-white" />
                       : <XCircle className="w-6 h-6 text-white" />}
@@ -513,11 +510,10 @@ export default function AttendancePage() {
                     <p className="font-bold text-base text-gray-900 dark:text-gray-100 truncate leading-tight">
                       {selectedAttendance.subjectName}
                     </p>
-                    <span className={`text-xs font-bold ${
-                      selectedAttendance.status === "PRESENT"
+                    <span className={`text-xs font-bold ${selectedAttendance.status === "PRESENT"
                         ? "text-emerald-600 dark:text-emerald-400"
                         : "text-red-600 dark:text-red-400"
-                    }`}>
+                      }`}>
                       {selectedAttendance.status === "PRESENT" ? "✓ Attended" : "✗ Missed"}
                     </span>
                   </div>
