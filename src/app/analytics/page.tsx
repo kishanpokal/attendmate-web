@@ -31,6 +31,16 @@ function percentageAfterSkipping(present: number, total: number, skip: number) {
   return newTotal === 0 ? 0 : Number(((present * 100) / newTotal).toFixed(1));
 }
 
+// Tailwind v4 safelist to prevent purging of dynamic class names
+const _safelist = "bg-emerald-500 bg-amber-500 bg-rose-500 bg-gray-500 " +
+  "text-emerald-500 text-amber-500 text-rose-500 " +
+  "text-emerald-500/80 text-amber-500/80 text-rose-500/80 " +
+  "text-emerald-500/70 text-amber-500/70 text-rose-500/70 " +
+  "stroke-emerald-500 stroke-amber-500 stroke-rose-500 " +
+  "bg-emerald-500/20 bg-amber-500/20 bg-rose-500/20 " +
+  "bg-emerald-500/10 bg-amber-500/10 bg-rose-500/10 " +
+  "shadow-emerald-500/50 shadow-amber-500/50 shadow-rose-500/50";
+
 function getStatusTheme(percent: number) {
   if (percent >= 75) return { color: "emerald", hex: "#10b981", text: "Optimal", lightBg: "bg-emerald-500/10", border: "border-emerald-500/20" };
   if (percent >= 60) return { color: "amber", hex: "#f59e0b", text: "Warning", lightBg: "bg-amber-500/10", border: "border-amber-500/20" };
