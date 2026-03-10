@@ -10,6 +10,7 @@ import {
   AddRounded,
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type RouteKey = "home" | "attendance" | "analytics" | "settings";
 
@@ -21,11 +22,11 @@ const navItems: {
   accent: string;
   lightAccent: string;
 }[] = [
-  { key: "home", label: "Home", icon: HomeRounded, path: "/dashboard", accent: "#6366f1", lightAccent: "rgba(99, 102, 241, 0.12)" },
-  { key: "attendance", label: "Attend", icon: ListAltRounded, path: "/attendance", accent: "#0ea5e9", lightAccent: "rgba(14, 165, 233, 0.12)" },
-  { key: "analytics", label: "Analytics", icon: BarChartRounded, path: "/analytics", accent: "#10b981", lightAccent: "rgba(16, 185, 129, 0.12)" },
-  { key: "settings", label: "Settings", icon: SettingsRounded, path: "/settings", accent: "#f59e0b", lightAccent: "rgba(245, 158, 11, 0.12)" },
-];
+    { key: "home", label: "Home", icon: HomeRounded, path: "/dashboard", accent: "#6366f1", lightAccent: "rgba(99, 102, 241, 0.12)" },
+    { key: "attendance", label: "Attend", icon: ListAltRounded, path: "/attendance", accent: "#0ea5e9", lightAccent: "rgba(14, 165, 233, 0.12)" },
+    { key: "analytics", label: "Analytics", icon: BarChartRounded, path: "/analytics", accent: "#10b981", lightAccent: "rgba(16, 185, 129, 0.12)" },
+    { key: "settings", label: "Settings", icon: SettingsRounded, path: "/settings", accent: "#f59e0b", lightAccent: "rgba(245, 158, 11, 0.12)" },
+  ];
 
 export default function AttendMateBottomNav() {
   const router = useRouter();
@@ -42,7 +43,8 @@ export default function AttendMateBottomNav() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         /* Ensures the bar doesn't get cut off by iOS home indicator */
         .safe-padding { 
           padding-bottom: env(safe-area-inset-bottom); 
@@ -54,21 +56,19 @@ export default function AttendMateBottomNav() {
         Desktop: Floating center dock.
       */}
       <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center md:bottom-6">
-        
+
         {/* Main Glass Background:
           Mobile: Safe-padding expands the glass to the bottom edge. Rounded top corners.
           Desktop: Fully rounded floating pill. 
         */}
         <div className="pointer-events-auto w-full md:w-auto safe-padding bg-white/85 dark:bg-[#0f1423]/85 backdrop-blur-2xl border-t md:border border-gray-200/50 dark:border-gray-800/60 shadow-[0_-8px_30px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_-8px_30px_-15px_rgba(0,0,0,0.5)] md:shadow-2xl rounded-t-3xl md:rounded-[2rem] transition-colors duration-500">
-          
-          {/* Perfectly distributed 5-column grid layout for Mobile.
-            Flexbox for desktop to keep it compact.
-          */}
-          <div className="w-full max-w-md mx-auto md:max-w-none h-[72px] md:h-[68px] grid grid-cols-5 md:flex md:items-center md:gap-2 px-2 sm:px-4">
-            
+
+          {/* 6-column grid: 4 nav + FAB + theme toggle */}
+          <div className="w-full max-w-lg mx-auto md:max-w-none h-[72px] md:h-[68px] grid grid-cols-6 md:flex md:items-center md:gap-2 px-2 sm:px-4">
+
             {/* 1. Home */}
             <NavItem item={navItems[0]} isActive={active === navItems[0].key} onClick={() => router.push(navItems[0].path)} />
-            
+
             {/* 2. Attendance */}
             <NavItem item={navItems[1]} isActive={active === navItems[1].key} onClick={() => router.push(navItems[1].path)} />
 
@@ -79,7 +79,6 @@ export default function AttendMateBottomNav() {
                 whileTap={{ scale: 0.95, rotate: 45 }}
                 onClick={() => router.push("/attendance/add")}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                // Absolute positioning keeps the grid intact while letting the button float upwards
                 className="absolute bottom-4 md:bottom-auto w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 text-white border border-white/20 dark:border-white/10 z-10"
               >
                 <AddRounded sx={{ fontSize: 32 }} />
@@ -88,10 +87,15 @@ export default function AttendMateBottomNav() {
 
             {/* 4. Analytics */}
             <NavItem item={navItems[2]} isActive={active === navItems[2].key} onClick={() => router.push(navItems[2].path)} />
-            
+
             {/* 5. Settings */}
             <NavItem item={navItems[3]} isActive={active === navItems[3].key} onClick={() => router.push(navItems[3].path)} />
-            
+
+            {/* 6. Theme Toggle */}
+            <div className="flex items-center justify-center h-full w-full md:w-16">
+              <ThemeToggle />
+            </div>
+
           </div>
         </div>
       </div>
@@ -145,11 +149,10 @@ function NavItem({
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
         >
           <Icon
-            className={`transition-colors duration-300 ${
-              isActive 
-                ? "drop-shadow-sm" 
+            className={`transition-colors duration-300 ${isActive
+                ? "drop-shadow-sm"
                 : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
-            }`}
+              }`}
             style={{
               fontSize: 26,
               color: isActive ? item.accent : undefined,
@@ -158,11 +161,10 @@ function NavItem({
         </motion.div>
 
         <span
-          className={`text-[10px] sm:text-[11px] font-bold tracking-wide transition-colors duration-300 ${
-            isActive 
-              ? "" 
+          className={`text-[10px] sm:text-[11px] font-bold tracking-wide transition-colors duration-300 ${isActive
+              ? ""
               : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
-          }`}
+            }`}
           style={{
             color: isActive ? item.accent : undefined,
           }}

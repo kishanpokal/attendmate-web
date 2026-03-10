@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   collection,
   getDocs,
@@ -53,9 +53,25 @@ export default function AttendancePage() {
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [filter, setFilter] = useState<"ALL" | "PRESENT" | "ABSENT">("ALL");
   const [selectedSubject, setSelectedSubject] = useState("ALL");
+  const searchParams = useSearchParams();
+  const dateParam = searchParams.get("date");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedAttendance, setSelectedAttendance] = useState<Attendance | null>(null);
+
+  // Set initial search query from date parameter when mounted
+  useEffect(() => {
+    if (dateParam) {
+      // Format dateParam from YYYY-MM-DD to DD/MM/YYYY or similar based on how it's matched
+      // The search matches `dateStr` which is `date.toDate().toLocaleDateString()`
+      // Let's just create a Date from the param and use the exact same format
+      const [y, m, d] = dateParam.split('-');
+      if (y && m && d) {
+        const dObj = new Date(Number(y), Number(m) - 1, Number(d));
+        setSearchQuery(dObj.toLocaleDateString());
+      }
+    }
+  }, [dateParam]);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -286,6 +302,20 @@ export default function AttendancePage() {
                   Performance Overview
                 </h2>
               </div>
+
+              {dateParam && searchQuery === new Date(Number(dateParam.split('-')[0]), Number(dateParam.split('-')[1]) - 1, Number(dateParam.split('-')[2])).toLocaleDateString() && (
+                <div className="mb-4 p-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-indigo-500" />
+                    <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
+                      Showing records for <strong>{new Date(dateParam).toLocaleDateString()}</strong>
+                    </span>
+                  </div>
+                  <button onClick={() => { setSearchQuery(""); router.push('/attendance'); }} className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 underline">
+                    Clear Filter
+                  </button>
+                </div>
+              )}
 
               <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-8">
                 {/* Circular */}
