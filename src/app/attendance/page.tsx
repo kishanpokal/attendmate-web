@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -46,7 +46,7 @@ type Subject = {
   attendedClasses: number;
 };
 
-export default function AttendancePage() {
+function AttendanceContent() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -649,14 +649,26 @@ export default function AttendancePage() {
 
           {/* Modal animation keyframe */}
           <style>{`
-            @keyframes modalIn {
-              from { opacity: 0; transform: scale(0.92) translateY(8px); }
-              to   { opacity: 1; transform: scale(1) translateY(0); }
-            }
-          `}</style>
+              @keyframes modalIn {
+                from { opacity: 0; transform: scale(0.92) translateY(8px); }
+                to   { opacity: 1; transform: scale(1) translateY(0); }
+              }
+            `}</style>
         </div>,
         document.body
       )}
     </>
+  );
+}
+
+export default function AttendancePage() {
+  return (
+    <React.Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <AttendanceContent />
+    </React.Suspense>
   );
 }

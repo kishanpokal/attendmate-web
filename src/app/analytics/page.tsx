@@ -12,6 +12,7 @@ type AnalyticsAttendance = {
   subject: string;
   date: string;
   status: "PRESENT" | "ABSENT";
+  startTime?: string | { toDate: () => Date };
 };
 
 /* ---------------- UTILS ---------------- */
@@ -101,6 +102,7 @@ export default function AnalyticsPage() {
             subject: subjectName,
             date: dateStr,
             status: doc.data().status?.toUpperCase() || "ABSENT",
+            startTime: doc.data().startTime,
           });
         });
       }
@@ -282,8 +284,8 @@ export default function AnalyticsPage() {
                 <motion.div variants={fadeInUp} className="h-[380px]">
                   <TrendLineChart attendance={attendance} />
                 </motion.div>
-                <motion.div variants={fadeInUp} className="h-[380px]">
-                  <WeeklyHeatmap attendance={attendance} />
+                <motion.div variants={fadeInUp} className="md:col-span-8 lg:col-span-8 group">
+                  <TimeOfDayAnalysis attendance={attendance} />
                 </motion.div>
               </div>
 
@@ -377,11 +379,13 @@ function TrendLineChart({ attendance }: { attendance: AnalyticsAttendance[] }) {
   const yMax = 100;
   const yMin = Math.max(0, Math.min(...trendData.map(d => d.percent)) - 5);
   const yRange = yMax - yMin || 1;
-  const stepX = svgWidth / Math.max(1, trendData.length - 1);
+  const paddingX = 10; // Prevent cropping dots at edges
+  const usableWidth = svgWidth - (paddingX * 2);
+  const stepX = usableWidth / Math.max(1, trendData.length - 1);
 
   const points = trendData.map((d, i) => ({
-    x: i * stepX,
-    y: svgHeight - ((d.percent - yMin) / yRange) * svgHeight,
+    x: paddingX + (i * stepX),
+    y: 10 + (svgHeight - 20) - ((d.percent - yMin) / yRange) * (svgHeight - 20), // Add Y padding
     ...d
   }));
 
@@ -405,7 +409,7 @@ function TrendLineChart({ attendance }: { attendance: AnalyticsAttendance[] }) {
       </div>
 
       <div className="relative flex-1 w-full" ref={node => { if (node && node.clientWidth !== svgWidth) setSvgWidth(node.clientWidth) }}>
-        <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="absolute inset-0 w-full h-full overflow-visible">
+        <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} preserveAspectRatio="none" className="absolute inset-0 w-full h-full overflow-visible">
           <defs>
             <linearGradient id="velocityGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#6467f2" stopOpacity="0.4" />
@@ -451,61 +455,94 @@ function TrendLineChart({ attendance }: { attendance: AnalyticsAttendance[] }) {
   );
 }
 
-/* ---------------- WEEKLY HEATMAP ---------------- */
-function WeeklyHeatmap({ attendance }: { attendance: AnalyticsAttendance[] }) {
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const dayStats = days.map(d => ({ name: d, present: 0, absent: 0 }));
+/* ---------------- TIME OF DAY ANALYSIS ---------------- */
+function TimeOfDayAnalysis({ attendance }: { attendance: AnalyticsAttendance[] }) {
+  const periods = [
+    { id: 'morning', name: 'Morning', icon: '🌅', desc: 'Before 12 PM', present: 0, absent: 0 },
+    { id: 'afternoon', name: 'Afternoon', icon: '☀️', desc: '12 PM - 4 PM', present: 0, absent: 0 },
+    { id: 'evening', name: 'Evening', icon: '🌙', desc: 'After 4 PM', present: 0, absent: 0 }
+  ];
 
   attendance.forEach(a => {
-    const dayIndex = new Date(a.date).getDay();
-    if (a.status === 'PRESENT') dayStats[dayIndex].present++;
-    else dayStats[dayIndex].absent++;
+    if (!a.startTime) return;
+    try {
+      // Parse time to get hours
+      let hours = 12;
+      const timeStr = typeof a.startTime === 'string' ? a.startTime :
+        (a.startTime as any).toDate ? (a.startTime as any).toDate().toLocaleTimeString() : "";
+
+      const match = timeStr.trim().match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+      if (match) {
+        hours = parseInt(match[1]);
+        const meridiem = match[3]?.toUpperCase();
+        if (meridiem === "PM" && hours !== 12) hours += 12;
+        if (meridiem === "AM" && hours === 12) hours = 0;
+      }
+
+      let periodIdx = 0; // morning
+      if (hours >= 12 && hours < 16) periodIdx = 1; // afternoon
+      else if (hours >= 16) periodIdx = 2; // evening
+
+      if (a.status === 'PRESENT') periods[periodIdx].present++;
+      else periods[periodIdx].absent++;
+    } catch {
+      // ignore parse errors
+    }
   });
 
-  const sortedStats = [...dayStats.slice(1), dayStats[0]];
-  const maxClasses = Math.max(...sortedStats.map(s => s.present + s.absent), 1);
+  const maxClasses = Math.max(...periods.map(s => s.present + s.absent), 1);
 
   return (
     <div className="bg-white/60 dark:bg-[#111111]/80 backdrop-blur-2xl rounded-[2.5rem] p-8 border border-white/50 dark:border-white/5 h-full flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Weekly Performance</h3>
-          <p className="text-xs font-semibold text-gray-500 mt-1 uppercase tracking-wider">Distribution by day</p>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Time of Day</h3>
+          <p className="text-xs font-semibold text-gray-500 mt-1 uppercase tracking-wider">Attendance by shift</p>
         </div>
-        <div className="w-10 h-10 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-500">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+        <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </div>
       </div>
 
-      <div className="flex h-40 items-end justify-between gap-3 sm:gap-4 flex-1">
-        {sortedStats.map((stat, i) => {
+      <div className="flex flex-col justify-around flex-1 gap-6">
+        {periods.map((stat, i) => {
           const total = stat.present + stat.absent;
           const percent = total > 0 ? (stat.present / total) * 100 : 0;
-          const pHeight = total > 0 ? (stat.present / maxClasses) * 100 : 0;
-          const aHeight = total > 0 ? (stat.absent / maxClasses) * 100 : 0;
+          const width = total > 0 ? ((stat.present + stat.absent) / maxClasses) * 100 : 0;
+          const pWidth = total > 0 ? (stat.present / total) * 100 : 0;
           const theme = getStatusTheme(percent);
 
           return (
-            <div key={i} className="flex flex-col items-center gap-3 flex-1 group">
-              <div className="w-full max-w-[32px] bg-gray-100 dark:bg-white/5 rounded-full h-full flex flex-col-reverse justify-start overflow-hidden relative group-hover:bg-gray-200 dark:group-hover:bg-white/10 transition-colors">
-                <motion.div
-                  initial={{ height: 0 }} whileInView={{ height: `${pHeight}%` }} viewport={{ once: true }} transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
-                  className={`w-full bg-${total > 0 ? theme.color : 'gray'}-500 rounded-b-full`}
-                />
-                <motion.div
-                  initial={{ height: 0 }} whileInView={{ height: `${aHeight}%` }} viewport={{ once: true }} transition={{ duration: 0.8, type: "spring", stiffness: 100, delay: 0.1 }}
-                  className="w-full bg-gray-300 dark:bg-gray-600 rounded-t-full"
-                />
+            <div key={i} className="flex flex-col gap-2 group">
+              <div className="flex justify-between items-end">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{stat.icon}</span>
+                  <div>
+                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{stat.name}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-gray-400 mr-2">{total} classes</span>
+                  <span className={`text-sm font-black text-${total > 0 ? theme.color : 'gray'}-500`}>{total > 0 ? `${percent.toFixed(0)}%` : 'N/A'}</span>
+                </div>
               </div>
-              <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{stat.name.substring(0, 3)}</span>
+
+              {/* Background track relative to max classes */}
+              <div className="w-full bg-transparent h-3 rounded-full flex items-center">
+                <motion.div
+                  initial={{ width: 0 }} animate={{ width: `${width}%` }} transition={{ duration: 0.8, type: "spring" }}
+                  className="h-full bg-gray-100 dark:bg-white/5 rounded-full relative overflow-hidden flex"
+                >
+                  <motion.div
+                    initial={{ width: 0 }} animate={{ width: `${pWidth}%` }} transition={{ duration: 1, delay: 0.2 }}
+                    className={`h-full bg-${total > 0 ? theme.color : 'gray'}-500`}
+                  />
+                  <div className="flex-1 bg-gray-300 dark:bg-gray-600 h-full" />
+                </motion.div>
+              </div>
             </div>
           );
         })}
-      </div>
-
-      <div className="flex justify-center gap-6 mt-6 pt-4 border-t border-gray-100 dark:border-white/5">
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/20"></div><span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Present</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-gray-300 dark:bg-gray-600"></div><span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Absent</span></div>
       </div>
     </div>
   );
@@ -542,8 +579,7 @@ function SubjectBarGraph({ data }: { data: Record<string, AnalyticsAttendance[]>
                 <div className="absolute top-0 bottom-0 left-[75%] w-[2px] bg-red-500/50 z-10 box-content px-px bg-clip-content" />
                 <motion.div
                   initial={{ width: 0 }}
-                  whileInView={{ width: `${percent}%` }}
-                  viewport={{ once: true }}
+                  animate={{ width: `${percent}%` }}
                   transition={{ duration: 1.2, type: "spring", bounce: 0.2 }}
                   className={`h-full rounded-full bg-${theme.color}-500 shadow-[0_0_10px_rgba(0,0,0,0.2)] shadow-${theme.color}-500/50 relative z-0`}
                 />
