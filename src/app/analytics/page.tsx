@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { collection, getDocs, Timestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import AttendMateBottomNav from "@/components/navigation/AttendMateBottomNav";
 import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
+import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
+import { BarChart3 } from "lucide-react";
 
 /* ---------------- TYPES ---------------- */
 type AnalyticsAttendance = {
@@ -145,6 +146,7 @@ export default function AnalyticsPage() {
     else break;
   }
 
+
   const bySubject = useMemo(() => {
     return attendance.reduce<Record<string, AnalyticsAttendance[]>>((acc, a) => {
       acc[a.subject] = acc[a.subject] || [];
@@ -154,40 +156,34 @@ export default function AnalyticsPage() {
   }, [attendance]);
 
   return (
-    <main className="min-h-screen bg-[#F5F5F7] dark:bg-[#000000] text-gray-900 dark:text-gray-100 font-sans transition-colors duration-500 overflow-x-hidden pb-40">
-
-      {/* Dynamic Background Gradients */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute -top-[20%] -right-[10%] w-[70vw] h-[70vw] rounded-full bg-indigo-500/10 dark:bg-indigo-900/20 blur-[120px]"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.5, 1],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear", delay: 2 }}
-          className="absolute top-[40%] -left-[20%] w-[60vw] h-[60vw] rounded-full bg-purple-500/10 dark:bg-purple-900/20 blur-[120px]"
-        />
-      </div>
-
-      {/* HEADER */}
-      <header className="relative z-40 px-6 pt-12 pb-6 md:px-10 max-w-7xl mx-auto">
-        <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, ease: "easeOut" }}>
-          <h2 className="text-sm font-bold tracking-widest text-[#6467f2] uppercase mb-1 flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-            Intelligence
-          </h2>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-gray-900 dark:text-white">
-            Analytics
-          </h1>
-        </motion.div>
-      </header>
+    <ProfessionalPageLayout>
+      <div className="p-4 sm:p-8 lg:p-12 space-y-10">
+        
+        {/* SaaS Style Header */}
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-gray-100 dark:border-gray-900">
+          <div>
+            <div className="flex items-center gap-2 text-indigo-500 mb-2">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Data Engine Active</span>
+            </div>
+            <h1 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
+              Performance <span className="text-indigo-500">Analytics</span>
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 font-bold mt-2">
+              Advanced insights into your academic consistency and trends.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-3 bg-white dark:bg-gray-900 px-5 py-3 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Current Rate</p>
+              <p className={`text-sm font-black ${percentage >= 75 ? 'text-emerald-500' : 'text-rose-500'}`}>{percentage}%</p>
+            </div>
+          </div>
+        </header>
 
       {/* CONTENT */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8">
@@ -257,24 +253,21 @@ export default function AnalyticsPage() {
                   </div>
                 </motion.div>
 
-                {/* Streak Card */}
-                <motion.div variants={fadeInUp} className="md:col-span-4 lg:col-span-4 bg-gradient-to-br from-[#6467f2] to-[#8a2be2] rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl shadow-[#6467f2]/20 group flex flex-col justify-between">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-white/20 transition-colors duration-700" />
-
-                  <div className="relative z-10">
-                    <div className="w-12 h-12 bg-white/20 rounded-2xl backdrop-blur-xl flex items-center justify-center mb-6">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" /></svg>
-                    </div>
-                    <p className="text-sm font-bold text-white/70 uppercase tracking-widest mb-1">Consistency Streak</p>
-                    <div className="flex items-end gap-2">
-                      <h3 className="text-6xl font-black tracking-tighter leading-none">{currentStreak}</h3>
-                      <span className="text-xl font-bold text-white/80 pb-1">Days</span>
-                    </div>
+                {/* Score Summary Card */}
+                <motion.div variants={fadeInUp} className="md:col-span-4 lg:col-span-4 bg-white/60 dark:bg-[#111111]/80 backdrop-blur-2xl rounded-[2.5rem] p-8 border border-white/50 dark:border-white/5 shadow-xl relative overflow-hidden group flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-4">
+                    <BarChart3 className="text-indigo-500" />
                   </div>
-
-                  <div className="relative z-10 mt-8 bg-black/20 rounded-2xl p-4 backdrop-blur-md border border-white/10 flex items-center justify-between">
-                    <span className="text-xs font-bold text-white/70 uppercase tracking-wider">All-time Best</span>
-                    <span className="text-lg font-black">{maxStreak} Days</span>
+                  <h4 className="font-black text-gray-900 dark:text-white text-lg mb-1">Consistency</h4>
+                  <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">Score Breakdown</p>
+                  <div className="mt-6 space-y-2 w-full">
+                    <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
+                      <span>Streak</span>
+                      <span className="text-gray-900 dark:text-white">{currentStreak} Days</span>
+                    </div>
+                    <div className="w-full bg-gray-100 dark:bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-indigo-500 h-full" style={{ width: `${Math.min(currentStreak * 10, 100)}%` }} />
+                    </div>
                   </div>
                 </motion.div>
               </div>
@@ -299,11 +292,10 @@ export default function AnalyticsPage() {
                 </motion.div>
               </div>
 
-              {/* === FORECASTING TRAY === */}
+              {/* Advanced Forecasting Section */}
               <motion.div variants={fadeInUp}>
-                <SkipPrediction present={present} total={total} />
+                <SkipPrediction present={present} total={total} bySubject={bySubject} />
               </motion.div>
-
             </motion.div>
           )}
         </AnimatePresence>
@@ -314,8 +306,8 @@ export default function AnalyticsPage() {
         {selectedDate && <DateDialog date={selectedDate} attendance={attendance} onClose={() => setSelectedDate(null)} router={router} />}
       </AnimatePresence>
 
-      <AttendMateBottomNav />
-    </main>
+      </div>
+    </ProfessionalPageLayout>
   );
 }
 
@@ -676,50 +668,113 @@ function AttendanceCalendar({ attendance, monthOffset, setMonthOffset, onDateCli
 }
 
 /* ---------------- FORECASTING TRAY ---------------- */
-function SkipPrediction({ present, total }: any) {
+/* ---------------- ADVANCED FORECASTING ENGINE ---------------- */
+function SkipPrediction({ present, total, bySubject }: { present: number, total: number, bySubject: Record<string, AnalyticsAttendance[]> }) {
+  const [selectedSubject, setSelectedSubject] = useState<string>("Global");
+
+  const currentStats = useMemo(() => {
+    if (selectedSubject === "Global") {
+      return { p: present, t: total };
+    }
+    const list = bySubject[selectedSubject] || [];
+    return {
+      p: list.filter(l => l.status === "PRESENT").length,
+      t: list.length
+    };
+  }, [selectedSubject, present, total, bySubject]);
+
   return (
-    <div className="mt-8">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+    <div className="mt-12 mb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center text-white shadow-xl shadow-orange-500/20 shrink-0">
+            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+          </div>
+          <div>
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Forecasting Engine</h3>
+            <p className="text-sm font-bold text-gray-500 mt-0.5 uppercase tracking-widest">Predicting "What-if" scenarios</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-2xl font-black text-gray-900 dark:text-white">Forecasting Engine</h3>
-          <p className="text-sm font-medium text-gray-500 mt-1 uppercase tracking-wider">Predict safe skipping limits</p>
+
+        <div className="flex items-center gap-2 bg-white/50 dark:bg-gray-950/50 backdrop-blur-xl p-1.5 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+          <button 
+            onClick={() => setSelectedSubject("Global")}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${selectedSubject === "Global" ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20" : "text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5"}`}
+          >
+            GLOBAL
+          </button>
+          <select 
+            value={selectedSubject === "Global" ? "" : selectedSubject}
+            onChange={(e) => setSelectedSubject(e.target.value || "Global")}
+            className={`px-3 py-2 rounded-xl text-xs font-black bg-transparent outline-none cursor-pointer ${selectedSubject !== "Global" ? "text-indigo-500" : "text-gray-400 hover:text-gray-600"}`}
+          >
+            <option value="" disabled>SUBJECTS</option>
+            {Object.keys(bySubject).map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
         </div>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto pb-8 custom-scrollbar snap-x">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[1, 2, 3, 4].map(skip => {
-          const newPercent = percentageAfterSkipping(present, total, skip);
+          const newPercent = percentageAfterSkipping(currentStats.p, currentStats.t, skip);
           const theme = getStatusTheme(newPercent);
 
           let severityText = "SAFE";
-          if (newPercent < 75) severityText = "DANGER ZONE";
-          else if (newPercent < 80) severityText = "CAUTION";
+          let recommendation = "Low Risk";
+          let recoveryAdvice = "Buffer maintained";
+          
+          if (newPercent < 75) {
+            severityText = "DANGER ZONE";
+            recommendation = "Immediate Risk";
+            const needed = Math.ceil((0.75 * (currentStats.t + skip) - currentStats.p) / 0.25);
+            recoveryAdvice = `Attend next ${needed} classes`;
+          } else if (newPercent < 80) {
+            severityText = "CAUTION";
+            recommendation = "Thin Buffer";
+            recoveryAdvice = "Monitor closely";
+          }
 
           return (
             <motion.div
               key={skip}
-              whileHover={{ y: -10 }}
-              className={`snap-center shrink-0 w-72 bg-white/60 dark:bg-[#111111]/80 backdrop-blur-2xl p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border relative overflow-hidden ${theme.border}`}
+              whileHover={{ y: -8, scale: 1.02 }}
+              className={`relative overflow-hidden bg-white/60 dark:bg-[#111111]/80 backdrop-blur-2xl p-6 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border-2 transition-colors ${theme.border}`}
             >
-              <div className={`absolute top-0 right-0 w-32 h-32 ${theme.lightBg} blur-2xl rounded-full -mr-10 -mt-10`} />
+              {/* Animated Glow */}
+              <div className={`absolute -top-10 -right-10 w-32 h-32 bg-${theme.color}-500/10 blur-3xl rounded-full`} />
 
-              <div className="relative z-10">
-                <p className={`text-[10px] font-black uppercase tracking-widest text-${theme.color}-500 mb-2`}>{severityText}</p>
-                <p className="text-base font-bold text-gray-800 dark:text-gray-200">If you skip {skip} {skip === 1 ? 'class' : 'classes'}</p>
+              <div className="relative z-10 flex flex-col h-full">
+                <div className="flex justify-between items-start mb-4">
+                  <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-${theme.color}-500/10 text-${theme.color}-500 border border-${theme.color}-500/20`}>
+                    {severityText}
+                  </span>
+                  <span className="text-xs font-bold text-gray-400 dark:text-gray-500">+{skip} Absence</span>
+                </div>
 
-                <div className="mt-6 flex items-end justify-between">
+                <div className="mb-6">
+                  <p className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Projected Score</p>
                   <div className="flex items-end gap-2">
-                    <span className="text-4xl font-black tracking-tighter text-gray-900 dark:text-white">{newPercent.toFixed(0)}%</span>
-                    <span className={`text-${theme.color}-500 mb-1.5`}>
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d={newPercent >= 75 ? "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" : "M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"} /></svg>
-                    </span>
+                    <span className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">{newPercent.toFixed(1)}%</span>
+                    <div className={`mb-1.5 p-0.5 rounded-md bg-${theme.color}-500/10`}>
+                      <svg className={`w-4 h-4 text-${theme.color}-500 rotate-180`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`text-[10px] font-bold uppercase tracking-wider text-${theme.color}-500/70`}>Result</p>
-                    <p className={`text-sm font-bold text-${theme.color}-500`}>{theme.text}</p>
+                </div>
+
+                <div className="mt-auto space-y-3 pt-4 border-t border-gray-100 dark:border-white/5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Outcome</span>
+                    <span className={`text-xs font-black text-${theme.color}-500`}>{theme.text}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Advice</span>
+                    <span className="text-xs font-bold text-gray-600 dark:text-gray-300">{recommendation}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Recovery</span>
+                    <span className={`text-xs font-bold ${newPercent < 75 ? "text-rose-500" : "text-gray-500"}`}>{recoveryAdvice}</span>
                   </div>
                 </div>
               </div>

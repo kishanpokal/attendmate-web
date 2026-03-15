@@ -24,7 +24,7 @@ import {
   Filter,
   BarChart3,
 } from "lucide-react";
-import AttendMateBottomNav from "@/components/navigation/AttendMateBottomNav";
+import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
 import { useAuth } from "@/context/AuthContext";
 
 type Attendance = {
@@ -267,29 +267,37 @@ function AttendanceContent() {
   }
 
   return (
-    <>
-      {/* ── PAGE WRAPPER ── */}
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24">
-
-        {/* ── HEADER ── */}
-        <div className="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-3 h-14 sm:h-16">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-indigo-500/25 flex-shrink-0">
-              <School className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-white" />
+    <ProfessionalPageLayout>
+      <div className="p-4 sm:p-8 lg:p-12 space-y-10">
+        
+        {/* SaaS Style Header */}
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-gray-100 dark:border-gray-900">
+          <div>
+            <div className="flex items-center gap-2 text-indigo-500 mb-2">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Records Verified</span>
             </div>
-            <div>
-              <h1 className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 leading-none">
-                Attendance Tracker
-              </h1>
-              <p className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 leading-none mt-0.5">
-                Monitor your academic progress
-              </p>
+            <h1 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
+              Attendance <span className="text-indigo-500">History</span>
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 font-bold mt-2">
+              Detailed tracking of your academic presence and subject performance.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-3 bg-white dark:bg-gray-900 px-5 py-3 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-gray-400" />
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Average Rate</p>
+              <p className="text-sm font-black text-gray-900 dark:text-white">{stats.percentage}%</p>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* ── CONTENT ── */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4">
+        <div className="space-y-8">
 
           {/* Stats Card */}
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
@@ -506,15 +514,11 @@ function AttendanceContent() {
         </div>
       </div>
 
-      {/* ── BOTTOM NAV (always on top of everything except modal) ── */}
-      <AttendMateBottomNav />
-
       {/* ── DETAIL MODAL — perfectly centered, above everything including nav ── */}
       {mounted && selectedAttendance && createPortal(
         <div
           onClick={() => setSelectedAttendance(null)}
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-          style={{ backgroundColor: "rgba(0,0,0,0.65)" }}
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 overflow-y-auto overscroll-contain bg-gray-900/40 dark:bg-black/80 backdrop-blur-md"
         >
           {/* Backdrop blur layer */}
           <div className="absolute inset-0 backdrop-blur-sm" />
@@ -647,7 +651,6 @@ function AttendanceContent() {
             </div>
           </div>
 
-          {/* Modal animation keyframe */}
           <style>{`
               @keyframes modalIn {
                 from { opacity: 0; transform: scale(0.92) translateY(8px); }
@@ -657,7 +660,7 @@ function AttendanceContent() {
         </div>,
         document.body
       )}
-    </>
+    </ProfessionalPageLayout>
   );
 }
 

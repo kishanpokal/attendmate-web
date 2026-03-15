@@ -402,6 +402,7 @@ export default function AddAttendancePage() {
               </button>
 
             </div>
+
           </section>
 
           {/* --- NOTE --- */}

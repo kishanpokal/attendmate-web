@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { collection, doc, getDocs, getDoc, query, where, runTransaction, Timestamp, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
-import AttendMateBottomNav from "@/components/navigation/AttendMateBottomNav";
 import { motion, AnimatePresence } from "framer-motion";
+import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
 
 type TodayLecture = {
   subjectName: string;
@@ -46,6 +46,21 @@ export default function DashboardPage() {
   const [showDialog, setShowDialog] = useState(false);
   const [saving, setSaving] = useState(false);
   const [note, setNote] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  /* 🔒 SCROLL LOCK */
+  useEffect(() => {
+    if (showDialog) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [showDialog]);
 
   /* 🔐 AUTH GUARD */
   useEffect(() => {
@@ -153,42 +168,35 @@ export default function DashboardPage() {
   const percentage = total === 0 ? 0 : Number(((attended * 100) / total).toFixed(1));
 
   return (
-    <main className="min-h-screen relative bg-[#F8FAFC] dark:bg-[#0B1120] pb-24 overflow-x-hidden selection:bg-indigo-500/30 font-sans">
-
-      {/* ── ANIMATED BACKGROUND ORBS ── */}
-      <AnimatedBackground />
-
-      {/* ── PREMIUM GLASS HEADER ── */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-40 bg-white/70 dark:bg-gray-900/70 backdrop-blur-2xl border-b border-gray-200/50 dark:border-gray-800/50"
-      >
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20 sm:h-24">
-          <div className="flex items-center gap-4 sm:gap-5">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-[1.2rem] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-xl shadow-indigo-500/20 flex-shrink-0 border border-white/20 dark:border-white/10">
-              <span className="text-2xl sm:text-3xl leading-none">{greetingEmoji}</span>
+    <ProfessionalPageLayout>
+      <div className="p-4 sm:p-8 lg:p-12 space-y-10">
+        
+        {/* SaaS Style Header */}
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-gray-100 dark:border-gray-900">
+          <div>
+            <div className="flex items-center gap-2 text-indigo-500 mb-2">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">System Online</span>
             </div>
-            <div>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-bold tracking-widest uppercase mb-1">Good {greeting}</p>
-              <h1 className="text-xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 tracking-tight">
-                {username}
-              </h1>
+            <h1 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
+              Welcome back, <span className="text-indigo-500">{username}</span>
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 font-bold mt-2">
+              Good {greeting} {greetingEmoji}. Here's your productivity overview.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-3 bg-white dark:bg-gray-900 px-5 py-3 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Current Date</p>
+              <p className="text-sm font-black text-gray-900 dark:text-white">{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", weekday: "short" })}</p>
             </div>
           </div>
-          <div className="hidden sm:flex items-center">
-            <div className="flex items-center gap-2 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
-              <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-              <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                {new Date().toLocaleDateString("en-US", { weekday: 'long', month: "long", day: "numeric" })}
-              </span>
-            </div>
-          </div>
-        </div>
-      </motion.div>
+        </header>
 
-      {/* ── MAIN CONTENT (BENTO GRID) ── */}
-      <div className="relative z-10 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         <AnimatePresence mode="wait">
           {error ? (
             <ErrorState key="error" error={error} />
@@ -197,26 +205,21 @@ export default function DashboardPage() {
           ) : (
             <motion.div
               key="content"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="space-y-8 lg:space-y-10"
+              className="space-y-10"
             >
-              {/* Top Stats Strip */}
               <QuickStatsGrid total={total} attended={attended} percentage={percentage} todayCount={todayLectures.length} />
 
-              {/* Main Layout Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-
-                {/* Center / Left Column */}
-                <div className="lg:col-span-8 xl:col-span-8 space-y-6 lg:space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div className="lg:col-span-8 space-y-8">
                   <AttendanceOverviewCard total={total} attended={attended} percentage={percentage} />
                   <TodayLecturesSection lectures={todayLectures} />
                 </div>
 
-                {/* Right Sidebar Column */}
-                <div className="lg:col-span-4 xl:col-span-4 lg:sticky lg:top-32">
+                <div className="lg:col-span-4 lg:sticky lg:top-8">
                   <SubjectPerformanceCard subjects={subjectStats} />
                 </div>
               </div>
@@ -271,8 +274,7 @@ export default function DashboardPage() {
         )}
       </AnimatePresence>
 
-      <AttendMateBottomNav />
-    </main>
+    </ProfessionalPageLayout>
   );
 }
 
@@ -668,7 +670,7 @@ function AttendanceDialog({ lecture, saving, note, onNoteChange, onClose, onSubm
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 dark:bg-black/60 backdrop-blur-sm p-4 sm:p-6"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-gray-900/40 dark:bg-black/80 backdrop-blur-md p-4 sm:p-6 overflow-y-auto overscroll-contain"
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
