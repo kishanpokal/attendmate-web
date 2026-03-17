@@ -10,6 +10,23 @@ import {
   doc,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
+import { 
+  Calendar, 
+  Clock, 
+  Plus, 
+  Trash2, 
+  Copy, 
+  Save, 
+  Check, 
+  AlertCircle, 
+  ChevronRight,
+  BookOpen,
+  Zap,
+  Activity,
+  X,
+  Layers
+} from "lucide-react";
 
 /* ---------------- TYPES ---------------- */
 
@@ -258,69 +275,48 @@ export default function TimetablePage() {
     }));
   }
 
-  /* ================= UI ================= */
-
-  return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 pb-8 transition-colors duration-300">
-
-      {/* Toast Notification */}
-      <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 transform ${toast.message ? 'translate-y-0 opacity-100' : '-translate-y-8 opacity-0 pointer-events-none'}`}>
-        <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-md border ${toast.type === 'success' ? 'bg-emerald-500/90 border-emerald-400/50 text-white' : 'bg-rose-500/90 border-rose-400/50 text-white'}`}>
-          {toast.type === 'success'
-            ? <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-            : <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          }
-          <span className="font-bold tracking-wide">{toast.message}</span>
-        </div>
-      </div>
-
-      {/* HEADER */}
-      <div
-        className={`bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-all duration-1000 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10"
-          }`}
-      >
-        <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.back()}
-              className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300"
-            >
-              <svg
-                className="w-5 h-5 text-gray-700 dark:text-gray-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100">
-                Timetable Setup
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
-                Organize your weekly schedule
-              </p>
+  /* ================= UI ================= */  return (
+    <ProfessionalPageLayout>
+      <div className="content-container p-4 sm:p-10 lg:p-16 space-y-12">
+        
+        {/* HEADER */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 pb-10 border-b border-gray-100 dark:border-white/5">
+          <div className="space-y-4 max-w-2xl">
+            <div className="flex items-center gap-3 text-primary">
+              <div className="flex -space-x-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_var(--primary)]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-primary/40 animate-pulse delay-75" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Weekly Schedule</span>
+            </div>
+            <h1 className="text-4xl sm:text-7xl font-black text-foreground tracking-tight leading-none uppercase">
+              Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-rose-500">Timetable</span>
+            </h1>
+            <p className="text-gray-400 font-bold text-base sm:text-lg max-w-xl leading-relaxed uppercase tracking-tighter">
+              Manage your weekly classes. Set up your schedule for the semester.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-5 premium-glass px-8 py-5 rounded-[2rem] border-primary/5 shadow-2xl premium-card group shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/20 group-hover:scale-110 transition-transform duration-500">
+              <Calendar className="w-7 h-7" />
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] leading-none mb-2">Status</p>
+              <p className="text-3xl font-black text-foreground tracking-tight">Active</p>
             </div>
           </div>
-        </div>
-      </div>
+        </header>
 
-      <div
-        className={`px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto transition-all duration-1000 delay-200 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-      >
         {/* DAY SELECTOR */}
-        <div className="mb-6">
-          <h3 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-3 px-2 uppercase tracking-wide">
-            Select Day
-          </h3>
-          <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2">
+        <div className="space-y-6">
+          <div className="flex items-center gap-4 px-2">
+            <Layers className="w-4 h-4 text-primary" />
+            <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.5em]">Select Day</h2>
+            <div className="flex-1 h-px bg-gradient-to-r from-border-color/50 to-transparent" />
+          </div>
+          
+          <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide px-2">
             {DAYS.map((d, index) => {
               const isSelected = selectedDay === d;
               const lectureCount = (timetable[d] || []).length;
@@ -328,450 +324,360 @@ export default function TimetablePage() {
               return (
                 <motion.button
                   key={d}
+                  whileHover={{ y: -5 }}
                   whileTap={{ scale: 0.95 }}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.2, delay: index * 0.05 }}
                   onClick={() => setSelectedDay(d)}
-                  className={`flex-shrink-0 flex flex-col items-center min-w-[4rem] sm:min-w-[4.5rem] p-3 sm:p-4 rounded-2xl transition-all duration-300 ${isSelected
-                      ? "bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 shadow-lg scale-105"
-                      : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-indigo-300 dark:hover:border-indigo-700"
-                    }`}
+                  className={`relative flex-shrink-0 flex flex-col items-center min-w-[7rem] p-6 rounded-[2.5rem] transition-all duration-500 border-2 overflow-hidden group ${
+                    isSelected
+                      ? "bg-primary border-primary shadow-2xl shadow-primary/30"
+                      : "bg-white/5 border-white/5 hover:border-primary/20 premium-glass"
+                  }`}
                 >
-                  <span
-                    className={`text-xs sm:text-sm font-bold mb-1 ${isSelected
-                        ? "text-white"
-                        : "text-gray-900 dark:text-gray-100"
-                      }`}
-                  >
+                  {isSelected && (
+                    <motion.div
+                      layoutId="activeDayGlow"
+                      className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"
+                    />
+                  )}
+                  <span className={`text-xs font-black uppercase tracking-widest mb-2 transition-colors duration-500 ${
+                    isSelected ? "text-white" : "text-gray-500 group-hover:text-foreground"
+                  }`}>
                     {d.slice(0, 3)}
                   </span>
-                  {lectureCount > 0 && (
-                    <span
-                      className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full ${isSelected
-                          ? "bg-white/20 text-white"
-                          : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
-                        }`}
-                    >
-                      {lectureCount}
-                    </span>
-                  )}
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black transition-all duration-500 ${
+                    isSelected 
+                      ? "bg-white/20 text-white border border-white/30" 
+                      : "bg-white/5 text-gray-400 border border-white/5 group-hover:scale-110"
+                  }`}>
+                    {lectureCount}
+                  </div>
                 </motion.button>
               );
             })}
           </div>
         </div>
 
-        {/* DAY HEADER */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-1 h-8 bg-gradient-to-b from-indigo-500 to-purple-600 rounded-full" />
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {DAY_LABELS[selectedDay]}
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {lectures.length}{" "}
-                {lectures.length === 1 ? "lecture" : "lectures"}
-              </p>
-            </div>
-          </div>
-
-          {selectedDay !== "MONDAY" && (
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={copyPreviousDay}
-              className="p-3 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                />
-              </svg>
-            </motion.button>
-          )}
-        </div>
-
-        {/* LECTURES GRID */}
-        {!pageLoading && lectures.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-            <AnimatePresence mode="popLayout">
-              {lectures.map((lec, index) => (
-                <motion.div
-                  key={lec.id}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.8, opacity: 0 }}
-                  transition={{ duration: 0.2, delay: index * 0.05 }}
-                  className="group bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center flex-shrink-0">
-                      <svg
-                        className="w-6 h-6 text-indigo-600 dark:text-indigo-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => setDeleteConfirm(lec.id)}
-                      className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </motion.button>
-                  </div>
-
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                    {lec.subjectName}
-                  </h4>
-
-                  <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <span>
-                      {formatTime(lec.startTime)} -{" "}
-                      {formatTime(getEndTime(lec.startTime, lec.durationHours))}
-                    </span>
-                  </div>
-
-                  <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
-                    {lec.durationHours} {lec.durationHours === 1 ? "hour" : "hours"}
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
-
-        {/* EMPTY STATE */}
-        {!pageLoading && lectures.length === 0 && (
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white dark:bg-gray-900 rounded-3xl p-8 sm:p-12 border border-gray-200 dark:border-gray-800 text-center mb-6"
-          >
-            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center">
-              <svg
-                className="w-10 h-10 sm:w-12 sm:h-12 text-indigo-600 dark:text-indigo-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              No lectures scheduled
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-              Add your first lecture to get started with your timetable
-            </p>
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowAdd(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-              Add Lecture
-            </motion.button>
-          </motion.div>
-        )}
-
-        {/* ACTION BUTTONS */}
-        {!pageLoading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowAdd(true)}
-              className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 text-white rounded-2xl font-semibold hover:shadow-xl transition-all"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-              Add Lecture
-            </motion.button>
-
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={saveTimetable}
-              disabled={saving}
-              className="flex items-center justify-center gap-2 px-6 py-4 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white rounded-2xl font-semibold hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-                    />
-                  </svg>
-                  Save Timetable
-                </>
-              )}
-            </motion.button>
-          </div>
-        )}
-      </div>
-
-      {/* ADD LECTURE DIALOG */}
-      <AnimatePresence>
-        {showAdd && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowAdd(false)}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-900 rounded-3xl p-6 w-full max-w-md border border-gray-200 dark:border-gray-800 shadow-2xl"
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-indigo-600 dark:text-indigo-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                </div>
+        {/* MAIN GRID */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-12">
+          
+          {/* LECTURES LIST */}
+          <div className="xl:col-span-3 space-y-8">
+            <div className="flex items-center justify-between px-2">
+              <div className="flex items-center gap-4">
+                <div className="w-1 h-10 bg-gradient-to-b from-primary to-purple-600 rounded-full" />
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                    Add New Lecture
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Configure your lecture details
+                  <h3 className="text-3xl font-black text-foreground uppercase tracking-tight">{DAY_LABELS[selectedDay]} Schedule</h3>
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">
+                    {lectures.length} Classes Scheduled
                   </p>
                 </div>
               </div>
 
+              {selectedDay !== "MONDAY" && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={copyPreviousDay}
+                  className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 hover:border-primary/30 text-gray-400 hover:text-primary transition-all group"
+                >
+                  <Copy className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Duplicate Previous Day</span>
+                </motion.button>
+              )}
+            </div>
+
+            {pageLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="h-40 premium-glass rounded-[2.5rem] p-8 border-white/5 animate-pulse" />
+                ))}
+              </div>
+            ) : lectures.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <AnimatePresence mode="popLayout">
+                  {lectures.map((lec, index) => (
+                    <motion.div
+                      key={lec.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group relative h-full"
+                    >
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-purple-600/50 rounded-[2.5rem] blur opacity-0 group-hover:opacity-20 transition duration-1000 group-hover:duration-200" />
+                      <div className="relative premium-glass rounded-[2.5rem] p-8 border-white/10 shadow-2xl premium-card overflow-hidden h-full flex flex-col justify-between">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-5">
+                            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 border border-primary/20">
+                              <BookOpen className="w-7 h-7" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1 leading-none">Subject</p>
+                              <h4 className="text-xl font-black text-foreground tracking-tight leading-none uppercase truncate group-hover:text-primary transition-colors">
+                                {lec.subjectName}
+                              </h4>
+                            </div>
+                          </div>
+                          
+                          <motion.button
+                            whileHover={{ scale: 1.1, rotate: 12 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => setDeleteConfirm(lec.id)}
+                            className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all duration-300 opacity-0 group-hover:opacity-100"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </motion.button>
+                        </div>
+
+                        <div className="mt-8 flex items-end justify-between">
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-3 px-4 py-2 bg-white/5 rounded-full border border-white/5 w-fit">
+                              <Clock className="w-4 h-4 text-primary" />
+                              <span className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">
+                                {formatTime(lec.startTime)} - {formatTime(getEndTime(lec.startTime, lec.durationHours))}
+                              </span>
+                            </div>
+                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-4">
+                              Duration: <span className="text-foreground">{lec.durationHours} {lec.durationHours === 1 ? "Hour" : "Hours"}</span>
+                            </p>
+                          </div>
+                          <div className="w-12 h-1 bg-white/5 rounded-full" />
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="premium-glass rounded-[3.5rem] p-16 text-center border-dashed border-2 border-white/10"
+              >
+                <div className="relative inline-block mb-8">
+                  <div className="absolute -inset-4 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+                  <div className="relative w-24 h-24 rounded-full bg-white/5 flex items-center justify-center text-primary border border-white/10 shadow-2xl">
+                    <Calendar className="w-12 h-12" />
+                  </div>
+                </div>
+                <h3 className="text-3xl font-black text-foreground uppercase tracking-tight mb-4">No Classes Scheduled</h3>
+                <p className="text-gray-500 font-bold uppercase text-[10px] tracking-[0.3em] max-w-sm mx-auto leading-relaxed">
+                  Your timetable is currently empty for this day. Add a class to get started.
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowAdd(true)}
+                  className="mt-10 inline-flex items-center gap-3 px-10 py-5 rounded-[2rem] bg-primary text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-primary/30 border border-white/20"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Class
+                </motion.button>
+              </motion.div>
+            )}
+          </div>
+
+          {/* ACTIONS SIDEBAR */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-4 px-2">
+              <Zap className="w-4 h-4 text-amber-500" />
+              <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.5em]">Actions</h2>
+              <div className="flex-1 h-px bg-gradient-to-r from-border-color/50 to-transparent" />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <motion.button
+                whileHover={{ y: -5 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setShowAdd(true)}
+                className="group relative w-full overflow-hidden p-8 rounded-[2.5rem] bg-primary text-white shadow-2xl shadow-primary/30 border border-white/10"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Plus className="w-8 h-8 mb-4 group-hover:rotate-90 transition-transform duration-500" />
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-1 opacity-80">New Class</p>
+                <p className="text-xl font-black uppercase tracking-tight">Add Class</p>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ y: -5 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={saveTimetable}
+                disabled={saving}
+                className={`group relative w-full overflow-hidden p-8 rounded-[2.5rem] bg-emerald-500 text-white shadow-2xl shadow-emerald-500/30 border border-white/10 ${
+                  saving ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                {saving ? (
+                  <div className="w-8 h-8 mb-4 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Save className="w-8 h-8 mb-4 group-hover:scale-110 transition-transform duration-500" />
+                )}
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-1 opacity-80">Save Changes</p>
+                <p className="text-xl font-black uppercase tracking-tight">Save Timetable</p>
+              </motion.button>
+            </div>
+
+            <div className="premium-glass rounded-[2.5rem] p-8 border-white/5 mt-10">
+              <div className="flex items-center gap-3 mb-6">
+                <Activity className="w-5 h-5 text-primary" />
+                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Schedule Overview</h4>
+              </div>
               <div className="space-y-4">
-                {/* Subject Selection */}
+                <div className="flex justify-between items-end">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Total Classes</p>
+                  <p className="text-2xl font-black text-foreground">{Object.values(timetable).flat().length}</p>
+                </div>
+                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: "65%" }}
+                    className="h-full bg-gradient-to-r from-primary to-purple-600"
+                  />
+                </div>
+                <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
+                  Manage your schedule to ensure optimal attendance.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* DIALOGS */}
+      <AnimatePresence>
+        {/* ADD DIALOG */}
+        {showAdd && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
+              exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+              onClick={() => setShowAdd(false)}
+              className="absolute inset-0 bg-black/60 dark:bg-black/80"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 40 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-md premium-glass rounded-[3.5rem] p-10 border border-primary/10 shadow-3xl premium-card"
+            >
+              <div className="flex items-center gap-5 mb-8">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/20">
+                  <Plus className="w-7 h-7" />
+                </div>
                 <div>
-                  <label className="block text-sm font-semibold text-indigo-600 dark:text-indigo-400 mb-2">
-                    Subject
-                  </label>
+                  <h3 className="text-2xl font-black text-foreground tracking-tight uppercase">Add Class</h3>
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Schedule a Class</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block px-2">Subject</label>
                   <select
                     value={form.subjectId}
-                    onChange={(e) =>
-                      setForm({ ...form, subjectId: e.target.value })
-                    }
-                    className="w-full p-4 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition-colors"
+                    onChange={(e) => setForm({ ...form, subjectId: e.target.value })}
+                    className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-[1.8rem] text-sm text-foreground font-black tracking-widest focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/30 transition-all uppercase appearance-none"
                   >
-                    <option value="">Select a subject</option>
+                    <option value="" className="bg-gray-900">Select Subject</option>
                     {subjects.map((s) => (
-                      <option key={s.id} value={s.id}>
+                      <option key={s.id} value={s.id} className="bg-gray-900">
                         {s.name}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                {/* Start Time */}
                 <div>
-                  <label className="block text-sm font-semibold text-indigo-600 dark:text-indigo-400 mb-2">
-                    Start Time
-                  </label>
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block px-2">Start Time</label>
                   <input
                     type="time"
                     value={form.startTime}
-                    onChange={(e) =>
-                      setForm({ ...form, startTime: e.target.value })
-                    }
-                    className="w-full p-4 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition-colors"
+                    onChange={(e) => setForm({ ...form, startTime: e.target.value })}
+                    className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-[1.8rem] text-sm text-foreground font-black tracking-widest focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/30 transition-all uppercase"
                   />
                 </div>
 
-                {/* Duration */}
                 <div>
-                  <label className="block text-sm font-semibold text-indigo-600 dark:text-indigo-400 mb-2">
-                    Duration
-                  </label>
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block px-2">Duration (Hours)</label>
                   <div className="grid grid-cols-4 gap-3">
                     {[1, 2, 3, 4].map((hour) => (
                       <button
                         key={hour}
                         onClick={() => setForm({ ...form, duration: hour })}
-                        className={`p-4 rounded-xl border-2 transition-all ${form.duration === hour
-                            ? "bg-indigo-100 dark:bg-indigo-900/30 border-indigo-500 dark:border-indigo-400"
-                            : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600"
-                          }`}
+                        className={`py-6 rounded-[1.5rem] border-2 font-black transition-all ${
+                          form.duration === hour
+                            ? "bg-primary border-primary text-white shadow-xl shadow-primary/30"
+                            : "bg-white/5 border-white/5 text-gray-500 hover:border-primary/30"
+                        }`}
                       >
-                        <div
-                          className={`text-2xl font-bold ${form.duration === hour
-                              ? "text-indigo-600 dark:text-indigo-400"
-                              : "text-gray-900 dark:text-gray-100"
-                            }`}
-                        >
-                          {hour}
-                        </div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">
-                          {hour === 1 ? "hour" : "hours"}
-                        </div>
+                        <span className="text-xl leading-none">{hour}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* ACTION BUTTONS */}
-                <div className="flex gap-3 pt-2">
-                  <button
+                <div className="flex gap-4 pt-4">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setShowAdd(false)}
-                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="flex-1 py-5 rounded-[1.8rem] bg-white/5 border border-white/10 text-foreground font-black text-[10px] uppercase tracking-[0.3em] transition-all"
                   >
                     Cancel
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={addLecture}
-                    className="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+                    className="flex-1 py-5 rounded-[1.8rem] bg-primary text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-primary/30 transition-all border border-white/10"
                   >
-                    Add Lecture
-                  </button>
+                    Add
+                  </motion.button>
                 </div>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
-      {/* DELETE CONFIRMATION DIALOG */}
-      <AnimatePresence>
+        {/* DELETE DIALOG */}
         {deleteConfirm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setDeleteConfirm(null)}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4"
-          >
+          <div className="fixed inset-0 z-[105] flex items-center justify-center p-6">
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
+              exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+              onClick={() => setDeleteConfirm(null)}
+              className="absolute inset-0 bg-black/60 dark:bg-black/80"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 40 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-900 rounded-3xl p-6 w-full max-w-sm border border-gray-200 dark:border-gray-800 shadow-2xl"
+              className="relative w-full max-w-md premium-glass rounded-[3.5rem] p-10 border border-primary/10 shadow-3xl text-center premium-card"
             >
-              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
-                <svg
-                  className="w-6 h-6 text-red-600 dark:text-red-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+              <div className="w-20 h-20 mx-auto mb-8 rounded-[2rem] bg-rose-500/10 flex items-center justify-center text-rose-500 border border-rose-500/20">
+                <Trash2 className="w-10 h-10" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
-                Delete Lecture?
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                This action cannot be undone.
+              <h3 className="text-3xl font-black text-foreground mb-4 uppercase tracking-tight">Delete Class?</h3>
+              <p className="text-gray-400 font-bold mb-10 leading-relaxed uppercase text-xs tracking-widest">
+                This class will be <span className="text-foreground">permanently removed</span> from your timetable.
               </p>
-              <div className="flex gap-3">
-                <button
+              <div className="flex gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="flex-1 py-5 rounded-[1.8rem] bg-white/5 border border-white/10 text-foreground font-black text-[10px] uppercase tracking-[0.3em] transition-all"
                 >
-                  Cancel
-                </button>
-                <button
+                  Hold
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     setTimetable((prev) => ({
                       ...prev,
@@ -779,15 +685,56 @@ export default function TimetablePage() {
                     }));
                     setDeleteConfirm(null);
                   }}
-                  className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white rounded-xl font-semibold transition-colors"
+                  className="flex-1 py-5 rounded-[1.8rem] bg-rose-500 text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-rose-500/30 transition-all border border-white/10"
                 >
-                  Delete
-                </button>
+                  Purge
+                </motion.button>
               </div>
             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* TOAST PANEL */}
+      <AnimatePresence>
+        {toast.message && (
+          <motion.div
+            initial={{ y: 50, opacity: 0, scale: 0.9 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 50, opacity: 0, scale: 0.9 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200]"
+          >
+            <div className={`flex items-center gap-4 px-10 py-5 rounded-[2rem] border shadow-3xl premium-glass ${
+              toast.type === 'success' 
+                ? 'bg-emerald-500/90 border-emerald-400/50 text-white' 
+                : 'bg-rose-500/90 border-rose-400/50 text-white'
+            }`}>
+              {toast.type === 'success' ? <Check className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
+              <span className="font-black text-xs uppercase tracking-[0.2em]">{toast.message}</span>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </main>
+
+      {/* FULL PAGE LOADER */}
+      <AnimatePresence>
+        {pageLoading && (
+          <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-md flex items-center justify-center">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="text-center space-y-6"
+            >
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 blur-3xl animate-pulse rounded-full" />
+                <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto shadow-[0_0_20px_var(--primary-glow)]" />
+              </div>
+              <p className="text-gray-400 font-black uppercase tracking-[0.4em] text-[10px]">Loading Timetable...</p>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+    </ProfessionalPageLayout>
   );
 }

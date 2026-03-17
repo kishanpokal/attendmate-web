@@ -13,6 +13,8 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
+import { BookOpen, Plus, Trash2, ChevronLeft, Calendar, School, Activity, ShieldAlert } from "lucide-react";
 
 
 /* ================= TYPES ================= */
@@ -103,298 +105,225 @@ export default function SubjectsPage() {
   /* ================= UI ================= */
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 pb-8 transition-colors duration-300">
-      {/* HEADER */}
-      <div
-        className={`bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-all duration-1000 ${
-          mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10"
-        }`}
-      >
-        <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.back()}
-              className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300"
+    <ProfessionalPageLayout>
+      <div className="content-container p-4 sm:p-10 lg:p-16 space-y-12">
+        
+        {/* HEADER */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 pb-10 border-b border-gray-100 dark:border-white/5">
+          <div className="space-y-4 max-w-2xl">
+            <div className="flex items-center gap-3 text-primary">
+              <div className="flex -space-x-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_var(--primary)]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-primary/40 animate-pulse delay-75" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Manage Subjects</span>
+            </div>
+            <h1 className="text-4xl sm:text-7xl font-black text-foreground tracking-tight leading-none uppercase">
+              Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-rose-500">Subjects</span>
+            </h1>
+            <p className="text-gray-400 font-bold text-base sm:text-lg max-w-xl leading-relaxed">
+              Add and manage the subjects you are taking this semester.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-5 premium-glass px-8 py-5 rounded-[2rem] border-primary/5 shadow-2xl premium-card group shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/20 group-hover:scale-110 transition-transform duration-500">
+              <BookOpen className="w-7 h-7" />
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] leading-none mb-2">Total Subjects</p>
+              <p className="text-3xl font-black text-foreground tracking-tight">{subjects.length}</p>
+            </div>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
+          {/* ADD SUBJECT CARD */}
+          <div className="xl:col-span-1 space-y-6">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="premium-glass rounded-[3rem] p-8 sm:p-10 shadow-2xl relative overflow-hidden group premium-card border-primary/10"
             >
-              <svg
-                className="w-5 h-5 text-gray-700 dark:text-gray-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100">
-                Manage Subjects
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
-                Add or remove subjects for attendance tracking
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              
+              <div className="relative z-10 space-y-8">
+                <div className="flex items-center gap-5">
+                  <div className="w-16 h-16 rounded-[1.8rem] bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-2xl shadow-primary/20 border border-white/20">
+                    <Plus className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-foreground tracking-tight">New Subject</h2>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mt-1">Add to list</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="relative group/input">
+                    <div className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within/input:text-primary transition-colors">
+                      <School className="w-5 h-5" />
+                    </div>
+                    <input
+                      value={subjectName}
+                      onChange={(e) => setSubjectName(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && addSubject()}
+                      placeholder="Enter subject name..."
+                      className="w-full pl-16 pr-8 py-5 bg-bg-subtle dark:bg-white/[0.03] border border-border-color rounded-[1.8rem] text-sm text-foreground font-black tracking-widest placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/30 transition-all uppercase"
+                    />
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={addSubject}
+                    disabled={adding || !subjectName.trim()}
+                    className="w-full py-5 rounded-[1.8rem] bg-foreground text-background font-black text-xs tracking-[0.4em] uppercase shadow-2xl hover:opacity-90 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                  >
+                    {adding ? (
+                      <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>Add Subject</>
+                    )}
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* QUICK TIPS */}
+            <div className="p-8 premium-glass rounded-[2.5rem] border-primary/5 space-y-4 opacity-60">
+              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Note</h4>
+              <p className="text-xs font-bold text-gray-500 leading-relaxed">
+                When you add a new subject, its attendance will start at 0%. Statistics will update after you mark attendance for the first time.
               </p>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div
-        className={`px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto transition-all duration-1000 delay-200 ${
-          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-        }`}
-      >
-        {/* ADD SUBJECT CARD */}
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 rounded-3xl p-6 sm:p-8 mb-6 shadow-xl"
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white">
-              Add New Subject
-            </h2>
-          </div>
-
-          <input
-            value={subjectName}
-            onChange={(e) => setSubjectName(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && addSubject()}
-            placeholder="Subject name (e.g., Deep Learning)"
-            className="w-full p-4 rounded-xl bg-white/20 backdrop-blur-sm text-white placeholder-white/60 border border-white/30 focus:border-white/60 focus:outline-none transition-all duration-300 mb-4"
-          />
-
-          <motion.button
-            whileTap={{ scale: 0.98 }}
-            onClick={addSubject}
-            disabled={adding || !subjectName.trim()}
-            className="w-full flex items-center justify-center gap-2 bg-white text-indigo-600 dark:text-indigo-700 py-4 rounded-xl font-semibold hover:bg-white/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-          >
-            {adding ? (
-              <div className="w-5 h-5 border-2 border-indigo-600 dark:border-indigo-700 border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <>
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
-                Add Subject
-              </>
-            )}
-          </motion.button>
-        </motion.div>
-
-        {/* SUBJECTS GRID */}
-        {!pageLoading && subjects.length > 0 && (
-          <div className="mb-4">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 px-2">
-              Your Subjects ({subjects.length})
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              <AnimatePresence mode="popLayout">
-                {subjects.map((s, index) => (
-                  <motion.div
-                    key={s.id}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                    transition={{ duration: 0.2, delay: index * 0.05 }}
-                    className="group relative bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-xl transition-all duration-300"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center mb-3">
-                          <svg
-                            className="w-5 h-5 text-indigo-600 dark:text-indigo-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                            />
-                          </svg>
+          {/* SUBJECTS GRID */}
+          <div className="xl:col-span-2">
+            {!pageLoading && subjects.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <AnimatePresence mode="popLayout">
+                  {subjects.map((s, index) => (
+                    <motion.div
+                      key={s.id}
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.8, opacity: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className="group relative bg-bg-subtle dark:bg-white/[0.03] rounded-[2.5rem] p-8 border border-border-color hover:border-primary/30 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      
+                      <div className="relative z-10 flex items-start justify-between">
+                        <div className="flex-1 min-w-0 pr-8">
+                          <div className="w-12 h-12 rounded-[1.2rem] bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 border border-primary/20">
+                            <BookOpen className="w-6 h-6 text-primary" />
+                          </div>
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-2 leading-none">Subject</p>
+                          <h4 className="font-black text-foreground text-2xl tracking-tighter uppercase leading-none truncate">
+                            {s.name}
+                          </h4>
                         </div>
-                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-base sm:text-lg truncate">
-                          {s.name}
-                        </h4>
+
+                        <motion.button
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => setDeleteConfirm(s.id)}
+                          className="w-12 h-12 rounded-[1.2rem] bg-rose-500/10 flex items-center justify-center text-rose-500 hover:bg-rose-500 overflow-hidden hover:text-white transition-all duration-300 border border-rose-500/20 group-hover:translate-x-0 sm:translate-x-12 opacity-0 group-hover:opacity-100"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </motion.button>
                       </div>
 
-                      <motion.button
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => setDeleteConfirm(s.id)}
-                        className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors opacity-0 group-hover:opacity-100"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
+                      <div className="mt-8 pt-6 border-t border-border-color/30 flex items-center justify-between relative z-10">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                          <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Active</span>
+                        </div>
+                        <span className="text-[10px] font-black text-primary uppercase tracking-widest">Details ➔</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            ) : !pageLoading && (
+              <div className="h-full min-h-[400px] flex flex-col items-center justify-center premium-glass rounded-[3.5rem] p-12 text-center border-2 border-dashed border-primary/10">
+                <div className="w-24 h-24 rounded-[2.5rem] bg-primary/5 flex items-center justify-center mb-8 text-primary/30">
+                  <ShieldAlert className="w-12 h-12" />
+                </div>
+                <h3 className="text-3xl font-black text-foreground mb-4">No Subjects Found</h3>
+                <p className="text-gray-400 font-bold max-w-sm mx-auto leading-relaxed">
+                  You haven't added any subjects yet. Create your first subject to start tracking attendance.
+                </p>
+              </div>
+            )}
           </div>
-        )}
-
-        {/* EMPTY STATE */}
-        {!pageLoading && subjects.length === 0 && (
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="text-center py-16 sm:py-24"
-          >
-            <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center">
-              <svg
-                className="w-12 h-12 sm:w-16 sm:h-16 text-indigo-600 dark:text-indigo-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              No subjects yet
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-              Start by adding your first subject using the form above
-            </p>
-          </motion.div>
-        )}
+        </div>
       </div>
 
       {/* DELETE CONFIRMATION DIALOG */}
       <AnimatePresence>
         {deleteConfirm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setDeleteConfirm(null)}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4"
-          >
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
+              exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+              onClick={() => setDeleteConfirm(null)}
+              className="absolute inset-0 bg-black/60 dark:bg-black/80"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 40 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-900 rounded-3xl p-6 w-full max-w-md border border-gray-200 dark:border-gray-800 shadow-2xl"
+              className="relative w-full max-w-md premium-glass rounded-[3.5rem] p-10 border border-primary/10 shadow-3xl text-center premium-card"
             >
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                <svg
-                  className="w-8 h-8 text-red-600 dark:text-red-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
+              <div className="w-20 h-20 mx-auto mb-8 rounded-[2rem] bg-rose-500/10 flex items-center justify-center text-rose-500 border border-rose-500/20">
+                <ShieldAlert className="w-10 h-10" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 text-center">
-                Delete Subject?
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6 text-center">
-                This will permanently delete "
-                {subjects.find((s) => s.id === deleteConfirm)?.name}" and all
-                its attendance records.
+              <h3 className="text-3xl font-black text-foreground mb-4 uppercase tracking-tight">Delete Subject?</h3>
+              <p className="text-gray-400 font-bold mb-10 leading-relaxed uppercase text-xs tracking-widest">
+                Deleting "<span className="text-foreground">{subjects.find((s) => s.id === deleteConfirm)?.name}</span>" will permanently erase all related attendance records.
               </p>
-              <div className="flex gap-3">
-                <button
+              <div className="flex gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
+                  className="flex-1 py-5 rounded-[1.8rem] bg-white/5 border border-white/10 text-foreground font-black text-[10px] uppercase tracking-[0.3em] transition-all"
                 >
                   Cancel
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => removeSubject(deleteConfirm)}
-                  className="flex-1 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white transition-colors font-medium"
+                  className="flex-1 py-5 rounded-[1.8rem] bg-rose-500 text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-rose-500/30 transition-all border border-white/10"
                 >
-                  Delete
-                </button>
+                  Confirm
+                </motion.button>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
       {/* FULL PAGE LOADER */}
       <AnimatePresence>
         {pageLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
-          >
+          <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center">
             <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-              className="bg-white dark:bg-gray-900 rounded-3xl px-8 py-6 flex flex-col items-center gap-4 border border-gray-200 dark:border-gray-800 shadow-2xl"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="text-center space-y-6"
             >
-              <div className="w-12 h-12 border-4 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin" />
-              <p className="text-gray-900 dark:text-gray-100 font-medium">
-                Loading subjects...
-              </p>
+              <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto shadow-[0_0_20px_var(--primary-glow)]" />
+              <p className="text-gray-400 font-black uppercase tracking-[0.4em] text-[10px]">Loading Subjects...</p>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
-
-
-    </main>
+    </ProfessionalPageLayout>
   );
 }

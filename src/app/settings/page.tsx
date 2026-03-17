@@ -10,7 +10,24 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import AttendMateBottomNav from "@/components/navigation/AttendMateBottomNav";
+import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
+import { 
+  User, 
+  Settings, 
+  LogOut, 
+  ChevronRight, 
+  BookOpen, 
+  Clock, 
+  Users, 
+  Lock, 
+  ShieldCheck, 
+  Mail,
+  Zap,
+  Activity,
+  Plus,
+  Trash2,
+  X
+} from "lucide-react";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -55,220 +72,298 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 pb-28">
-      {/* HEADER - Centered for large screens */}
-      <div className={`bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-all duration-1000 sticky top-0 z-30 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'}`}>
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300"
-          >
-            <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Settings
-          </h1>
-        </div>
-      </div>
-
-      {/* MAIN CONTENT CONTAINER - Responsive Width */}
-      <div className={`max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 transition-all duration-1000 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+    <ProfessionalPageLayout>
+      <div className="content-container p-4 sm:p-10 lg:p-16 space-y-12">
         
-        {/* PROFILE CARD */}
-        {loading ? (
-          <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 border border-gray-200 dark:border-gray-800 animate-pulse">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700" />
-              <div className="flex-1 space-y-2">
-                <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded" />
-                <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded" />
+        {/* HEADER */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 pb-10 border-b border-gray-100 dark:border-white/5">
+          <div className="space-y-4 max-w-2xl">
+            <div className="flex items-center gap-3 text-primary">
+              <div className="flex -space-x-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_var(--primary)]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-primary/40 animate-pulse delay-75" />
               </div>
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Account & Preferences</span>
+            </div>
+            <h1 className="text-4xl sm:text-7xl font-black text-foreground tracking-tight leading-none uppercase">
+              System <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-rose-500">Settings</span>
+            </h1>
+            <p className="text-gray-400 font-bold text-base sm:text-lg max-w-xl leading-relaxed">
+              Manage your account details, security settings, and app preferences.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-5 premium-glass px-8 py-5 rounded-[2rem] border-primary/5 shadow-2xl premium-card group shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/20 group-hover:scale-110 transition-transform duration-500">
+              <Settings className="w-7 h-7" />
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] leading-none mb-2">Build Version</p>
+              <p className="text-3xl font-black text-foreground tracking-tight">V2.4.0</p>
             </div>
           </div>
-        ) : (
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 rounded-3xl p-6 sm:p-8 shadow-xl"
-          >
-            <div className="flex items-center gap-5 sm:gap-6">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
-                <span className="text-2xl sm:text-3xl font-bold text-white uppercase">
-                  {username.charAt(0)}
-                </span>
+        </header>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-12 items-start">
+          
+          {/* PROFILE CARD */}
+          <div className="xl:col-span-1 space-y-8">
+            {loading ? (
+              <div className="premium-glass rounded-[3.5rem] p-10 border-primary/5 animate-pulse">
+                <div className="flex items-center gap-6">
+                  <div className="w-24 h-24 rounded-full bg-primary/10" />
+                  <div className="flex-1 space-y-3">
+                    <div className="h-6 w-32 bg-primary/10 rounded-full" />
+                    <div className="h-4 w-48 bg-primary/5 rounded-full" />
+                  </div>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xl sm:text-2xl font-bold text-white truncate">{username}</p>
-                <p className="text-indigo-100 text-sm sm:text-base truncate">{email}</p>
+            ) : (
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="relative group h-full"
+              >
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary via-purple-500 to-rose-500 rounded-[3.8rem] blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
+                <div className="relative premium-glass rounded-[3.5rem] p-10 border-white/10 shadow-3xl premium-card overflow-hidden">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-primary/20 transition-colors" />
+                  
+                  <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+                    <div className="relative">
+                      <div className="absolute -inset-2 bg-gradient-to-br from-primary to-purple-600 rounded-full blur-lg opacity-40 group-hover:opacity-60 animate-pulse" />
+                      <div className="relative w-28 h-28 rounded-full bg-gradient-to-br from-primary to-purple-600 p-1.5 shadow-2xl">
+                        <div className="w-full h-full rounded-full bg-bg-subtle flex items-center justify-center text-primary border-4 border-white/10 overflow-hidden">
+                          <span className="text-4xl font-black uppercase tracking-tighter">
+                            {username.charAt(0)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-emerald-500 border-4 border-bg-subtle shadow-lg" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.5em] leading-none">User Profile</p>
+                      <h2 className="text-3xl font-black text-foreground tracking-tight leading-none uppercase">{username}</h2>
+                      <div className="flex items-center justify-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5 mx-auto w-fit">
+                        <Mail className="w-3.5 h-3.5 text-primary" />
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate max-w-[180px]">{email}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mt-10 relative z-10">
+                    <div className="p-5 rounded-3xl bg-white/5 border border-white/5 text-center transition-transform hover:scale-105 duration-500">
+                      <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Status</p>
+                      <p className="text-xs font-black text-emerald-500 uppercase tracking-widest">Premium</p>
+                    </div>
+                    <div className="p-5 rounded-3xl bg-white/5 border border-white/5 text-center transition-transform hover:scale-105 duration-500">
+                      <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Plan</p>
+                      <p className="text-xs font-black text-primary uppercase tracking-widest">Optimized</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* MAIN SETTINGS GRID */}
+          <div className="xl:col-span-2 space-y-12">
+            
+            {/* ACCOUNT SECTION */}
+            <SettingsSection title="Configuration" icon={<User className="w-5 h-5" />}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <SettingsItem
+                  icon={<ShieldCheck className="w-6 h-6" />}
+                  title="Modify Alias"
+                  subtitle="Update your display name"
+                  onClick={() => setShowUsername(true)}
+                />
+                <SettingsItem
+                  icon={<Lock className="w-6 h-6" />}
+                  title="Password"
+                  subtitle="Change your password"
+                  onClick={() => setShowPassword(true)}
+                />
               </div>
-            </div>
-          </motion.div>
-        )}
+            </SettingsSection>
 
-        <div className="space-y-8">
-          {/* ACCOUNT SECTION */}
-          <Section title="Account" icon={
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-          }>
-            <SettingItem
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
-              title="Change Username"
-              subtitle="Update your display name"
-              onClick={() => setShowUsername(true)}
-            />
-            <SettingItem
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
-              title="Change Password"
-              subtitle="Keep your account secure"
-              onClick={() => setShowPassword(true)}
-            />
-          </Section>
+            {/* ENGINE SECTION */}
+            <SettingsSection title="App Structure" icon={<Activity className="w-5 h-5" />}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <SettingsItem
+                  icon={<BookOpen className="w-6 h-6" />}
+                  title="Manage Subjects"
+                  subtitle="Add or remove your academic subjects"
+                  onClick={() => router.push("/subjects")}
+                />
+                <SettingsItem
+                  icon={<Clock className="w-6 h-6" />}
+                  title="Manage Timetable"
+                  subtitle="Set up your weekly class schedule"
+                  onClick={() => router.push("/timetable")}
+                />
+              </div>
+            </SettingsSection>
 
-          {/* SUBJECTS SECTION */}
-          <Section title="Subjects" icon={
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-          }>
-            <SettingItem
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
-              title="Manage Subjects"
-              subtitle="Add, edit or remove subjects"
-              onClick={() => router.push("/subjects")}
-            />
-          </Section>
+            {/* NETWORK SECTION */}
+            <SettingsSection title="Community" icon={<Users className="w-5 h-5" />}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <SettingsItem
+                  icon={<Zap className="w-6 h-6" />}
+                  title="Find Friends"
+                  subtitle="Connect with your classmates"
+                  onClick={() => router.push("/friends")}
+                />
+              </div>
+            </SettingsSection>
 
-          {/* TIMETABLE SECTION */}
-          <Section title="Attendance Automation" icon={
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          }>
-            <SettingItem
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>}
-              title="Smart Timetable"
-              subtitle="Lecture reminders & auto attendance"
-              onClick={() => router.push("/timetable")}
-            />
-          </Section>
-
-          {/* FRIENDS SECTION (NEW) */}
-          <Section title="Friends" icon={
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-          }>
-            <SettingItem
-              icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                </svg>
-              }
-              title="Manage Friends"
-              subtitle="Add friends & view profiles"
-              onClick={() => router.push("/friends")}
-            />
-          </Section>
-
-          {/* SESSION SECTION */}
-          <Section title="Session" icon={
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-          }>
-            <SettingItem
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>}
-              title="Logout"
-              subtitle="Sign out from this device"
-              destructive
-              onClick={() => setShowLogout(true)}
-            />
-          </Section>
+            {/* TERMINATION SECTION */}
+            <SettingsSection title="Account Access" icon={<LogOut className="w-5 h-5" />}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <SettingsItem
+                  icon={<LogOut className="w-6 h-6" />}
+                  title="Sign Out"
+                  subtitle="Log out of your account"
+                  destructive
+                  onClick={() => setShowLogout(true)}
+                />
+              </div>
+            </SettingsSection>
+          </div>
         </div>
       </div>
 
       {/* DIALOGS */}
-      {showUsername && (
-        <UsernameDialog
-          initial={username}
-          onClose={() => setShowUsername(false)}
-          onSave={async (value: string) => {
-            await updateDoc(doc(db, "users", user!.uid), {
-              username: value,
-              username_lower: value.toLowerCase(),
-              updatedAt: Date.now(),
-            });
-            setUsername(value);
-            setShowUsername(false);
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {showUsername && (
+          <UsernameDialog
+            initial={username}
+            onClose={() => setShowUsername(false)}
+            onSave={async (value: string) => {
+              await updateDoc(doc(db, "users", user!.uid), {
+                username: value,
+                username_lower: value.toLowerCase(),
+                updatedAt: Date.now(),
+              });
+              setUsername(value);
+              setShowUsername(false);
+            }}
+          />
+        )}
 
-      {showPassword && (
-        <PasswordDialog
-          email={email}
-          onClose={() => setShowPassword(false)}
-        />
-      )}
+        {showPassword && (
+          <PasswordDialog
+            email={email}
+            onClose={() => setShowPassword(false)}
+          />
+        )}
 
-      {showLogout && (
-        <ConfirmDialog
-          title="Logout?"
-          message="Are you sure you want to logout?"
-          action="Logout"
-          onConfirm={logout}
-          onCancel={() => setShowLogout(false)}
-        />
-      )}
+        {showLogout && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
+              exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+              onClick={() => setShowLogout(false)}
+              className="absolute inset-0 bg-black/60 dark:bg-black/80"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 40 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-md premium-glass rounded-[3.5rem] p-10 border border-primary/10 shadow-3xl text-center premium-card"
+            >
+              <div className="w-20 h-20 mx-auto mb-8 rounded-[2rem] bg-rose-500/10 flex items-center justify-center text-rose-500 border border-rose-500/20">
+                <LogOut className="w-10 h-10" />
+              </div>
+              <h3 className="text-3xl font-black text-foreground mb-4 uppercase tracking-tight">Sign Out?</h3>
+              <p className="text-gray-400 font-bold mb-10 leading-relaxed uppercase text-xs tracking-widest">
+                Are you sure you want to sign out of AttendMate? You will need to log back in to access your data.
+              </p>
+              <div className="flex gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowLogout(false)}
+                  className="flex-1 py-5 rounded-[1.8rem] bg-white/5 border border-white/10 text-foreground font-black text-[10px] uppercase tracking-[0.3em] transition-all"
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={logout}
+                  className="flex-1 py-5 rounded-[1.8rem] bg-rose-500 text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-rose-500/30 transition-all border border-white/10"
+                >
+                  Logout
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
-      <AttendMateBottomNav />
-    </main>
+    </ProfessionalPageLayout>
   );
 }
 
 /* ================= COMPONENTS ================= */
 
-function Section({ title, icon, children }: any) {
+function SettingsSection({ title, icon, children }: any) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 px-2">
-        <span className="text-indigo-600 dark:text-indigo-400">{icon}</span>
-        <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">
+    <div className="space-y-6">
+      <div className="flex items-center gap-4 px-2">
+        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
+          {icon}
+        </div>
+        <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.5em]">
           {title}
         </h2>
+        <div className="flex-1 h-px bg-gradient-to-r from-border-color/50 to-transparent" />
       </div>
-      <div className="space-y-2 sm:space-y-3">{children}</div>
+      <div className="space-y-4">{children}</div>
     </div>
   );
 }
 
-function SettingItem({ icon, title, subtitle, onClick, destructive = false }: any) {
+function SettingsItem({ icon, title, subtitle, onClick, destructive = false }: any) {
   return (
     <motion.button
+      whileHover={{ y: -5, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className={`w-full bg-white dark:bg-gray-900 rounded-2xl p-4 sm:p-5 border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-300 shadow-sm hover:shadow-md ${
-        destructive ? "border-red-200 dark:border-red-900/50" : ""
+      className={`group w-full relative overflow-hidden flex items-center gap-6 p-8 rounded-[2.5rem] border-2 transition-all shadow-2xl premium-glass premium-card ${
+        destructive
+          ? "border-rose-500/10 hover:border-rose-500/30"
+          : "border-primary/5 hover:border-primary/30"
       }`}
     >
-      <div className="flex items-center gap-4">
-        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 ${
-          destructive
-            ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
-            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      
+      <div className={`relative z-10 w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-xl border ${
+        destructive
+          ? "bg-rose-500/10 text-rose-500 border-rose-500/20 group-hover:bg-rose-500 group-hover:text-white"
+          : "bg-primary/10 text-primary border-primary/20 group-hover:bg-primary group-hover:text-white"
+      } transition-all duration-500`}>
+        {icon}
+      </div>
+      
+      <div className="relative z-10 flex-1 text-left min-w-0">
+        <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-1 leading-none ${
+          destructive ? "text-rose-400" : "text-gray-500"
         }`}>
-          {icon}
-        </div>
-        <div className="flex-1 text-left min-w-0">
-          <p className={`font-semibold sm:text-lg truncate ${
-            destructive
-              ? "text-red-600 dark:text-red-400"
-              : "text-gray-900 dark:text-gray-100"
-          }`}>
-            {title}
-          </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{subtitle}</p>
-        </div>
-        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
+          {subtitle}
+        </p>
+        <p className="font-black text-xl text-foreground tracking-tight leading-none uppercase">
+          {title}
+        </p>
+      </div>
+      
+      <div className={`relative z-10 w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 group-hover:text-primary transition-colors border border-white/5 ${
+        destructive ? "group-hover:text-rose-500" : ""
+      }`}>
+        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
       </div>
     </motion.button>
   );
@@ -292,38 +387,70 @@ function UsernameDialog({ initial, onSave, onClose }: any) {
   };
 
   return (
-    <Modal onClose={onClose}>
-      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-        Change Username
-      </h3>
-      <input
-        value={value}
-        onChange={(e) => {
-          setValue(e.target.value);
-          setError("");
-        }}
-        className="w-full p-4 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition-colors"
-        placeholder="Username"
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
+        exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60 dark:bg-black/80"
       />
-      {error && (
-        <p className="text-red-500 dark:text-red-400 text-sm mt-2">{error}</p>
-      )}
-      <Actions>
-        <button
-          onClick={onClose}
-          className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium w-full sm:w-auto"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={loading}
-          className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white transition-colors font-medium disabled:opacity-50 w-full sm:w-auto"
-        >
-          {loading ? "Saving..." : "Save"}
-        </button>
-      </Actions>
-    </Modal>
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 40 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 40 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md premium-glass rounded-[3.5rem] p-10 border border-primary/10 shadow-3xl premium-card"
+      >
+        <div className="flex items-center gap-5 mb-8">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/20">
+            <User className="w-7 h-7" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black text-foreground tracking-tight uppercase">Change Display Name</h3>
+            <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Update your handle</p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="relative">
+            <input
+              autoFocus
+              value={value}
+              onChange={(e) => {
+                setValue(e.target.value);
+                setError("");
+              }}
+              className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-[1.8rem] text-sm text-foreground font-black tracking-widest placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/30 transition-all uppercase"
+              placeholder="Enter new display name"
+            />
+          </div>
+          {error && (
+            <p className="text-rose-500 font-black text-[9px] uppercase tracking-widest text-center">{error}</p>
+          )}
+
+          <div className="flex gap-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onClose}
+              className="flex-1 py-5 rounded-[1.8rem] bg-white/5 border border-white/10 text-foreground font-black text-[10px] uppercase tracking-[0.3em] transition-all"
+            >
+              Cancel
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSave}
+              disabled={loading}
+              className="flex-1 py-5 rounded-[1.8rem] bg-primary text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-primary/30 transition-all border border-white/10"
+            >
+              {loading ? "Committing..." : "Update"}
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -364,92 +491,82 @@ function PasswordDialog({ email, onClose }: any) {
   };
 
   return (
-    <Modal onClose={onClose}>
-      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-        Change Password
-      </h3>
-      <div className="space-y-3">
-        <PasswordInput value={oldPass} onChange={setOldPass} placeholder="Current password" show={showOld} onToggle={() => setShowOld(!showOld)} />
-        <PasswordInput value={newPass} onChange={setNewPass} placeholder="New password" show={showNew} onToggle={() => setShowNew(!showNew)} />
-        <PasswordInput value={confirm} onChange={setConfirm} placeholder="Confirm new password" show={showConfirm} onToggle={() => setShowConfirm(!showConfirm)} />
-      </div>
-      {error && <p className="text-red-500 dark:text-red-400 text-sm mt-2">{error}</p>}
-      <Actions>
-        <button onClick={onClose} className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium w-full sm:w-auto">
-          Cancel
-        </button>
-        <button onClick={update} disabled={loading || !oldPass || !newPass || !confirm} className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white transition-colors font-medium disabled:opacity-50 w-full sm:w-auto">
-          {loading ? "Updating..." : "Update"}
-        </button>
-      </Actions>
-    </Modal>
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
+        exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60 dark:bg-black/80"
+      />
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 40 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 40 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md premium-glass rounded-[3.5rem] p-10 border border-primary/10 shadow-3xl premium-card"
+      >
+        <div className="flex items-center gap-5 mb-8">
+          <div className="w-14 h-14 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500 shadow-inner border border-rose-500/20">
+            <Lock className="w-7 h-7" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black text-foreground tracking-tight uppercase">Update Password</h3>
+            <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Create a new password</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <PasswordInput value={oldPass} onChange={setOldPass} placeholder="Current password" show={showOld} onToggle={() => setShowOld(!showOld)} />
+          <PasswordInput value={newPass} onChange={setNewPass} placeholder="New password" show={showNew} onToggle={() => setShowNew(!showNew)} />
+          <PasswordInput value={confirm} onChange={setConfirm} placeholder="Confirm new password" show={showConfirm} onToggle={() => setShowConfirm(!showConfirm)} />
+          
+          {error && (
+            <p className="text-rose-500 font-black text-[9px] uppercase tracking-widest text-center mt-2">{error}</p>
+          )}
+
+          <div className="flex gap-4 pt-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onClose}
+              className="flex-1 py-5 rounded-[1.8rem] bg-white/5 border border-white/10 text-foreground font-black text-[10px] uppercase tracking-[0.3em] transition-all"
+            >
+              Cancel
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={update}
+              disabled={loading || !oldPass || !newPass || !confirm}
+              className="flex-1 py-5 rounded-[1.8rem] bg-foreground text-background font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl transition-all border border-white/10 disabled:opacity-50"
+            >
+              {loading ? "Saving..." : "Save Password"}
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
 function PasswordInput({ value, onChange, placeholder, show, onToggle }: any) {
   return (
-    <div className="relative">
+    <div className="relative group/input">
       <input
         type={show ? "text" : "password"}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full p-4 pr-12 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-none transition-colors"
+        className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-[1.8rem] text-sm text-foreground font-black tracking-widest placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/30 transition-all uppercase"
         placeholder={placeholder}
       />
-      <button type="button" onClick={onToggle} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 p-2">
-        {show ? (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
-        ) : (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-        )}
+      <button 
+        type="button" 
+        onClick={onToggle} 
+        className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-500 hover:text-primary transition-colors p-2"
+      >
+        {show ? <X className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
       </button>
     </div>
   );
-}
-
-function ConfirmDialog({ title, message, action, onConfirm, onCancel }: any) {
-  return (
-    <Modal onClose={onCancel}>
-      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-        {title}
-      </h3>
-      <p className="text-gray-600 dark:text-gray-400 mb-6">{message}</p>
-      <Actions>
-        <button onClick={onCancel} className="px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium w-full sm:w-auto">
-          Cancel
-        </button>
-        <button onClick={onConfirm} className="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white transition-colors font-medium w-full sm:w-auto">
-          {action}
-        </button>
-      </Actions>
-    </Modal>
-  );
-}
-
-function Modal({ children, onClose }: any) {
-  return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
-      >
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          onClick={(e) => e.stopPropagation()}
-          className="bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-8 w-full max-w-md md:max-w-lg border border-gray-200 dark:border-gray-800 shadow-2xl"
-        >
-          {children}
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-function Actions({ children }: any) {
-  return <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">{children}</div>;
-}
+}

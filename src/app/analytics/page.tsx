@@ -1,12 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { collection, getDocs, Timestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
-import { BarChart3 } from "lucide-react";
+import {
+  BarChart3,
+  Clock,
+  Calendar as CalendarIcon,
+  Activity,
+  TrendingUp,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  AlertCircle,
+  CheckCircle2
+} from "lucide-react";
 
 /* ---------------- TYPES ---------------- */
 type AnalyticsAttendance = {
@@ -33,37 +44,33 @@ function percentageAfterSkipping(present: number, total: number, skip: number) {
   return newTotal === 0 ? 0 : Number(((present * 100) / newTotal).toFixed(1));
 }
 
-// Tailwind v4 safelist to prevent purging of dynamic class names
-const _safelist = "bg-emerald-500 bg-amber-500 bg-rose-500 bg-gray-500 " +
-  "text-emerald-500 text-amber-500 text-rose-500 " +
-  "text-emerald-500/80 text-amber-500/80 text-rose-500/80 " +
-  "text-emerald-500/70 text-amber-500/70 text-rose-500/70 " +
-  "stroke-emerald-500 stroke-amber-500 stroke-rose-500 " +
-  "bg-emerald-500/20 bg-amber-500/20 bg-rose-500/20 " +
-  "bg-emerald-500/10 bg-amber-500/10 bg-rose-500/10 " +
-  "shadow-emerald-500/50 shadow-amber-500/50 shadow-rose-500/50";
-
-function getStatusTheme(percent: number) {
-  if (percent >= 75) return { color: "emerald", hex: "#10b981", text: "Optimal", lightBg: "bg-emerald-500/10", border: "border-emerald-500/20" };
-  if (percent >= 60) return { color: "amber", hex: "#f59e0b", text: "Warning", lightBg: "bg-amber-500/10", border: "border-amber-500/20" };
-  return { color: "rose", hex: "#f43f5e", text: "Critical", lightBg: "bg-rose-500/10", border: "border-rose-500/20" };
+// Strict Tailwind theme map to prevent purging issues
+function getTheme(percent: number) {
+  if (percent >= 75) return {
+    color: "emerald", hex: "#10b981",
+    text: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-50 dark:bg-emerald-500/10",
+    border: "border-emerald-200 dark:border-emerald-500/20",
+    fill: "bg-emerald-500", stroke: "stroke-emerald-500",
+    label: "Optimal"
+  };
+  if (percent >= 60) return {
+    color: "amber", hex: "#f59e0b",
+    text: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-50 dark:bg-amber-500/10",
+    border: "border-amber-200 dark:border-amber-500/20",
+    fill: "bg-amber-500", stroke: "stroke-amber-500",
+    label: "Warning"
+  };
+  return {
+    color: "rose", hex: "#f43f5e",
+    text: "text-rose-600 dark:text-rose-400",
+    bg: "bg-rose-50 dark:bg-rose-500/10",
+    border: "border-rose-200 dark:border-rose-500/20",
+    fill: "bg-rose-500", stroke: "stroke-rose-500",
+    label: "Critical"
+  };
 }
-
-// Fade in up animation variant
-const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
-};
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
 
 /* ---------------- MAIN PAGE ---------------- */
 export default function AnalyticsPage() {
@@ -72,9 +79,6 @@ export default function AnalyticsPage() {
   const [attendance, setAttendance] = useState<AnalyticsAttendance[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [monthOffset, setMonthOffset] = useState(0);
-  const { scrollYProgress } = useScroll();
-  const yRange = useTransform(scrollYProgress, [0, 1], [0, -100]);
-  const ySpring = useSpring(yRange, { stiffness: 400, damping: 90 });
 
   /* ---------- LOAD DATA ---------- */
   useEffect(() => {
@@ -86,9 +90,11 @@ export default function AnalyticsPage() {
       }
       const temp: AnalyticsAttendance[] = [];
       const subjectsSnap = await getDocs(collection(db, "users", user.uid, "subjects"));
+
       for (const subjectDoc of subjectsSnap.docs) {
         const subjectName = subjectDoc.data().name;
         const attendanceSnap = await getDocs(collection(subjectDoc.ref, "attendance"));
+
         attendanceSnap.forEach((doc) => {
           const raw = doc.data().date;
           let dateStr = "";
@@ -118,14 +124,14 @@ export default function AnalyticsPage() {
   const total = attendance.length;
   const present = attendance.filter((a) => a.status === "PRESENT").length;
   const percentage = total === 0 ? 0 : Number(((present * 100) / total).toFixed(1));
+  const theme = getTheme(percentage);
 
-  let currentStreak = 0;
-  let maxStreak = 0;
-  let tempStreak = 0;
-
+  // Streak calculations
   const datesSet = new Set(attendance.map((a) => a.date));
   const uniqueDates = Array.from(datesSet).sort();
 
+  let maxStreak = 0;
+  let tempStreak = 0;
   for (const date of uniqueDates) {
     const dayRecords = attendance.filter(a => a.date === date);
     const didMiss = dayRecords.some(a => a.status === "ABSENT");
@@ -137,7 +143,7 @@ export default function AnalyticsPage() {
     }
   }
 
-  currentStreak = 0;
+  let currentStreak = 0;
   for (let i = uniqueDates.length - 1; i >= 0; i--) {
     const date = uniqueDates[i];
     const dayRecords = attendance.filter(a => a.date === date);
@@ -145,7 +151,6 @@ export default function AnalyticsPage() {
     if (!didMiss && dayRecords.length > 0) currentStreak++;
     else break;
   }
-
 
   const bySubject = useMemo(() => {
     return attendance.reduce<Record<string, AnalyticsAttendance[]>>((acc, a) => {
@@ -157,155 +162,168 @@ export default function AnalyticsPage() {
 
   return (
     <ProfessionalPageLayout>
-      <div className="p-4 sm:p-8 lg:p-12 space-y-10">
-        
-        {/* SaaS Style Header */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-gray-100 dark:border-gray-900">
-          <div>
-            <div className="flex items-center gap-2 text-indigo-500 mb-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Data Engine Active</span>
+      <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+
+        {/* Header */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-200 dark:border-zinc-800">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              Data synced
             </div>
-            <h1 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
-              Performance <span className="text-indigo-500">Analytics</span>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
+              Performance Analytics
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 font-bold mt-2">
-              Advanced insights into your academic consistency and trends.
+            <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base max-w-2xl">
+              Advanced insights, consistency tracking, and attendance forecasting.
             </p>
           </div>
-          
-          <div className="flex items-center gap-3 bg-white dark:bg-gray-900 px-5 py-3 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
-            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+
+          <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 px-5 py-3 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+            <div className={`p-2 rounded-lg ${theme.bg} ${theme.text}`}>
+              <Activity className="w-5 h-5" />
             </div>
-            <div className="text-left">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Current Rate</p>
-              <p className={`text-sm font-black ${percentage >= 75 ? 'text-emerald-500' : 'text-rose-500'}`}>{percentage}%</p>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-0.5">Global Rate</p>
+              <p className={`text-lg font-bold ${theme.text}`}>
+                {percentage}%
+              </p>
             </div>
           </div>
         </header>
 
-      {/* CONTENT */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8">
-        <AnimatePresence mode="wait">
-          {loading ? (
-            <LoadingState key="loading" />
-          ) : attendance.length === 0 ? (
-            <EmptyState key="empty" />
-          ) : (
-            <motion.div
-              key="content"
-              variants={staggerContainer}
-              initial="hidden"
-              animate="visible"
-              className="space-y-6 md:space-y-8"
-              style={{ y: ySpring }}
-            >
-              {/* === Top Cards === */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        {/* Content */}
+        <div className="relative">
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <LoadingState key="loading" />
+            ) : attendance.length === 0 ? (
+              <EmptyState key="empty" />
+            ) : (
+              <motion.div
+                key="content"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-8"
+              >
+                {/* ── Top Row: Overview & Streak ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* Main Gauge Card */}
-                <motion.div variants={fadeInUp} className="md:col-span-8 lg:col-span-8 bg-white/60 dark:bg-[#111111]/80 backdrop-blur-2xl rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-white/50 dark:border-white/5 relative overflow-hidden group">
-                  <div className={`absolute -right-20 -top-20 w-64 h-64 bg-${getStatusTheme(percentage).color}-500/20 blur-[80px] rounded-full group-hover:scale-150 transition-transform duration-1000`} />
+                  {/* Gauge Card */}
+                  <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-8">
+                    <div className="relative w-40 h-40 flex-shrink-0 flex items-center justify-center">
+                      <svg className="w-full h-full transform -rotate-90 absolute inset-0">
+                        <circle cx="50%" cy="50%" r="42%" className="stroke-gray-100 dark:stroke-zinc-800" strokeWidth="10" fill="transparent" />
+                        <motion.circle
+                          cx="50%" cy="50%" r="42%" fill="transparent"
+                          className={theme.stroke}
+                          strokeWidth="10" strokeLinecap="round"
+                          strokeDasharray="264"
+                          initial={{ strokeDashoffset: 264 }}
+                          animate={{ strokeDashoffset: 264 - (percentage / 100) * 264 }}
+                          transition={{ duration: 1.5, ease: "easeOut" }}
+                        />
+                      </svg>
+                      <div className="flex flex-col items-center justify-center z-10 text-center">
+                        <span className="text-3xl font-bold text-gray-900 dark:text-white">{percentage}%</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider ${theme.text}`}>{theme.label}</span>
+                      </div>
+                    </div>
 
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-8 relative z-10 h-full">
-                    <div className="flex-1 space-y-6">
+                    <div className="flex-1 space-y-6 w-full">
                       <div>
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className={`p-2 rounded-xl bg-${getStatusTheme(percentage).color}-500/10 text-${getStatusTheme(percentage).color}-500`}>
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          </div>
-                          <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">System Status</h3>
-                        </div>
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 max-w-sm">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Attendance Health</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                           {percentage >= 75
-                            ? `You have a buffer of ${maxBunkableLectures(present, total)} classes you can safely miss.`
-                            : `Critical status. You need ${lecturesNeededFor75(present, total)} consecutive classes to reach 75%.`}
+                            ? `You are in excellent standing. You can miss up to ${maxBunkableLectures(present, total)} classes while maintaining the required 75% threshold.`
+                            : `Warning: You are below the required threshold. You need to attend the next ${lecturesNeededFor75(present, total)} consecutive classes to recover.`}
                         </p>
                       </div>
 
-                      <div className="flex gap-4">
-                        <div className="bg-gray-50 dark:bg-black/50 rounded-2xl p-4 border border-gray-100 dark:border-white/5 flex-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-900 cursor-default">
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total</p>
-                          <p className="text-2xl font-black text-gray-800 dark:text-gray-200">{total}</p>
+                      <div className="grid grid-cols-3 gap-4 border-t border-gray-100 dark:border-zinc-800 pt-6">
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total</p>
+                          <p className="text-xl font-bold text-gray-900 dark:text-white">{total}</p>
                         </div>
-                        <div className="bg-emerald-50/50 dark:bg-emerald-500/5 rounded-2xl p-4 border border-emerald-100 dark:border-emerald-500/10 flex-1 transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-500/10 cursor-default">
-                          <p className="text-[10px] font-bold text-emerald-600/70 dark:text-emerald-500/70 uppercase tracking-widest mb-1">Present</p>
-                          <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{present}</p>
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Attended</p>
+                          <p className="text-xl font-bold text-emerald-600 dark:text-emerald-500">{present}</p>
                         </div>
-                        <div className="bg-rose-50/50 dark:bg-rose-500/5 rounded-2xl p-4 border border-rose-100 dark:border-rose-500/10 flex-1 transition-colors hover:bg-rose-50 dark:hover:bg-rose-500/10 cursor-default">
-                          <p className="text-[10px] font-bold text-rose-600/70 dark:text-rose-500/70 uppercase tracking-widest mb-1">Absent</p>
-                          <p className="text-2xl font-black text-rose-600 dark:text-rose-400">{total - present}</p>
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Missed</p>
+                          <p className="text-xl font-bold text-rose-600 dark:text-rose-500">{total - present}</p>
                         </div>
                       </div>
                     </div>
+                  </div>
 
-                    <div className="relative w-48 h-48 flex-shrink-0 flex items-center justify-center">
-                      <svg className="w-full h-full transform -rotate-90 drop-shadow-2xl absolute inset-0">
-                        <circle cx="50%" cy="50%" r="42%" className="stroke-gray-100 dark:stroke-white/5" strokeWidth="6" fill="transparent" />
-                        <motion.circle cx="50%" cy="50%" r="42%" fill="transparent" className={`stroke-${getStatusTheme(percentage).color}-500`} strokeWidth="12" strokeLinecap="round" strokeDasharray="264" initial={{ strokeDashoffset: 264 }} animate={{ strokeDashoffset: 264 - (percentage / 100) * 264 }} transition={{ duration: 2, ease: "easeOut", delay: 0.5 }} />
-                      </svg>
-                      <div className="flex flex-col items-center justify-center z-10 text-center">
-                        <span className="text-5xl font-black tracking-tighter" style={{ color: getStatusTheme(percentage).hex }}>{percentage}%</span>
-                        <span className={`text-[10px] font-bold uppercase tracking-widest mt-1 text-${getStatusTheme(percentage).color}-500/80`}>{getStatusTheme(percentage).text}</span>
+                  {/* Streak Card */}
+                  <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col items-center justify-center text-center">
+                    <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-6 text-primary">
+                      <BarChart3 className="w-8 h-8" />
+                    </div>
+                    <h4 className="font-bold text-gray-900 dark:text-white text-xl mb-1">Attendance Streak</h4>
+                    <p className="text-sm text-gray-500 dark:text-zinc-400 mb-6">Current Consistency</p>
+
+                    <div className="w-full space-y-3">
+                      <div className="flex justify-between items-end px-1">
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Current</span>
+                        <span className="text-2xl font-bold text-primary">{currentStreak} <span className="text-sm font-medium text-gray-500">Days</span></span>
                       </div>
+                      <div className="w-full bg-gray-100 dark:bg-zinc-800 h-2.5 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min((currentStreak / 30) * 100, 100)}%` }}
+                          transition={{ duration: 1 }}
+                          className="bg-primary h-full rounded-full"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-zinc-500 pt-1">Personal Best: {maxStreak} days</p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
 
-                {/* Score Summary Card */}
-                <motion.div variants={fadeInUp} className="md:col-span-4 lg:col-span-4 bg-white/60 dark:bg-[#111111]/80 backdrop-blur-2xl rounded-[2.5rem] p-8 border border-white/50 dark:border-white/5 shadow-xl relative overflow-hidden group flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-4">
-                    <BarChart3 className="text-indigo-500" />
+                {/* ── Middle Row: Charts ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="h-[400px]">
+                    <TrendLineChart attendance={attendance} themeHex={theme.hex} />
                   </div>
-                  <h4 className="font-black text-gray-900 dark:text-white text-lg mb-1">Consistency</h4>
-                  <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">Score Breakdown</p>
-                  <div className="mt-6 space-y-2 w-full">
-                    <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
-                      <span>Streak</span>
-                      <span className="text-gray-900 dark:text-white">{currentStreak} Days</span>
-                    </div>
-                    <div className="w-full bg-gray-100 dark:bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-indigo-500 h-full" style={{ width: `${Math.min(currentStreak * 10, 100)}%` }} />
-                    </div>
+                  <div className="h-[400px]">
+                    <TimeOfDayAnalysis attendance={attendance} />
                   </div>
-                </motion.div>
-              </div>
+                </div>
 
-              {/* === Middle Row === */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <motion.div variants={fadeInUp} className="h-[380px]">
-                  <TrendLineChart attendance={attendance} />
-                </motion.div>
-                <motion.div variants={fadeInUp} className="md:col-span-8 lg:col-span-8 group">
-                  <TimeOfDayAnalysis attendance={attendance} />
-                </motion.div>
-              </div>
+                {/* ── Bottom Row: Subjects & Calendar ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                  <div className="lg:col-span-5 h-[450px]">
+                    <SubjectBarGraph data={bySubject} />
+                  </div>
+                  <div className="lg:col-span-7 h-[450px]">
+                    <AttendanceCalendar
+                      attendance={attendance}
+                      monthOffset={monthOffset}
+                      setMonthOffset={setMonthOffset}
+                      onDateClick={setSelectedDate}
+                    />
+                  </div>
+                </div>
 
-              {/* === Bottom Row === */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <motion.div variants={fadeInUp} className="lg:col-span-5 h-[420px]">
-                  <SubjectBarGraph data={bySubject} />
-                </motion.div>
-                <motion.div variants={fadeInUp} className="lg:col-span-7 h-[420px]">
-                  <AttendanceCalendar attendance={attendance} monthOffset={monthOffset} setMonthOffset={setMonthOffset} onDateClick={setSelectedDate} />
-                </motion.div>
-              </div>
-
-              {/* Advanced Forecasting Section */}
-              <motion.div variants={fadeInUp}>
+                {/* ── Forecasting Section ── */}
                 <SkipPrediction present={present} total={total} bySubject={bySubject} />
+
               </motion.div>
-            </motion.div>
-          )}
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Date Dialog Modal */}
+        <AnimatePresence>
+          {selectedDate && <DateDialog date={selectedDate} attendance={attendance} onClose={() => setSelectedDate(null)} router={router} />}
         </AnimatePresence>
-      </div>
-
-      {/* Date Dialog Modal */}
-      <AnimatePresence>
-        {selectedDate && <DateDialog date={selectedDate} attendance={attendance} onClose={() => setSelectedDate(null)} router={router} />}
-      </AnimatePresence>
-
       </div>
     </ProfessionalPageLayout>
   );
@@ -313,41 +331,36 @@ export default function AnalyticsPage() {
 
 /* ---------------- COMPONENTS ---------------- */
 
-/* ThemeToggle is now in @/components/ThemeToggle.tsx and used globally in AttendMateBottomNav */
-
 function LoadingState() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
-      <div className="relative w-24 h-24">
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute inset-0 border-4 border-[#6467f2]/20 border-t-[#6467f2] rounded-full" />
-        <motion.div animate={{ rotate: -360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="absolute inset-2 border-4 border-purple-500/20 border-b-purple-500 rounded-full" />
-      </div>
-      <p className="text-gray-500 font-bold uppercase tracking-widest text-sm animate-pulse">Aggregating Metrics</p>
+    <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+      <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Loading analytics...</p>
     </div>
   );
 }
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring" }} className="w-32 h-32 rounded-[2rem] bg-indigo-50 dark:bg-indigo-900/10 flex items-center justify-center mb-8 border border-indigo-100 dark:border-indigo-800/20">
-        <svg className="w-16 h-16 text-[#6467f2]/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-      </motion.div>
-      <h3 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white mb-3">No Data Yet</h3>
-      <p className="text-gray-500 dark:text-gray-400 font-medium max-w-sm text-center">
-        Your analytics engine will activate once you log your first attendance record. Start tracking to see insights.
+    <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
+      <div className="w-20 h-20 rounded-2xl bg-gray-50 dark:bg-zinc-800 flex items-center justify-center mb-6">
+        <Activity className="w-10 h-10 text-gray-400" />
+      </div>
+      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Data Yet</h3>
+      <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
+        Your analytics engine will activate once you log your first attendance record. Check back later!
       </p>
     </div>
   );
 }
 
-/* ---------------- ADVANCED SVG TREND LINE CHART ---------------- */
-function TrendLineChart({ attendance }: { attendance: AnalyticsAttendance[] }) {
+/* ---------------- TREND LINE CHART ---------------- */
+function TrendLineChart({ attendance, themeHex }: { attendance: AnalyticsAttendance[], themeHex: string }) {
   const [svgWidth, setSvgWidth] = useState(800);
   const svgHeight = 220;
 
   const trendData = useMemo(() => {
-    const dates = Array.from(new Set(attendance.map(a => a.date))).sort(); // All-time data
+    const dates = Array.from(new Set(attendance.map(a => a.date))).sort();
     if (dates.length < 2) return [];
     return dates.map(date => {
       const upToDate = attendance.filter(a => a.date <= date);
@@ -358,11 +371,11 @@ function TrendLineChart({ attendance }: { attendance: AnalyticsAttendance[] }) {
 
   if (trendData.length < 2) {
     return (
-      <div className="bg-white/60 dark:bg-[#111111]/80 backdrop-blur-2xl rounded-[2.5rem] p-8 border border-white/50 dark:border-white/5 h-full flex items-center justify-center text-center">
+      <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 h-full flex items-center justify-center text-center">
         <div>
-          <span className="text-4xl mb-4 block opacity-30 text-[#6467f2]">📈</span>
-          <h3 className="font-bold text-gray-800 dark:text-gray-200">Needs More History</h3>
-          <p className="text-sm text-gray-500 mt-2">Log at least 2 unique days to see progression trends.</p>
+          <TrendingUp className="w-8 h-8 text-gray-300 dark:text-zinc-600 mx-auto mb-3" />
+          <h3 className="text-sm font-bold text-gray-900 dark:text-white">Needs More History</h3>
+          <p className="text-xs text-gray-500 mt-1">Log at least 2 unique days to see trends.</p>
         </div>
       </div>
     );
@@ -371,13 +384,13 @@ function TrendLineChart({ attendance }: { attendance: AnalyticsAttendance[] }) {
   const yMax = 100;
   const yMin = Math.max(0, Math.min(...trendData.map(d => d.percent)) - 5);
   const yRange = yMax - yMin || 1;
-  const paddingX = 10; // Prevent cropping dots at edges
+  const paddingX = 20;
   const usableWidth = svgWidth - (paddingX * 2);
   const stepX = usableWidth / Math.max(1, trendData.length - 1);
 
   const points = trendData.map((d, i) => ({
     x: paddingX + (i * stepX),
-    y: 10 + (svgHeight - 20) - ((d.percent - yMin) / yRange) * (svgHeight - 20), // Add Y padding
+    y: 20 + (svgHeight - 40) - ((d.percent - yMin) / yRange) * (svgHeight - 40),
     ...d
   }));
 
@@ -389,14 +402,14 @@ function TrendLineChart({ attendance }: { attendance: AnalyticsAttendance[] }) {
   const areaPath = `${path} L ${points[points.length - 1].x} ${svgHeight} L ${points[0].x} ${svgHeight} Z`;
 
   return (
-    <div className="bg-white/60 dark:bg-[#111111]/80 backdrop-blur-2xl rounded-[2.5rem] p-8 border border-white/50 dark:border-white/5 h-full flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]">
+    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 h-full flex flex-col shadow-sm">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Progression Velocity</h3>
-          <p className="text-xs font-semibold text-gray-500 mt-1 uppercase tracking-wider">All-time cumulative trend</p>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Attendance Trend</h3>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">Historical Progression</p>
         </div>
-        <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-500">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+        <div className="w-10 h-10 rounded-lg bg-gray-50 dark:bg-zinc-800 flex items-center justify-center text-gray-500 border border-gray-100 dark:border-zinc-700">
+          <TrendingUp className="w-5 h-5" />
         </div>
       </div>
 
@@ -404,42 +417,41 @@ function TrendLineChart({ attendance }: { attendance: AnalyticsAttendance[] }) {
         <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} preserveAspectRatio="none" className="absolute inset-0 w-full h-full overflow-visible">
           <defs>
             <linearGradient id="velocityGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#6467f2" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#6467f2" stopOpacity="0" />
+              <stop offset="0%" stopColor={themeHex} stopOpacity="0.2" />
+              <stop offset="100%" stopColor={themeHex} stopOpacity="0" />
             </linearGradient>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
             <clipPath id="revealVelocity">
-              <motion.rect x="-20" y="-20" width={svgWidth + 40} height={svgHeight + 40} initial={{ width: 0 }} animate={{ width: svgWidth + 40 }} transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }} />
+              <motion.rect
+                x="0" y="0" width={svgWidth} height={svgHeight}
+                initial={{ width: 0 }}
+                animate={{ width: svgWidth }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+              />
             </clipPath>
           </defs>
 
+          {/* Grid Lines */}
           {[100, 75].filter(val => val >= yMin).map(val => {
-            const y = svgHeight - ((val - yMin) / yRange) * svgHeight;
+            const y = 20 + (svgHeight - 40) - ((val - yMin) / yRange) * (svgHeight - 40);
             return (
               <g key={val}>
-                <line x1="0" y1={y} x2={svgWidth} y2={y} stroke="currentColor" strokeDasharray="6 6" className="text-gray-200 dark:text-white/10" strokeWidth="1.5" />
-                <text x="0" y={y - 6} fill="currentColor" className="text-[10px] font-bold text-gray-400">{val}%</text>
+                <line x1="0" y1={y} x2={svgWidth} y2={y} stroke="currentColor" strokeDasharray="4 4" className="text-gray-200 dark:text-zinc-800" strokeWidth="1" />
+                <text x="0" y={y - 6} fill="currentColor" className="text-[10px] font-semibold text-gray-400 dark:text-zinc-500">{val}%</text>
               </g>
             )
           })}
 
           <g clipPath="url(#revealVelocity)">
             <path d={areaPath} fill="url(#velocityGrad)" />
-            <path d={path} fill="none" stroke="#6467f2" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)" />
+            <path d={path} fill="none" stroke={themeHex} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
             {points.map((p, i) => (
-              <circle key={i} cx={p.x} cy={p.y} r="5" className="fill-white dark:fill-black stroke-[#6467f2]" strokeWidth="3" />
+              <circle key={i} cx={p.x} cy={p.y} r="4" className="fill-white dark:fill-zinc-900" stroke={themeHex} strokeWidth="2" />
             ))}
           </g>
         </svg>
       </div>
 
-      <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-100 dark:border-white/5 text-[11px] font-bold text-gray-400 uppercase tracking-widest relative">
+      <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
         <span>{new Date(points[0].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
         <span>{new Date(points[points.length - 1].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
       </div>
@@ -458,7 +470,6 @@ function TimeOfDayAnalysis({ attendance }: { attendance: AnalyticsAttendance[] }
   attendance.forEach(a => {
     if (!a.startTime) return;
     try {
-      // Parse time to get hours
       let hours = 12;
       const timeStr = typeof a.startTime === 'string' ? a.startTime :
         (a.startTime as any).toDate ? (a.startTime as any).toDate().toLocaleTimeString() : "";
@@ -471,28 +482,26 @@ function TimeOfDayAnalysis({ attendance }: { attendance: AnalyticsAttendance[] }
         if (meridiem === "AM" && hours === 12) hours = 0;
       }
 
-      let periodIdx = 0; // morning
-      if (hours >= 12 && hours < 16) periodIdx = 1; // afternoon
-      else if (hours >= 16) periodIdx = 2; // evening
+      let periodIdx = 0;
+      if (hours >= 12 && hours < 16) periodIdx = 1;
+      else if (hours >= 16) periodIdx = 2;
 
       if (a.status === 'PRESENT') periods[periodIdx].present++;
       else periods[periodIdx].absent++;
-    } catch {
-      // ignore parse errors
-    }
+    } catch { }
   });
 
   const maxClasses = Math.max(...periods.map(s => s.present + s.absent), 1);
 
   return (
-    <div className="bg-white/60 dark:bg-[#111111]/80 backdrop-blur-2xl rounded-[2.5rem] p-8 border border-white/50 dark:border-white/5 h-full flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]">
+    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 h-full flex flex-col shadow-sm">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Time of Day</h3>
-          <p className="text-xs font-semibold text-gray-500 mt-1 uppercase tracking-wider">Attendance by shift</p>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Time Analysis</h3>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">Attendance by Period</p>
         </div>
-        <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <div className="w-10 h-10 rounded-lg bg-gray-50 dark:bg-zinc-800 flex items-center justify-center text-gray-500 border border-gray-100 dark:border-zinc-700">
+          <Clock className="w-5 h-5" />
         </div>
       </div>
 
@@ -502,34 +511,37 @@ function TimeOfDayAnalysis({ attendance }: { attendance: AnalyticsAttendance[] }
           const percent = total > 0 ? (stat.present / total) * 100 : 0;
           const width = total > 0 ? ((stat.present + stat.absent) / maxClasses) * 100 : 0;
           const pWidth = total > 0 ? (stat.present / total) * 100 : 0;
-          const theme = getStatusTheme(percent);
+          const theme = getTheme(percent);
 
           return (
-            <div key={i} className="flex flex-col gap-2 group">
+            <div key={i} className="flex flex-col gap-2.5">
               <div className="flex justify-between items-end">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <span className="text-xl">{stat.icon}</span>
                   <div>
-                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{stat.name}</span>
+                    <span className="text-sm font-bold text-gray-900 dark:text-white">{stat.name}</span>
+                    <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">{stat.desc}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-bold text-gray-400 mr-2">{total} classes</span>
-                  <span className={`text-sm font-black text-${total > 0 ? theme.color : 'gray'}-500`}>{total > 0 ? `${percent.toFixed(0)}%` : 'N/A'}</span>
+                  <span className="text-[10px] font-semibold text-gray-500 mr-2 uppercase tracking-wider">{total} Classes</span>
+                  <span className={`text-sm font-bold ${total > 0 ? theme.text : 'text-gray-400'}`}>
+                    {total > 0 ? `${percent.toFixed(0)}%` : 'N/A'}
+                  </span>
                 </div>
               </div>
 
               {/* Background track relative to max classes */}
-              <div className="w-full bg-transparent h-3 rounded-full flex items-center">
+              <div className="w-full h-2.5 rounded-full flex items-center">
                 <motion.div
-                  initial={{ width: 0 }} animate={{ width: `${width}%` }} transition={{ duration: 0.8, type: "spring" }}
-                  className="h-full bg-gray-100 dark:bg-white/5 rounded-full relative overflow-hidden flex"
+                  initial={{ width: 0 }} animate={{ width: `${width}%` }} transition={{ duration: 0.8 }}
+                  className="h-full bg-gray-100 dark:bg-zinc-800 rounded-full relative overflow-hidden flex"
                 >
                   <motion.div
-                    initial={{ width: 0 }} animate={{ width: `${pWidth}%` }} transition={{ duration: 1, delay: 0.2 }}
-                    className={`h-full bg-${total > 0 ? theme.color : 'gray'}-500`}
+                    initial={{ width: 0 }} animate={{ width: `${pWidth}%` }} transition={{ duration: 1, delay: 0.1 }}
+                    className={`h-full ${total > 0 ? theme.fill : 'bg-gray-300 dark:bg-zinc-700'}`}
                   />
-                  <div className="flex-1 bg-gray-300 dark:bg-gray-600 h-full" />
+                  <div className="flex-1 bg-transparent h-full" />
                 </motion.div>
               </div>
             </div>
@@ -540,15 +552,14 @@ function TimeOfDayAnalysis({ attendance }: { attendance: AnalyticsAttendance[] }
   );
 }
 
-
 /* ---------------- SUBJECT BAR GRAPH ---------------- */
 function SubjectBarGraph({ data }: { data: Record<string, AnalyticsAttendance[]> }) {
   return (
-    <div className="bg-white/60 dark:bg-[#111111]/80 backdrop-blur-2xl rounded-[2.5rem] p-8 border border-white/50 dark:border-white/5 h-full flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]">
-      <div className="flex items-center justify-between mb-8">
+    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 h-full flex flex-col shadow-sm">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Subject Drilldown</h3>
-          <p className="text-xs font-semibold text-gray-500 mt-1 uppercase tracking-wider">Individual course health</p>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Subject Breakdown</h3>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">Individual Metrics</p>
         </div>
       </div>
 
@@ -557,34 +568,40 @@ function SubjectBarGraph({ data }: { data: Record<string, AnalyticsAttendance[]>
           const present = list.filter(l => l.status === "PRESENT").length;
           const total = list.length;
           const percent = Number(((present / total) * 100).toFixed(1));
-          const theme = getStatusTheme(percent);
+          const theme = getTheme(percent);
 
           return (
-            <div key={subject} className="group">
+            <div key={subject}>
               <div className="flex justify-between items-end mb-2">
-                <p className="font-bold text-sm text-gray-800 dark:text-gray-200 truncate pr-4">{subject}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-sm text-gray-900 dark:text-white truncate pr-4">{subject}</p>
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">{total} Sessions</p>
+                </div>
                 <div className="text-right">
-                  <p className={`font-black text-sm text-${theme.color}-500`}>{percent}%</p>
+                  <p className={`font-bold text-sm ${theme.text}`}>{percent}%</p>
                 </div>
               </div>
-              <div className="relative h-3 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden shadow-inner">
-                <div className="absolute top-0 bottom-0 left-[75%] w-[2px] bg-red-500/50 z-10 box-content px-px bg-clip-content" />
+              <div className="relative h-2 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                <div className="absolute top-0 bottom-0 left-[75%] w-[2px] bg-gray-300 dark:bg-zinc-600 z-10" />
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${percent}%` }}
-                  transition={{ duration: 1.2, type: "spring", bounce: 0.2 }}
-                  className={`h-full rounded-full bg-${theme.color}-500 shadow-[0_0_10px_rgba(0,0,0,0.2)] shadow-${theme.color}-500/50 relative z-0`}
+                  transition={{ duration: 1 }}
+                  className={`h-full rounded-full ${theme.fill} relative z-0`}
                 />
               </div>
             </div>
           );
         })}
+        {Object.keys(data).length === 0 && (
+          <p className="text-sm text-gray-500 text-center py-10">No subjects tracked yet.</p>
+        )}
       </div>
     </div>
   );
 }
 
-/* ---------------- CONSISTENCY MAP (improved layout) ---------------- */
+/* ---------------- CONSISTENCY MAP ---------------- */
 function AttendanceCalendar({ attendance, monthOffset, setMonthOffset, onDateClick }: any) {
   const currentDate = new Date();
   currentDate.setMonth(currentDate.getMonth() + monthOffset);
@@ -598,30 +615,26 @@ function AttendanceCalendar({ attendance, monthOffset, setMonthOffset, onDateCli
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1)
   ];
 
-  // Fill trailing nulls so the grid ends on a complete row
   while (days.length % 7 !== 0) days.push(null);
 
   return (
-    <div className="bg-white/60 dark:bg-[#111111]/80 backdrop-blur-2xl rounded-[2.5rem] p-6 sm:p-8 border border-white/50 dark:border-white/5 h-full flex flex-col shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]">
-      {/* Header with Month Nav */}
-      <div className="flex justify-between items-center mb-5">
+    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 h-full flex flex-col shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Consistency Map</h3>
-          <p className="text-xs font-semibold text-gray-500 mt-1 uppercase tracking-wider">Daily activity pulse</p>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Calendar View</h3>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-1">Daily Log</p>
         </div>
-        <div className="flex items-center gap-1 bg-gray-50 dark:bg-white/5 p-1.5 rounded-2xl border border-gray-100 dark:border-white/5">
-          <motion.button whileTap={{ scale: 0.9 }} onClick={() => setMonthOffset(monthOffset - 1)} className="p-2 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors"><svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg></motion.button>
-          <span className="text-xs font-bold text-gray-700 dark:text-gray-300 w-28 text-center">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={() => setMonthOffset(monthOffset + 1)} className="p-2 hover:bg-white dark:hover:bg-white/10 rounded-xl transition-colors"><svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg></motion.button>
+        <div className="flex items-center gap-1 bg-gray-50 dark:bg-zinc-800 p-1 rounded-lg border border-gray-200 dark:border-zinc-700">
+          <button onClick={() => setMonthOffset(monthOffset - 1)} className="p-1.5 hover:bg-white dark:hover:bg-zinc-700 rounded-md transition-colors text-gray-500"><ChevronLeft className="w-4 h-4" /></button>
+          <span className="text-xs font-bold text-gray-900 dark:text-white w-28 text-center">{currentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+          <button onClick={() => setMonthOffset(monthOffset + 1)} className="p-1.5 hover:bg-white dark:hover:bg-zinc-700 rounded-md transition-colors text-gray-500"><ChevronRight className="w-4 h-4" /></button>
         </div>
       </div>
 
-      {/* Day-of-week headers */}
       <div className="grid grid-cols-7 gap-2 mb-2">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => <div key={i} className="text-center text-[11px] font-bold text-gray-400 dark:text-gray-500 py-1">{d}</div>)}
+        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <div key={i} className="text-center text-[10px] font-bold text-gray-400 dark:text-zinc-500 py-1">{d}</div>)}
       </div>
 
-      {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-2 flex-1 content-start">
         {days.map((day, i) => {
           if (!day) return <div key={i} />;
@@ -629,46 +642,50 @@ function AttendanceCalendar({ attendance, monthOffset, setMonthOffset, onDateCli
           const dayData = attendance.filter((a: any) => a.date === dateStr);
           const hasData = dayData.length > 0;
 
-          let cellClasses = "bg-gray-50 dark:bg-white/[0.03] text-gray-400 dark:text-gray-600 border-transparent";
+          let cellClasses = "bg-gray-50 dark:bg-zinc-800/50 text-gray-400 dark:text-zinc-600";
           if (hasData) {
             const presentCount = dayData.filter((a: any) => a.status === "PRESENT").length;
             const percent = (presentCount / dayData.length) * 100;
 
-            if (percent === 100) cellClasses = "bg-emerald-500 text-white border-emerald-500/50 shadow-lg shadow-emerald-500/20";
-            else if (percent >= 75) cellClasses = "bg-emerald-400 text-white border-emerald-400/50 shadow-md shadow-emerald-400/15";
-            else if (percent >= 50) cellClasses = "bg-amber-400 text-white border-amber-400/50 shadow-md shadow-amber-400/15";
-            else if (percent > 0) cellClasses = "bg-rose-400 text-white border-rose-400/50 shadow-md shadow-rose-400/15";
-            else cellClasses = "bg-rose-500 text-white border-rose-500/50 shadow-lg shadow-rose-500/20";
+            if (percent === 100) cellClasses = "bg-emerald-500 text-white";
+            else if (percent >= 75) cellClasses = "bg-emerald-400/80 text-white";
+            else if (percent >= 50) cellClasses = "bg-amber-400 text-white";
+            else if (percent > 0) cellClasses = "bg-rose-400 text-white";
+            else cellClasses = "bg-rose-500 text-white";
           }
 
           return (
-            <motion.button
+            <button
               key={i}
               onClick={() => hasData && onDateClick(dateStr)}
               disabled={!hasData}
-              whileHover={hasData ? { scale: 1.2, zIndex: 10 } : {}}
-              whileTap={hasData ? { scale: 0.9 } : {}}
-              className={`h-10 sm:h-12 rounded-lg flex items-center justify-center text-xs font-bold border transition-all duration-200 ${cellClasses} ${hasData ? 'cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-indigo-400/50 dark:hover:ring-offset-black' : 'cursor-default'}`}
+              className={`w-full aspect-square rounded-md flex items-center justify-center text-xs font-semibold transition-transform ${cellClasses} ${hasData ? 'cursor-pointer hover:scale-105 active:scale-95' : 'cursor-default opacity-50'}`}
             >
               {day}
-            </motion.button>
+            </button>
           );
         })}
       </div>
 
       {/* Legend */}
-      <div className="flex justify-center gap-4 mt-4 pt-3 border-t border-gray-100 dark:border-white/5">
-        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-md bg-emerald-500"></div><span className="text-[10px] text-gray-400 font-bold">100%</span></div>
-        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-md bg-amber-400"></div><span className="text-[10px] text-gray-400 font-bold">50-74%</span></div>
-        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-md bg-rose-500"></div><span className="text-[10px] text-gray-400 font-bold">&lt;50%</span></div>
-        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-md bg-gray-100 dark:bg-white/5"></div><span className="text-[10px] text-gray-400 font-bold">No data</span></div>
+      <div className="flex flex-wrap justify-center gap-4 mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800">
+        {[
+          { color: "bg-emerald-500", label: "100%" },
+          { color: "bg-amber-400", label: "50-74%" },
+          { color: "bg-rose-500", label: "< 50%" },
+          { color: "bg-gray-100 dark:bg-zinc-800", label: "Empty" }
+        ].map((item, idx) => (
+          <div key={idx} className="flex items-center gap-1.5">
+            <div className={`w-2.5 h-2.5 rounded-sm ${item.color}`}></div>
+            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">{item.label}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-/* ---------------- FORECASTING TRAY ---------------- */
-/* ---------------- ADVANCED FORECASTING ENGINE ---------------- */
+/* ---------------- FORECASTING ENGINE ---------------- */
 function SkipPrediction({ present, total, bySubject }: { present: number, total: number, bySubject: Record<string, AnalyticsAttendance[]> }) {
   const [selectedSubject, setSelectedSubject] = useState<string>("Global");
 
@@ -684,101 +701,67 @@ function SkipPrediction({ present, total, bySubject }: { present: number, total:
   }, [selectedSubject, present, total, bySubject]);
 
   return (
-    <div className="mt-12 mb-12">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center text-white shadow-xl shadow-orange-500/20 shrink-0">
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
-          </div>
-          <div>
-            <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Forecasting Engine</h3>
-            <p className="text-sm font-bold text-gray-500 mt-0.5 uppercase tracking-widest">Predicting "What-if" scenarios</p>
-          </div>
+    <div className="pt-8">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-6">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Smart Forecast</h3>
+          <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">Impact analysis for skipping upcoming classes</p>
         </div>
 
-        <div className="flex items-center gap-2 bg-white/50 dark:bg-gray-950/50 backdrop-blur-xl p-1.5 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-          <button 
+        <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 p-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+          <button
             onClick={() => setSelectedSubject("Global")}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${selectedSubject === "Global" ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20" : "text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5"}`}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${selectedSubject === "Global" ? "bg-primary text-white" : "text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800"}`}
           >
-            GLOBAL
+            Overall
           </button>
-          <select 
+          <div className="w-px h-4 bg-gray-200 dark:bg-zinc-700" />
+          <select
             value={selectedSubject === "Global" ? "" : selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value || "Global")}
-            className={`px-3 py-2 rounded-xl text-xs font-black bg-transparent outline-none cursor-pointer ${selectedSubject !== "Global" ? "text-indigo-500" : "text-gray-400 hover:text-gray-600"}`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold bg-transparent outline-none cursor-pointer appearance-none ${selectedSubject !== "Global" ? "text-primary" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"}`}
           >
-            <option value="" disabled>SUBJECTS</option>
+            <option value="" disabled className="dark:bg-zinc-900">Subjects</option>
             {Object.keys(bySubject).map(s => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s} value={s} className="dark:bg-zinc-900">{s}</option>
             ))}
           </select>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map(skip => {
           const newPercent = percentageAfterSkipping(currentStats.p, currentStats.t, skip);
-          const theme = getStatusTheme(newPercent);
+          const theme = getTheme(newPercent);
 
-          let severityText = "SAFE";
-          let recommendation = "Low Risk";
-          let recoveryAdvice = "Buffer maintained";
-          
+          let severityIcon = <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
+          let advice = "Safe to skip";
+
           if (newPercent < 75) {
-            severityText = "DANGER ZONE";
-            recommendation = "Immediate Risk";
+            severityIcon = <AlertCircle className="w-4 h-4 text-rose-500" />;
             const needed = Math.ceil((0.75 * (currentStats.t + skip) - currentStats.p) / 0.25);
-            recoveryAdvice = `Attend next ${needed} classes`;
+            advice = `Will require +${needed} classes`;
           } else if (newPercent < 80) {
-            severityText = "CAUTION";
-            recommendation = "Thin Buffer";
-            recoveryAdvice = "Monitor closely";
+            severityIcon = <AlertCircle className="w-4 h-4 text-amber-500" />;
+            advice = "Buffer getting thin";
           }
 
           return (
-            <motion.div
-              key={skip}
-              whileHover={{ y: -8, scale: 1.02 }}
-              className={`relative overflow-hidden bg-white/60 dark:bg-[#111111]/80 backdrop-blur-2xl p-6 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border-2 transition-colors ${theme.border}`}
-            >
-              {/* Animated Glow */}
-              <div className={`absolute -top-10 -right-10 w-32 h-32 bg-${theme.color}-500/10 blur-3xl rounded-full`} />
-
-              <div className="relative z-10 flex flex-col h-full">
-                <div className="flex justify-between items-start mb-4">
-                  <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-${theme.color}-500/10 text-${theme.color}-500 border border-${theme.color}-500/20`}>
-                    {severityText}
-                  </span>
-                  <span className="text-xs font-bold text-gray-400 dark:text-gray-500">+{skip} Absence</span>
-                </div>
-
-                <div className="mb-6">
-                  <p className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Projected Score</p>
-                  <div className="flex items-end gap-2">
-                    <span className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">{newPercent.toFixed(1)}%</span>
-                    <div className={`mb-1.5 p-0.5 rounded-md bg-${theme.color}-500/10`}>
-                      <svg className={`w-4 h-4 text-${theme.color}-500 rotate-180`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-auto space-y-3 pt-4 border-t border-gray-100 dark:border-white/5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Outcome</span>
-                    <span className={`text-xs font-black text-${theme.color}-500`}>{theme.text}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Advice</span>
-                    <span className="text-xs font-bold text-gray-600 dark:text-gray-300">{recommendation}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Recovery</span>
-                    <span className={`text-xs font-bold ${newPercent < 75 ? "text-rose-500" : "text-gray-500"}`}>{recoveryAdvice}</span>
-                  </div>
-                </div>
+            <div key={skip} className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Miss {skip} Class{skip > 1 ? 'es' : ''}</span>
+                {severityIcon}
               </div>
-            </motion.div>
+
+              <div className="mb-4">
+                <span className="text-3xl font-bold text-gray-900 dark:text-white">{newPercent.toFixed(1)}%</span>
+              </div>
+
+              <div className="pt-4 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center">
+                <span className={`text-xs font-semibold ${theme.text}`}>{theme.label}</span>
+                <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{advice}</span>
+              </div>
+            </div>
           );
         })}
       </div>
@@ -792,60 +775,70 @@ function DateDialog({ date, attendance, onClose, router }: any) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1, backdropFilter: "blur(8px)" }} exit={{ opacity: 0, backdropFilter: "blur(0px)" }} onClick={onClose} className="absolute inset-0 bg-gray-900/40 dark:bg-black/80" />
-
-      {/* Modal */}
       <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 50 }}
-        animate={{ scale: 1, opacity: 1, y: 0, transition: { type: "spring", damping: 25, stiffness: 300 } }}
-        exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        className="relative w-full max-w-sm bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] overflow-hidden shadow-2xl border border-gray-100 dark:border-white/10 flex flex-col max-h-[85vh]"
-      >
-        <div className="px-8 py-6 bg-gray-50 dark:bg-black/20 border-b border-gray-100 dark:border-white/5 relative overflow-hidden">
-          <div className="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/10 blur-2xl rounded-full" />
-          <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight relative z-10">
-            {new Date(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-          </h3>
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1 relative z-10">{dayData.length} records</p>
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm"
+      />
 
-          <button onClick={onClose} className="absolute top-6 right-6 w-8 h-8 rounded-full bg-gray-200/50 dark:bg-white/10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors z-20">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0, y: 10 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 10 }}
+        className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-800 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-5 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center bg-gray-50/50 dark:bg-zinc-900/50">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+              {new Date(date).toLocaleDateString("en-US", { weekday: 'short', month: 'long', day: 'numeric' })}
+            </h3>
+            <p className="text-xs text-gray-500 mt-0.5">Daily Attendance Log</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-800 text-gray-500 transition-colors">
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-3 overflow-y-auto custom-scrollbar flex-1">
-          {dayData.map((item: any, i: number) => (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.1 }}
-              key={i}
-              className={`p-4 rounded-2xl border-2 flex justify-between items-center ${item.status === 'PRESENT' ? 'bg-emerald-50/50 dark:bg-emerald-500/5 border-emerald-100 dark:border-emerald-500/10' : 'bg-rose-50/50 dark:bg-rose-500/5 border-rose-100 dark:border-rose-500/10'}`}
-            >
-              <div className="flex items-center gap-3 truncate pr-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.status === 'PRESENT' ? 'bg-emerald-500 text-white shadow-emerald-500/30' : 'bg-rose-500 text-white shadow-rose-500/30'} shadow-md`}>
-                  {item.status === 'PRESENT' ? <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>}
+        {/* Body */}
+        <div className="p-5 space-y-3 max-h-[60vh] overflow-y-auto">
+          {dayData.length === 0 ? (
+            <p className="text-sm text-center text-gray-500 py-10">No records found for this date.</p>
+          ) : (
+            dayData.map((item: any, idx: number) => {
+              const isPresent = item.status === 'PRESENT';
+              return (
+                <div key={idx} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-8 rounded-full ${isPresent ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                    <div>
+                      <p className="font-bold text-sm text-gray-900 dark:text-white">{item.subject}</p>
+                      <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                        <Clock className="w-3 h-3" /> {typeof item.startTime === 'string' ? item.startTime : 'Recorded'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${isPresent ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400'}`}>
+                    {item.status}
+                  </span>
                 </div>
-                <span className="font-bold text-gray-900 dark:text-white truncate">{item.subject}</span>
-              </div>
-            </motion.div>
-          ))}
+              );
+            })
+          )}
         </div>
 
-        <div className="p-6 bg-white dark:bg-[#1A1A1A] border-t border-gray-100 dark:border-white/5 pb-10">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+        {/* Footer */}
+        <div className="p-5 border-t border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/50">
+          <button
             onClick={() => {
-              onClose();
               router.push(`/attendance?date=${date}`);
+              onClose();
             }}
-            className="w-full py-4 bg-gradient-to-r from-[#6467f2] to-[#8a2be2] text-white rounded-[1.25rem] font-black text-sm transition-all shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 tracking-wide"
+            className="w-full py-2.5 rounded-xl bg-gray-900 hover:bg-black dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black font-semibold text-sm transition-colors"
           >
-            Open in Attendance List
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-          </motion.button>
+            View Full Timeline
+          </button>
         </div>
       </motion.div>
     </div>

@@ -10,6 +10,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle,
   XCircle,
@@ -23,6 +24,11 @@ import {
   List,
   Filter,
   BarChart3,
+  Activity,
+  ChevronDown,
+  ChevronRight,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
 import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
 import { useAuth } from "@/context/AuthContext";
@@ -62,9 +68,6 @@ function AttendanceContent() {
   // Set initial search query from date parameter when mounted
   useEffect(() => {
     if (dateParam) {
-      // Format dateParam from YYYY-MM-DD to DD/MM/YYYY or similar based on how it's matched
-      // The search matches `dateStr` which is `date.toDate().toLocaleDateString()`
-      // Let's just create a Date from the param and use the exact same format
       const [y, m, d] = dateParam.split('-');
       if (y && m && d) {
         const dObj = new Date(Number(y), Number(m) - 1, Number(d));
@@ -72,6 +75,7 @@ function AttendanceContent() {
       }
     }
   }, [dateParam]);
+
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -228,7 +232,7 @@ function AttendanceContent() {
   const groupedAttendance = useMemo(() =>
     filteredAttendance.reduce((acc, item) => {
       const key = item.date.toDate().toLocaleDateString("en-US", {
-        day: "2-digit", month: "short", year: "numeric",
+        weekday: 'short', day: "numeric", month: "short", year: "numeric",
       });
       if (!acc[key]) acc[key] = [];
       acc[key].push(item);
@@ -237,7 +241,7 @@ function AttendanceContent() {
     [filteredAttendance]);
 
   /* ── Circular Progress ── */
-  const radius = 72;
+  const radius = 50;
   const circ = 2 * Math.PI * radius;
   const offset = circ - (stats.percentage / 100) * circ;
 
@@ -254,410 +258,324 @@ function AttendanceContent() {
   /* ── Loading ── */
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="relative w-12 h-12 mx-auto">
-            <div className="absolute inset-0 border-4 border-indigo-100 dark:border-indigo-900/30 rounded-full" />
-            <div className="absolute inset-0 border-4 border-transparent border-t-indigo-600 rounded-full animate-spin" />
-          </div>
-          <p className="text-sm font-medium text-gray-400">Loading records…</p>
-        </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <ProfessionalPageLayout>
-      <div className="p-4 sm:p-8 lg:p-12 space-y-10">
-        
-        {/* SaaS Style Header */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-gray-100 dark:border-gray-900">
-          <div>
-            <div className="flex items-center gap-2 text-indigo-500 mb-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Records Verified</span>
-            </div>
-            <h1 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
-              Attendance <span className="text-indigo-500">History</span>
+      {/* NOTE: pb-32 ensures the content doesn't get hidden behind the mobile bottom navigation bar */}
+      <div className="w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 pb-32 sm:pb-10 lg:pb-12">
+
+        {/* ── PROFESSIONAL HEADER ── */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-200 dark:border-zinc-800">
+          <div className="space-y-1.5">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
+              Attendance History
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 font-bold mt-2">
-              Detailed tracking of your academic presence and subject performance.
+            <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
+              Review, filter, and manage your academic presence logs.
             </p>
           </div>
-          
-          <div className="flex items-center gap-3 bg-white dark:bg-gray-900 px-5 py-3 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
-            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-gray-400" />
+
+          <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 px-5 py-3 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm shrink-0">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <Activity className="w-5 h-5" />
             </div>
-            <div className="text-left">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Average Rate</p>
-              <p className="text-sm font-black text-gray-900 dark:text-white">{stats.percentage}%</p>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-0.5">Overall</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white leading-none">
+                {stats.percentage}%
+              </p>
             </div>
           </div>
         </header>
 
-        {/* ── CONTENT ── */}
-        <div className="space-y-8">
+        {/* ── CONTENT BODY ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-          {/* Stats Card */}
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
-            <div className="p-4 sm:p-5">
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md shadow-indigo-500/20 flex-shrink-0">
-                  <BarChart3 className="w-4 h-4 text-white" />
-                </div>
-                <h2 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
-                  Performance Overview
-                </h2>
-              </div>
+          {/* ── LEFT COLUMN: STATS & LIST ── */}
+          <div className="lg:col-span-8 space-y-8">
 
-              {dateParam && searchQuery === new Date(Number(dateParam.split('-')[0]), Number(dateParam.split('-')[1]) - 1, Number(dateParam.split('-')[2])).toLocaleDateString() && (
-                <div className="mb-4 p-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-indigo-500" />
-                    <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-                      Showing records for <strong>{new Date(dateParam).toLocaleDateString()}</strong>
-                    </span>
-                  </div>
-                  <button onClick={() => { setSearchQuery(""); router.push('/attendance'); }} className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 underline">
-                    Clear Filter
-                  </button>
-                </div>
-              )}
+            {/* STICKY FILTER BAR */}
+            <div className="sticky top-0 z-20 bg-gray-50/90 dark:bg-zinc-950/90 backdrop-blur-md pt-2 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+              <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-3 shadow-sm flex flex-col sm:flex-row gap-3">
 
-              <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-8">
-                {/* Circular */}
-                <div className="relative flex-shrink-0">
-                  <svg
-                    width="160" height="160" viewBox="0 0 200 200"
-                    style={{ filter: "drop-shadow(0 4px 12px rgba(99,102,241,0.18))" }}
-                  >
-                    <circle cx="100" cy="100" r={radius} fill="none" stroke="currentColor"
-                      strokeWidth="14" className="text-gray-100 dark:text-gray-800" />
-                    <circle cx="100" cy="100" r={radius} fill="none" stroke="url(#attGrad)"
-                      strokeWidth="14" strokeLinecap="round"
-                      strokeDasharray={circ} strokeDashoffset={offset}
-                      transform="rotate(-90 100 100)"
-                      style={{ transition: "stroke-dashoffset 1s ease-out" }} />
-                    <defs>
-                      <linearGradient id="attGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#6366f1" />
-                        <stop offset="50%" stopColor="#8b5cf6" />
-                        <stop offset="100%" stopColor="#a855f7" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-bold bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-none">
-                      {stats.percentage}%
-                    </span>
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 font-medium">Attendance</span>
-                    <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 mt-1">
-                      {stats.present}/{stats.total}
-                    </span>
-                  </div>
+                {/* Search */}
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search records or dates..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-9 py-2.5 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
-                {/* Stat rows */}
-                <div className="flex-1 w-full space-y-2.5">
-                  {[
-                    { label: "Attended", val: stats.present, col: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-900/20", icon: <CheckCircle className="w-4 h-4 text-emerald-500" /> },
-                    { label: "Missed", val: stats.absent, col: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-900/20", icon: <XCircle className="w-4 h-4 text-red-500" /> },
-                    { label: "Total", val: stats.total, col: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-50 dark:bg-indigo-900/20", icon: <List className="w-4 h-4 text-indigo-500" /> },
-                  ].map((row) => (
-                    <div key={row.label} className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl ${row.bg}`}>
-                      <div className="flex items-center gap-2">
-                        {row.icon}
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{row.label}</span>
-                      </div>
-                      <span className={`text-lg font-bold ${row.col}`}>{row.val}</span>
-                    </div>
+                {/* Status Tabs */}
+                <div className="flex bg-gray-50 dark:bg-zinc-800 rounded-xl p-1 border border-gray-200 dark:border-zinc-700 shrink-0">
+                  {(["ALL", "PRESENT", "ABSENT"] as const).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setFilter(f)}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${filter === f
+                          ? "bg-white dark:bg-zinc-600 text-gray-900 dark:text-white shadow-sm"
+                          : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                        }`}
+                    >
+                      {f}
+                    </button>
                   ))}
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Filters Card */}
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-4 space-y-3">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by subject or date…"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-9 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-all"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {/* Chips + Dropdown */}
-            <div className="flex flex-col sm:flex-row gap-2.5">
-              <div className="flex gap-2">
-                {(["ALL", "PRESENT", "ABSENT"] as const).map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${filter === f
-                      ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                      }`}
-                  >
-                    {f === "ALL" ? <Filter className="w-3.5 h-3.5" /> :
-                      f === "PRESENT" ? <CheckCircle className="w-3.5 h-3.5" /> :
-                        <XCircle className="w-3.5 h-3.5" />}
-                    {f === "ALL" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
-                  </button>
-                ))}
+            {/* TIMELINE VIEW */}
+            {Object.keys(groupedAttendance).length === 0 ? (
+              <div className="bg-white dark:bg-zinc-900 border border-dashed border-gray-300 dark:border-zinc-700 rounded-2xl p-12 text-center">
+                <div className="w-16 h-16 bg-gray-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                  <Calendar className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No Records Found</h3>
+                <p className="text-sm text-gray-500 max-w-sm mx-auto">
+                  {filter !== "ALL" || searchQuery
+                    ? "No records match your current filters. Try clearing them."
+                    : "You haven't logged any attendance yet. Add a record to get started."}
+                </p>
               </div>
-              <select
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                className="flex-1 px-3.5 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-all"
-              >
-                <option value="ALL">All Subjects</option>
-                {subjects.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Attendance List */}
-          {Object.keys(groupedAttendance).length === 0 ? (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 p-10 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center mx-auto mb-3">
-                <Calendar className="w-6 h-6 text-indigo-400" />
-              </div>
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">No records found</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {filter !== "ALL"
-                  ? `No ${filter.toLowerCase()} records match your filters`
-                  : "Start tracking to see records here"}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-5">
-              {Object.entries(groupedAttendance).map(([date, items]) => (
-                <div key={date} className="space-y-2.5">
-                  {/* Date header */}
-                  <div className="flex items-center gap-2 px-1">
-                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                      <Calendar className="w-3 h-3 text-white" />
+            ) : (
+              <div className="space-y-8">
+                {Object.entries(groupedAttendance).map(([date, items]) => (
+                  <div key={date} className="relative">
+                    {/* Date Header */}
+                    <div className="sticky top-20 z-10 bg-gray-50/95 dark:bg-zinc-950/95 py-2 inline-block w-full">
+                      <div className="flex items-center gap-3">
+                        <div className="h-px bg-gray-200 dark:bg-zinc-800 flex-1" />
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{date}</span>
+                        <div className="h-px bg-gray-200 dark:bg-zinc-800 flex-1" />
+                      </div>
                     </div>
-                    <span className="text-xs font-bold text-gray-900 dark:text-white">{date}</span>
-                    <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
-                    <span className="text-[10px] font-bold px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-full">
-                      {items.length} {items.length === 1 ? "class" : "classes"}
-                    </span>
-                  </div>
 
-                  {/* Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                    {items.map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => setSelectedAttendance(item)}
-                        className={`w-full text-left p-3.5 rounded-2xl border-2 transition-all hover:shadow-md active:scale-[0.98] ${item.status === "PRESENT"
-                          ? "bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/50"
-                          : "bg-red-50/70 dark:bg-red-950/30 border-red-200 dark:border-red-800/50"
-                          }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${item.status === "PRESENT"
-                            ? "bg-gradient-to-br from-emerald-500 to-teal-500 shadow-sm shadow-emerald-500/20"
-                            : "bg-gradient-to-br from-red-500 to-orange-500 shadow-sm shadow-red-500/20"
-                            }`}>
-                            {item.status === "PRESENT"
-                              ? <CheckCircle className="w-5 h-5 text-white" />
-                              : <XCircle className="w-5 h-5 text-white" />}
-                          </div>
+                    {/* Records List */}
+                    <div className="mt-4 space-y-3">
+                      {items.map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => setSelectedAttendance(item)}
+                          className="w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 hover:border-primary/50 rounded-xl p-4 flex items-center gap-4 transition-all hover:shadow-md text-left group"
+                        >
+                          <div className={`w-2 h-10 rounded-full shrink-0 ${item.status === "PRESENT" ? "bg-emerald-500" : "bg-rose-500"}`} />
+
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
-                              {item.subjectName}
-                            </p>
-                            {item.startTime && item.endTime && (
-                              <p className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
-                                <Clock className="w-3 h-3 flex-shrink-0" />
-                                {formatTime(item.startTime)} – {formatTime(item.endTime)}
-                              </p>
-                            )}
-                            {item.note && (
-                              <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 truncate">
-                                📝 {item.note}
-                              </p>
-                            )}
+                            <h4 className="text-base font-bold text-gray-900 dark:text-white truncate">{item.subjectName}</h4>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5" />
+                                {item.startTime && item.endTime ? `${formatTime(item.startTime)} - ${formatTime(item.endTime)}` : "Recorded"}
+                              </span>
+                              {item.note && (
+                                <span className="flex items-center gap-1 text-primary">
+                                  <List className="w-3.5 h-3.5" /> Note
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <span className={`w-7 h-7 rounded-lg text-xs font-bold flex-shrink-0 flex items-center justify-center ${item.status === "PRESENT"
-                            ? "bg-emerald-500 text-white"
-                            : "bg-red-500 text-white"
+
+                          <span className={`shrink-0 px-2.5 py-1 rounded-md text-xs font-bold ${item.status === "PRESENT"
+                              ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
+                              : "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400"
                             }`}>
-                            {item.status === "PRESENT" ? "✓" : "✗"}
+                            {item.status}
                           </span>
-                        </div>
-                      </button>
-                    ))}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── RIGHT COLUMN: SIDEBAR ── */}
+          <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
+
+            {/* Filter Subject Card */}
+            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Filter by Subject</label>
+              <div className="relative">
+                <School className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <select
+                  value={selectedSubject}
+                  onChange={(e) => setSelectedSubject(e.target.value)}
+                  className="w-full pl-9 pr-10 py-2.5 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="ALL">All Subjects</option>
+                  {subjects.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Quick Stats Summary Card */}
+            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-6">Current View Summary</h3>
+
+              <div className="flex flex-col sm:flex-row items-center gap-8 mb-6">
+                <div className="relative w-32 h-32 flex-shrink-0">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                    <circle cx="60" cy="60" r={radius} fill="none" stroke="currentColor" strokeWidth="8" className="text-gray-100 dark:text-zinc-800" />
+                    <motion.circle
+                      initial={{ strokeDashoffset: circ }} animate={{ strokeDashoffset: offset }} transition={{ duration: 1 }}
+                      cx="60" cy="60" r={radius} fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round"
+                      strokeDasharray={circ} className="text-primary drop-shadow-md"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">{stats.percentage}<span className="text-sm font-bold opacity-50">%</span></span>
                   </div>
                 </div>
-              ))}
+
+                <div className="space-y-4 flex-1">
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-gray-500 font-semibold uppercase">Present</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">{stats.present}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${stats.total ? (stats.present / stats.total) * 100 : 0}%` }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-gray-500 font-semibold uppercase">Absent</span>
+                      <span className="font-bold text-rose-600 dark:text-rose-400">{stats.absent}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-rose-500 rounded-full" style={{ width: `${stats.total ? (stats.absent / stats.total) * 100 : 0}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
+
+          </div>
         </div>
       </div>
 
-      {/* ── DETAIL MODAL — perfectly centered, above everything including nav ── */}
-      {mounted && selectedAttendance && createPortal(
-        <div
-          onClick={() => setSelectedAttendance(null)}
-          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 overflow-y-auto overscroll-contain bg-gray-900/40 dark:bg-black/80 backdrop-blur-md"
-        >
-          {/* Backdrop blur layer */}
-          <div className="absolute inset-0 backdrop-blur-sm" />
+      {/* ── DETAIL MODAL / BOTTOM SHEET ── */}
+      {mounted && createPortal(
+        <AnimatePresence>
+          {selectedAttendance && (
+            <div className="fixed inset-0 z-[99999] flex flex-col justify-end sm:justify-center items-center sm:p-6 pb-0">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedAttendance(null)}
+                className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm"
+              />
 
-          {/* Modal */}
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden"
-            style={{
-              animation: "modalIn 0.2s ease-out",
-            }}
-          >
-            {/* Colored header */}
-            <div className={`px-5 py-4 ${selectedAttendance.status === "PRESENT"
-              ? "bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border-b border-emerald-200/70 dark:border-emerald-800/40"
-              : "bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/40 dark:to-orange-950/40 border-b border-red-200/70 dark:border-red-800/40"
-              }`}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md ${selectedAttendance.status === "PRESENT"
-                    ? "bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-500/25"
-                    : "bg-gradient-to-br from-red-500 to-orange-500 shadow-red-500/25"
-                    }`}>
-                    {selectedAttendance.status === "PRESENT"
-                      ? <CheckCircle className="w-6 h-6 text-white" />
-                      : <XCircle className="w-6 h-6 text-white" />}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-base text-gray-900 dark:text-gray-100 truncate leading-tight">
-                      {selectedAttendance.subjectName}
-                    </p>
-                    <span className={`text-xs font-bold ${selectedAttendance.status === "PRESENT"
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : "text-red-600 dark:text-red-400"
-                      }`}>
-                      {selectedAttendance.status === "PRESENT" ? "✓ Attended" : "✗ Missed"}
-                    </span>
-                  </div>
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-zinc-800 overflow-hidden mt-auto sm:mt-0 pb-6 sm:pb-0"
+              >
+                {/* Mobile drag handle */}
+                <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+                  <div className="w-12 h-1.5 bg-gray-200 dark:bg-zinc-700 rounded-full" />
                 </div>
-                <button
-                  onClick={() => setSelectedAttendance(null)}
-                  className="w-8 h-8 rounded-xl bg-white/70 dark:bg-gray-800/70 flex items-center justify-center hover:bg-white dark:hover:bg-gray-800 transition-colors flex-shrink-0 border border-gray-200/50 dark:border-gray-700/50"
-                >
-                  <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                </button>
-              </div>
-            </div>
 
-            {/* Body */}
-            <div className="p-5 space-y-2.5">
-              {/* Date */}
-              <div className="flex items-center gap-3 px-3.5 py-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl">
-                <Calendar className="w-4 h-4 text-indigo-500 flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Date</p>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    {selectedAttendance.date.toDate().toLocaleDateString("en-US", {
-                      weekday: "long", day: "numeric", month: "long", year: "numeric",
-                    })}
-                  </p>
-                </div>
-              </div>
-
-              {/* Time */}
-              {selectedAttendance.startTime && selectedAttendance.endTime && (
-                <div className="flex items-center gap-3 px-3.5 py-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl">
-                  <Clock className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                {/* Modal Header */}
+                <div className="p-6 pt-2 sm:pt-6 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-start">
                   <div>
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Time</p>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                      {formatTime(selectedAttendance.startTime)} – {formatTime(selectedAttendance.endTime)}
-                    </p>
+                    <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-1">Record Details</h3>
+                    <p className="text-xs text-gray-500">{selectedAttendance.date.toDate().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</p>
                   </div>
+                  <button onClick={() => setSelectedAttendance(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
-              )}
 
-              {/* Subject */}
-              <div className="flex items-center gap-3 px-3.5 py-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl">
-                <School className="w-4 h-4 text-indigo-500 flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Subject</p>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                    {selectedAttendance.subjectName}
-                  </p>
-                </div>
-              </div>
+                {/* Modal Body */}
+                <div className="p-6 space-y-5">
 
-              {/* Note */}
-              {selectedAttendance.note && (
-                <div className="px-3.5 py-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl">
-                  <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1">Note</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    📝 {selectedAttendance.note}
-                  </p>
-                </div>
-              )}
+                  {/* Status Badge */}
+                  <div className="flex items-center justify-between bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-gray-100 dark:border-zinc-700/50">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</span>
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-md text-sm font-bold ${selectedAttendance.status === "PRESENT"
+                        ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
+                        : "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400"
+                      }`}>
+                      {selectedAttendance.status === "PRESENT" ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                      {selectedAttendance.status}
+                    </div>
+                  </div>
 
-              {/* Actions */}
-              <div className="flex gap-2.5 pt-1">
-                <button
-                  onClick={() => {
-                    router.push(
-                      `/attendance/edit/${selectedAttendance.subjectId}/${selectedAttendance.lectureKey || selectedAttendance.id.split("_")[1]}`
-                    );
-                    setSelectedAttendance(null);
-                  }}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-sm flex items-center justify-center gap-1.5 transition-all shadow-md shadow-indigo-500/20 active:scale-95"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  Edit
-                </button>
-                <button
-                  onClick={() => deleteAttendance(selectedAttendance)}
-                  disabled={deleteLoading}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-1.5 transition-all shadow-md shadow-red-500/20 active:scale-95 disabled:cursor-not-allowed"
-                >
-                  {deleteLoading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Deleting…
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </>
+                  {/* Details Grid */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">Subject</label>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{selectedAttendance.subjectName}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">Timing</label>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {selectedAttendance.startTime ? formatTime(selectedAttendance.startTime) : "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Note */}
+                  {selectedAttendance.note && (
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Attached Note</label>
+                      <div className="bg-blue-50 dark:bg-blue-900/10 text-blue-800 dark:text-blue-300 p-4 rounded-xl text-sm italic">
+                        "{selectedAttendance.note}"
+                      </div>
+                    </div>
                   )}
-                </button>
-              </div>
-            </div>
-          </div>
+                </div>
 
-          <style>{`
-              @keyframes modalIn {
-                from { opacity: 0; transform: scale(0.92) translateY(8px); }
-                to   { opacity: 1; transform: scale(1) translateY(0); }
-              }
-            `}</style>
-        </div>,
+                {/* Modal Actions */}
+                <div className="p-6 pt-0 flex gap-3">
+                  <button
+                    onClick={() => {
+                      router.push(`/attendance/edit/${selectedAttendance.subjectId}/${selectedAttendance.lectureKey || selectedAttendance.id.split("_")[1]}`);
+                      setSelectedAttendance(null);
+                    }}
+                    className="flex-1 py-3 sm:py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-900 dark:text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Edit2 className="w-4 h-4" /> Edit
+                  </button>
+                  <button
+                    onClick={() => deleteAttendance(selectedAttendance)}
+                    disabled={deleteLoading}
+                    className="flex-1 py-3 sm:py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-semibold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {deleteLoading ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    Delete
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
         document.body
       )}
     </ProfessionalPageLayout>
@@ -667,8 +585,8 @@ function AttendanceContent() {
 export default function AttendancePage() {
   return (
     <React.Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
       </div>
     }>
       <AttendanceContent />

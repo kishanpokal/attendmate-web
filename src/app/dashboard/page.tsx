@@ -8,6 +8,24 @@ import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
+import {
+  Zap,
+  Activity,
+  Target,
+  Clock,
+  AlertCircle,
+  CheckCircle2,
+  Layout,
+  ChevronRight,
+  TrendingUp,
+  Brain,
+  ShieldCheck,
+  Calendar,
+  Layers,
+  X,
+  RefreshCw,
+  MoreHorizontal
+} from "lucide-react";
 
 type TodayLecture = {
   subjectName: string;
@@ -163,36 +181,40 @@ export default function DashboardPage() {
   }, [user, refreshTrigger]);
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Morning" : hour < 17 ? "Afternoon" : hour < 21 ? "Evening" : "Night";
-  const greetingEmoji = hour < 12 ? "🌅" : hour < 17 ? "☀️" : hour < 21 ? "🌆" : "🌙";
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const percentage = total === 0 ? 0 : Number(((attended * 100) / total).toFixed(1));
 
   return (
     <ProfessionalPageLayout>
-      <div className="p-4 sm:p-8 lg:p-12 space-y-10">
-        
-        {/* SaaS Style Header */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-gray-100 dark:border-gray-900">
-          <div>
-            <div className="flex items-center gap-2 text-indigo-500 mb-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">System Online</span>
+      <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+
+        {/* ── PROFESSIONAL HEADER ── */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-200 dark:border-zinc-800">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              Data synced
             </div>
-            <h1 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
-              Welcome back, <span className="text-indigo-500">{username}</span>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
+              Dashboard Overview
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 font-bold mt-2">
-              Good {greeting} {greetingEmoji}. Here's your productivity overview.
+            <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
+              {greeting}, {username}. Here is your attendance performance data.
             </p>
           </div>
-          
-          <div className="flex items-center gap-3 bg-white dark:bg-gray-900 px-5 py-3 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
-            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+
+          <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 px-5 py-3 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <Calendar className="w-5 h-5" />
             </div>
-            <div className="text-left">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Current Date</p>
-              <p className="text-sm font-black text-gray-900 dark:text-white">{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", weekday: "short" })}</p>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-0.5">Today's Date</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-white">
+                {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              </p>
             </div>
           </div>
         </header>
@@ -205,30 +227,68 @@ export default function DashboardPage() {
           ) : (
             <motion.div
               key="content"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="space-y-10"
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-8"
             >
+              {/* ── METRICS GRID ── */}
               <QuickStatsGrid total={total} attended={attended} percentage={percentage} todayCount={todayLectures.length} />
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                <div className="lg:col-span-8 space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+
+                {/* ── LEFT COLUMN (MAIN PERFORMANCE & TIMELINE) ── */}
+                <div className="lg:col-span-2 space-y-8">
                   <AttendanceOverviewCard total={total} attended={attended} percentage={percentage} />
-                  <TodayLecturesSection lectures={todayLectures} />
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-gray-400" />
+                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Today's Schedule</h2>
+                    </div>
+                    <TodayLecturesSection lectures={todayLectures} />
+                  </div>
                 </div>
 
-                <div className="lg:col-span-4 lg:sticky lg:top-8">
-                  <SubjectPerformanceCard subjects={subjectStats} />
+                {/* ── RIGHT COLUMN (SIDEBAR METRICS) ── */}
+                <div className="lg:col-span-1 space-y-8">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-gray-400" />
+                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Subject Performance</h2>
+                    </div>
+                    <SubjectPerformanceCard subjects={subjectStats} />
+                  </div>
+
+                  {/* PREDICTIVE INSIGHT CARD */}
+                  <div className="bg-primary text-white rounded-2xl p-6 shadow-md relative overflow-hidden">
+                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
+                    <Brain className="w-8 h-8 mb-4 text-white/90" />
+                    <h3 className="text-lg font-bold mb-1">Smart Predictions</h3>
+                    <p className="text-primary-foreground/80 text-sm leading-relaxed mb-6">
+                      AI is analyzing your attendance data to optimize your upcoming class schedule.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex -space-x-2">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="w-7 h-7 rounded-full border-2 border-primary bg-white/20" />
+                        ))}
+                      </div>
+                      <span className="text-xs font-semibold tracking-wide bg-white/20 px-2 py-1 rounded-md">
+                        +4 Insights Active
+                      </span>
+                    </div>
+                  </div>
                 </div>
+
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* ── ATTENDANCE DIALOG (NATIVE MODAL STYLE) ── */}
+      {/* ── ATTENDANCE DIALOG ── */}
       <AnimatePresence>
         {showDialog && activeLecture && (
           <AttendanceDialog
@@ -315,54 +375,34 @@ async function saveDailySnapshot(userId: string, todayLectures: TodayLecture[], 
 }
 
 /* ──────────────────────────────────────────
-   ANIMATED BACKGROUND
-────────────────────────────────────────── */
-function AnimatedBackground() {
-  return (
-    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none mix-blend-multiply dark:mix-blend-screen opacity-70">
-      <motion.div
-        animate={{ x: [0, 50, 0], y: [0, -50, 0], scale: [1, 1.2, 1] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        className="absolute top-[-15%] left-[-10%] w-[600px] h-[600px] bg-indigo-400/20 dark:bg-indigo-600/10 rounded-full blur-[120px]"
-      />
-      <motion.div
-        animate={{ x: [0, -50, 0], y: [0, 50, 0], scale: [1, 1.3, 1] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-        className="absolute top-[40%] right-[-10%] w-[700px] h-[700px] bg-purple-400/20 dark:bg-purple-600/10 rounded-full blur-[150px]"
-      />
-    </div>
-  );
-}
-
-/* ──────────────────────────────────────────
    QUICK STATS GRID
 ────────────────────────────────────────── */
 function QuickStatsGrid({ total, attended, percentage, todayCount }: any) {
   const absent = total - attended;
   const stats = [
-    { label: "Overall Rate", value: `${percentage}%`, icon: "🎯", gradient: "from-indigo-500 to-blue-600", light: "bg-indigo-50 border-indigo-100 text-indigo-700 dark:bg-indigo-900/10 dark:border-indigo-500/20 dark:text-indigo-400" },
-    { label: "Attended", value: `${attended}/${total}`, icon: "✨", gradient: "from-emerald-400 to-teal-500", light: "bg-emerald-50 border-emerald-100 text-emerald-700 dark:bg-emerald-900/10 dark:border-emerald-500/20 dark:text-emerald-400" },
-    { label: "Missed", value: absent, icon: "⚠️", gradient: "from-rose-400 to-red-500", light: "bg-rose-50 border-rose-100 text-rose-700 dark:bg-rose-900/10 dark:border-rose-500/20 dark:text-rose-400" },
-    { label: "Classes Today", value: todayCount, icon: "📅", gradient: "from-purple-500 to-pink-500", light: "bg-purple-50 border-purple-100 text-purple-700 dark:bg-purple-900/10 dark:border-purple-500/20 dark:text-purple-400" },
+    { label: "Attendance Rate", value: `${percentage}%`, icon: Target, color: "text-primary", bg: "bg-primary/10", border: "border-primary/20" },
+    { label: "Classes Attended", value: attended, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+    { label: "Classes Missed", value: absent, icon: AlertCircle, color: "text-rose-500", bg: "bg-rose-500/10", border: "border-rose-500/20" },
+    { label: "Classes Today", value: todayCount, icon: Zap, color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/20" },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((s, i) => (
         <motion.div
           key={s.label}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.1, type: "spring", stiffness: 300, damping: 24 }}
-          whileHover={{ y: -5, scale: 1.02 }}
-          className={`relative overflow-hidden rounded-[2rem] p-5 sm:p-6 backdrop-blur-xl border ${s.light} bg-white/60 dark:bg-[#121827]/60 shadow-sm hover:shadow-xl transition-all duration-300`}
+          transition={{ delay: i * 0.05 }}
+          className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow"
         >
-          <div className="relative z-10 flex items-center justify-between mb-4">
-            <span className="text-3xl drop-shadow-md">{s.icon}</span>
-            <div className={`w-3 h-3 rounded-full bg-gradient-to-br ${s.gradient} shadow-lg`} />
+          <div className="flex items-center justify-between mb-4">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${s.bg} ${s.color} border ${s.border}`}>
+              <s.icon className="w-5 h-5" />
+            </div>
           </div>
-          <p className="relative z-10 text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-1 tracking-tight">{s.value}</p>
-          <p className="relative z-10 text-xs sm:text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{s.label}</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{s.value}</p>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{s.label}</p>
         </motion.div>
       ))}
     </div>
@@ -373,31 +413,40 @@ function QuickStatsGrid({ total, attended, percentage, todayCount }: any) {
    CIRCULAR PROGRESS
 ────────────────────────────────────────── */
 function CircularProgress({ percentage }: { percentage: number }) {
-  const [animated, setAnimated] = useState(0);
-  useEffect(() => { const t = setTimeout(() => setAnimated(percentage), 300); return () => clearTimeout(t); }, [percentage]);
-
-  const size = 180;
-  const sw = 18;
-  const r = (size - sw) / 2;
-  const circ = 2 * Math.PI * r;
-  const offset = circ - (animated / 100) * circ;
+  const radius = 60;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="relative inline-flex items-center justify-center filter drop-shadow-2xl">
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="currentColor" strokeWidth={sw} fill="none" className="text-gray-100 dark:text-gray-800/50" />
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="url(#cpGrad)" strokeWidth={sw} fill="none"
-          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
-          className="transition-all duration-[1.5s] ease-out drop-shadow-[0_0_12px_rgba(99,102,241,0.4)]" />
-        <defs>
-          <linearGradient id="cpGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#3b82f6" />
-          </linearGradient>
-        </defs>
+    <div className="relative w-36 h-36 flex items-center justify-center">
+      <svg className="w-full h-full transform -rotate-90">
+        <circle
+          cx="72"
+          cy="72"
+          r={radius}
+          stroke="currentColor"
+          strokeWidth="8"
+          fill="transparent"
+          className="text-gray-100 dark:text-zinc-800"
+        />
+        <motion.circle
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          cx="72"
+          cy="72"
+          r={radius}
+          stroke="currentColor"
+          strokeWidth="8"
+          strokeLinecap="round"
+          fill="transparent"
+          strokeDasharray={circumference}
+          className={percentage >= 75 ? "text-emerald-500" : percentage >= 60 ? "text-amber-500" : "text-rose-500"}
+        />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-purple-500">{animated}%</span>
+      <div className="absolute flex flex-col items-center">
+        <span className="text-2xl font-bold text-gray-900 dark:text-white">{percentage}%</span>
+        <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Rating</span>
       </div>
     </div>
   );
@@ -408,218 +457,150 @@ function CircularProgress({ percentage }: { percentage: number }) {
 ────────────────────────────────────────── */
 function AttendanceOverviewCard({ total, attended, percentage }: any) {
   const absent = total - attended;
-  const { color, text, icon } =
-    percentage >= 75 ? { color: "emerald", text: "On Track", icon: "🔥" } :
-      percentage >= 60 ? { color: "amber", text: "Warning", icon: "⚠️" } :
-        { color: "red", text: "Critical", icon: "🚨" };
+  const statusDef =
+    percentage >= 75 ? { color: "emerald", text: "Excellent Standing", icon: TrendingUp, bg: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" } :
+      percentage >= 60 ? { color: "amber", text: "Warning Level", icon: AlertCircle, bg: "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400" } :
+        { color: "red", text: "Needs Attention", icon: AlertCircle, bg: "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400" };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-2xl rounded-[2.5rem] border border-gray-200/50 dark:border-gray-800/50 shadow-sm overflow-hidden"
-    >
-      <div className="p-6 sm:p-8 xl:p-10">
-        <div className="flex flex-col sm:flex-row items-center gap-8 xl:gap-12">
-          <div className="flex-shrink-0 relative">
-            <CircularProgress percentage={percentage} />
+    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden p-6 sm:p-8">
+      <div className="flex flex-col sm:flex-row items-center gap-8 sm:gap-12">
+
+        {/* Progress Visual */}
+        <div className="flex-shrink-0">
+          <CircularProgress percentage={percentage} />
+        </div>
+
+        {/* Stats Content */}
+        <div className="flex-1 w-full space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Performance Analytics</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Your overall attendance breakdown</p>
+            </div>
+            <div className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 ${statusDef.bg}`}>
+              <statusDef.icon className="w-3.5 h-3.5" />
+              {statusDef.text}
+            </div>
           </div>
 
-          <div className="flex-1 w-full flex flex-col justify-center space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Performance Overview</h2>
-                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-1">Your current attendance standing.</p>
-              </div>
-              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-wider ${color === "emerald" ? "bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" :
-                  color === "amber" ? "bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20" :
-                    "bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
-                }`}>
-                <span>{icon}</span>
-                <span>{text}</span>
-              </div>
+          <div className="grid grid-cols-3 gap-4 border-t border-gray-100 dark:border-zinc-800 pt-6">
+            <div>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Attended</p>
+              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">{attended}</p>
             </div>
-
-            <div className="grid grid-cols-3 gap-3 sm:gap-4">
-              {[
-                { label: "Attended", val: attended, col: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50/50 dark:bg-emerald-500/5 border-emerald-100 dark:border-emerald-500/10" },
-                { label: "Missed", val: absent, col: "text-rose-600 dark:text-rose-400", bg: "bg-rose-50/50 dark:bg-rose-500/5 border-rose-100 dark:border-rose-500/10" },
-                { label: "Total", val: total, col: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-50/50 dark:bg-indigo-500/5 border-indigo-100 dark:border-indigo-500/10" },
-              ].map((row) => (
-                <div key={row.label} className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border ${row.bg}`}>
-                  <span className={`text-2xl sm:text-3xl font-black ${row.col} mb-1`}>{row.val}</span>
-                  <span className="text-[10px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">{row.label}</span>
-                </div>
-              ))}
+            <div>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Absent</p>
+              <p className="text-2xl font-bold text-rose-600 dark:text-rose-500">{absent}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{total}</p>
             </div>
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 /* ──────────────────────────────────────────
-   TODAY'S LECTURES (TIMELINE DESIGN)
+   TODAY'S LECTURES
 ────────────────────────────────────────── */
 function TodayLecturesSection({ lectures }: { lectures: TodayLecture[] }) {
-  return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-2xl rounded-[2.5rem] border border-gray-200/50 dark:border-gray-800/50 p-6 sm:p-8 xl:p-10 shadow-sm">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3 tracking-tight">
-          Today's Timeline
-          <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl text-sm font-black border border-indigo-200 dark:border-indigo-500/20">
-            {lectures.length}
-          </span>
-        </h2>
-      </div>
+  if (lectures.length === 0) return <EmptyLectures />;
 
-      {lectures.length === 0 ? (
-        <EmptyLectures />
-      ) : (
-        <div className="relative pl-6 sm:pl-8 border-l-2 border-indigo-100 dark:border-gray-800 space-y-8">
-          {lectures.map((lec, i) => <LectureTimelineCard key={i} lecture={lec} index={i} />)}
-        </div>
-      )}
-    </motion.div>
+  return (
+    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden divide-y divide-gray-100 dark:divide-zinc-800">
+      {lectures.map((lec, i) => (
+        <LectureTimelineItem key={i} lecture={lec} />
+      ))}
+    </div>
   );
 }
 
 function EmptyLectures() {
   return (
-    <div className="bg-gray-50/50 dark:bg-[#121827]/30 rounded-[2rem] border border-dashed border-gray-300 dark:border-gray-700 p-12 text-center">
-      <div className="w-24 h-24 rounded-[2rem] bg-white dark:bg-gray-800 flex items-center justify-center mx-auto mb-6 shadow-sm border border-gray-100 dark:border-gray-700">
-        <span className="text-5xl">☕</span>
+    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm p-12 text-center flex flex-col items-center justify-center">
+      <div className="w-16 h-16 bg-gray-50 dark:bg-zinc-800 rounded-full flex items-center justify-center text-gray-400 mb-4">
+        <Calendar className="w-8 h-8" />
       </div>
-      <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">No Classes Today</h3>
-      <p className="text-gray-500 dark:text-gray-400 font-medium text-lg">Take a break, relax, and recharge your energy.</p>
+      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">No Classes Scheduled</h3>
+      <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
+        Your schedule is clear for today. Take a break or use this time to catch up on assignments.
+      </p>
     </div>
   );
 }
 
-function LectureTimelineCard({ lecture, index }: { lecture: TodayLecture; index: number }) {
+function LectureTimelineItem({ lecture }: { lecture: TodayLecture }) {
   const isPresent = lecture.status === "PRESENT";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.1, type: "spring" }}
-      className="relative"
-    >
-      {/* Timeline Node */}
-      <div className={`absolute -left-[35px] sm:-left-[43px] top-6 w-5 h-5 rounded-full border-4 border-white dark:border-gray-900 shadow-sm z-10 ${isPresent ? "bg-emerald-500" : "bg-rose-500"
-        }`} />
+    <div className="p-4 sm:p-6 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
 
-      {/* Card */}
-      <div className={`group relative overflow-hidden flex flex-col sm:flex-row sm:items-center gap-4 p-5 sm:p-6 rounded-[2rem] border transition-all duration-300 hover:shadow-md ${isPresent
-          ? "bg-white dark:bg-gray-800/50 border-emerald-100 dark:border-emerald-500/20 hover:border-emerald-300 dark:hover:border-emerald-500/50"
-          : "bg-white dark:bg-gray-800/50 border-rose-100 dark:border-rose-500/20 hover:border-rose-300 dark:hover:border-rose-500/50"
-        }`}>
-        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[1.2rem] flex items-center justify-center flex-shrink-0 shadow-inner ${isPresent ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500" : "bg-rose-50 dark:bg-rose-500/10 text-rose-500"
-          }`}>
-          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d={isPresent ? "M5 13l4 4L19 7" : "M6 18L18 6M6 6l12 12"} />
-          </svg>
+      <div className="flex items-center gap-4 min-w-[140px]">
+        <div className={`w-2 h-2 rounded-full ${isPresent ? "bg-emerald-500" : "bg-rose-500"}`} />
+        <div className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-1.5">
+          <Clock className="w-4 h-4 text-gray-400" />
+          {lecture.startTime} - {lecture.endTime}
         </div>
+      </div>
 
-        <div className="flex-1 min-w-0">
-          <p className="font-black text-lg sm:text-xl text-gray-900 dark:text-white truncate mb-1">{lecture.subjectName}</p>
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm font-bold text-gray-500 dark:text-gray-400 flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800/80 px-3 py-1.5 rounded-xl w-max">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              {lecture.startTime} – {lecture.endTime}
-            </p>
-            {lecture.note && (
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate max-w-[200px] xl:max-w-[300px] flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-                {lecture.note}
-              </p>
-            )}
-          </div>
-        </div>
+      <div className="flex-1">
+        <h4 className="text-base font-bold text-gray-900 dark:text-white">{lecture.subjectName}</h4>
+        {lecture.note && (
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1.5">
+            <MoreHorizontal className="w-4 h-4" /> {lecture.note}
+          </p>
+        )}
+      </div>
 
-        <span className={`px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-widest flex-shrink-0 border self-start sm:self-auto ${isPresent ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
-            : "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20"
+      <div className="flex-shrink-0">
+        <span className={`px-3 py-1 rounded-md text-xs font-semibold ${isPresent
+            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20"
+            : "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20"
           }`}>
           {lecture.status}
         </span>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 /* ──────────────────────────────────────────
-   SUBJECT PERFORMANCE (SIDEBAR)
+   SUBJECT PERFORMANCE CARD
 ────────────────────────────────────────── */
 function SubjectPerformanceCard({ subjects }: { subjects: SubjectStats[] }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.2 }}
-      className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-2xl rounded-[2.5rem] border border-gray-200/50 dark:border-gray-800/50 shadow-sm overflow-hidden h-full flex flex-col"
-    >
-      <div className="p-6 sm:p-8">
-        <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6 tracking-tight flex items-center gap-3">
-          <div className="p-2.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl text-indigo-500">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-          </div>
-          Stats by Subject
-        </h2>
-
+    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden">
+      <div className="p-6">
         {subjects.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50/50 dark:bg-gray-800/30 rounded-[2rem] border border-dashed border-gray-200 dark:border-gray-700">
-            <span className="text-4xl block mb-3 opacity-50">📚</span>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">No data available yet</p>
-          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-6">No data available yet</p>
         ) : (
-          <div className="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
-            {subjects.map((s, i) => {
-              const color = s.percentage >= 75 ? "emerald" : s.percentage >= 60 ? "amber" : "red";
-              return (
-                <div key={s.name} className="group p-5 rounded-[1.5rem] bg-white dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50 hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <span className="text-xs font-black text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-900 w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-inner">
-                        {i + 1}
-                      </span>
-                      <span className="text-base font-black text-gray-900 dark:text-gray-100 truncate">{s.name}</span>
-                    </div>
-                    <span className={`text-sm font-black px-3 py-1.5 rounded-xl flex-shrink-0 ml-2 border ${color === "emerald" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20" :
-                        color === "amber" ? "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200 dark:border-amber-500/20" :
-                          "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 border-red-200 dark:border-red-500/20"
-                      }`}>
-                      {s.percentage}%
-                    </span>
-                  </div>
-                  <div className="h-2.5 bg-gray-100 dark:bg-gray-900 rounded-full overflow-hidden shadow-inner">
-                    <div
-                      className={`h-full rounded-full transition-all duration-1000 ease-out ${color === "emerald" ? "bg-gradient-to-r from-emerald-400 to-teal-500" :
-                          color === "amber" ? "bg-gradient-to-r from-amber-400 to-orange-500" :
-                            "bg-gradient-to-r from-red-400 to-rose-500"
-                        }`}
-                      style={{ width: `${s.percentage}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between items-center mt-3">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                      {s.attended}/{s.total} Classes
-                    </p>
-                    {s.percentage < 60 && (
-                      <span className="text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-500/10 px-2 py-0.5 rounded flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                        Needs Work
-                      </span>
-                    )}
-                  </div>
+          <div className="space-y-6">
+            {subjects.map((sub, i) => (
+              <div key={sub.name} className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white truncate pr-4">{sub.name}</span>
+                  <span className="text-sm font-bold text-gray-600 dark:text-gray-300">{sub.percentage}%</span>
                 </div>
-              );
-            })}
+                <div className="h-2 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${sub.percentage}%` }}
+                    transition={{ duration: 1, delay: i * 0.1, ease: "easeOut" }}
+                    className={`h-full rounded-full ${sub.percentage >= 75 ? "bg-emerald-500" :
+                        sub.percentage >= 60 ? "bg-amber-500" : "bg-rose-500"
+                      }`}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -628,28 +609,32 @@ function SubjectPerformanceCard({ subjects }: { subjects: SubjectStats[] }) {
 ────────────────────────────────────────── */
 function ErrorState({ error }: { error: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center px-4">
-      <div className="w-24 h-24 rounded-[2rem] bg-red-50 dark:bg-red-500/10 flex items-center justify-center mb-6 border border-red-200 dark:border-red-500/20">
-        <span className="text-5xl">🔌</span>
-      </div>
-      <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-3 tracking-tight">Connection Issue</h3>
-      <p className="text-gray-500 dark:text-gray-400 max-w-md text-lg font-medium">{error}</p>
+    <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-2xl p-8 text-center flex flex-col items-center justify-center space-y-4">
+      <AlertCircle className="w-10 h-10 text-rose-500 mb-2" />
+      <h3 className="text-lg font-bold text-rose-800 dark:text-rose-400">Failed to load dashboard</h3>
+      <p className="text-sm text-rose-600 dark:text-rose-300 max-w-sm">{error}</p>
+      <button
+        onClick={() => window.location.reload()}
+        className="mt-4 flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-800 text-rose-600 dark:text-rose-400 rounded-lg text-sm font-medium border border-rose-200 dark:border-rose-500/30 hover:bg-rose-50 dark:hover:bg-zinc-700 transition-colors"
+      >
+        <RefreshCw className="w-4 h-4" /> Try Again
+      </button>
     </div>
   );
 }
 
 function LoadingState() {
   return (
-    <div className="space-y-8 animate-pulse max-w-[1600px] mx-auto">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {[1, 2, 3, 4].map(i => <div key={i} className="h-36 rounded-[2rem] bg-gray-200/50 dark:bg-gray-800/50 backdrop-blur-md" />)}
+    <div className="space-y-8 animate-pulse">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-gray-100 dark:bg-zinc-800/50 rounded-xl" />)}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 space-y-8">
-          <div className="h-72 rounded-[2.5rem] bg-gray-200/50 dark:bg-gray-800/50 backdrop-blur-md" />
-          <div className="h-64 rounded-[2.5rem] bg-gray-200/50 dark:bg-gray-800/50 backdrop-blur-md" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="h-64 bg-gray-100 dark:bg-zinc-800/50 rounded-2xl" />
+          <div className="h-64 bg-gray-100 dark:bg-zinc-800/50 rounded-2xl" />
         </div>
-        <div className="lg:col-span-4 h-[600px] rounded-[2.5rem] bg-gray-200/50 dark:bg-gray-800/50 backdrop-blur-md" />
+        <div className="lg:col-span-1 h-[500px] bg-gray-100 dark:bg-zinc-800/50 rounded-2xl" />
       </div>
     </div>
   );
@@ -665,72 +650,63 @@ function AttendanceDialog({ lecture, saving, note, onNoteChange, onClose, onSubm
   if (!mounted) return null;
 
   return createPortal(
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-gray-900/40 dark:bg-black/80 backdrop-blur-md p-4 sm:p-6 overflow-y-auto overscroll-contain"
-    >
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm p-4 sm:p-6 overflow-y-auto">
       <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0, y: 20 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[420px] bg-white dark:bg-[#121827] rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden relative flex flex-col"
+        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-zinc-800 overflow-hidden relative flex flex-col"
       >
-        <div className="p-8">
-          <div className="flex flex-col items-center text-center mb-8">
-            <div className="w-20 h-20 rounded-[1.5rem] bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mb-5 border border-indigo-100 dark:border-indigo-500/20 text-indigo-500">
-              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            </div>
-            <h3 className="font-black text-2xl text-gray-900 dark:text-white mb-2 tracking-tight">Active Lecture</h3>
-            <p className="text-lg font-bold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-4 py-1.5 rounded-xl">{lecture.subjectName}</p>
+        {/* Header */}
+        <div className="p-6 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-start">
+          <div>
+            <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-1">Mark Attendance</h3>
+            <span className="inline-block px-2.5 py-1 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 rounded text-xs font-semibold">
+              {lecture.subjectName}
+            </span>
           </div>
+          <button onClick={onClose} disabled={saving} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-          <div className="flex flex-col gap-5 mb-8">
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 border border-gray-100 dark:border-gray-700">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Time Frame</label>
-              <span className="text-lg font-black text-gray-900 dark:text-white">
-                {lecture.startTime.toTimeString().slice(0, 5)} — {lecture.endTime.toTimeString().slice(0, 5)}
-              </span>
-            </div>
-
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Note (Optional)</label>
-              <textarea
-                value={note}
-                onChange={(e) => onNoteChange(e.target.value)}
-                placeholder="Topic covered..."
-                className="w-full bg-transparent text-sm font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none resize-none"
-                rows={2}
-                disabled={saving}
-              />
+        {/* Body */}
+        <div className="p-6 space-y-5">
+          <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-gray-100 dark:border-zinc-800/50">
+            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">Class Timing</label>
+            <div className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              {lecture.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} — {lecture.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <button onClick={() => onSubmit("Present")} disabled={saving}
-              className="py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 active:scale-95">
-              {saving ? "..." : "Present"}
-            </button>
-            <button onClick={() => onSubmit("Absent")} disabled={saving}
-              className="py-4 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white font-black text-lg transition-all shadow-lg shadow-rose-500/20 disabled:opacity-50 active:scale-95">
-              {saving ? "..." : "Absent"}
-            </button>
+          <div>
+            <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-2">Notes (Optional)</label>
+            <textarea
+              value={note}
+              onChange={(e) => onNoteChange(e.target.value)}
+              placeholder="Any details about today's class?"
+              className="w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl p-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+              rows={3}
+              disabled={saving}
+            />
           </div>
         </div>
-      </motion.div>
 
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.3); border-radius: 20px; }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(75, 85, 99, 0.5); }
-      `}} />
-    </motion.div>,
+        {/* Footer actions */}
+        <div className="p-6 pt-2 grid grid-cols-2 gap-3">
+          <button onClick={() => onSubmit("Present")} disabled={saving}
+            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold transition-colors disabled:opacity-50">
+            {saving ? "Saving..." : <><CheckCircle2 className="w-5 h-5" /> Present</>}
+          </button>
+          <button onClick={() => onSubmit("Absent")} disabled={saving}
+            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-semibold transition-colors disabled:opacity-50">
+            {saving ? "Saving..." : <><X className="w-5 h-5" /> Absent</>}
+          </button>
+        </div>
+      </motion.div>
+    </div>,
     document.body
   );
 }

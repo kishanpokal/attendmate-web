@@ -88,36 +88,7 @@ export class OfflineAiEngine {
         return answer || "I'm not entirely sure about that specific policy. Usually, keeping it above 75% is the safest bet!";
 
       case "HELP":
-        return `Here is a complete list of my commands and rules:
-
-📜 **Attendance Tracking**
-• "Mark present for Math" (Individual)
-• "Log absent for Physics"
-• "Mark all present till 4pm" (Mass marking)
-• "Set all absent today" (Quick bulk)
-
-🔮 **Forecasting & Predictions**
-• "How many can I skip?" (Safety analysis)
-• "Predict my attendance" (Threshold forecast)
-• "What's my score by 25th March?" (Date prediction)
-• "Should I bunk Math next week?"
-
-🧠 **Neural Insights**
-• "Show my insights" (Behavioral audit)
-• "Give me tips" (Recovery advice)
-• "Explain my patterns" (Time-of-day analysis)
-• "Weekly snapshot" (Performance summary)
-
-🤝 **Social Standing**
-• "How is my friend doing?" (Requires name)
-• "Fetch status of Kishan"
-• "Is my buddy attending?"
-
-🎯 **Personal Goals**
-• "Set my target to 80%"
-• "Motivation for my attendance"
-
-Type any command or use the dynamic chips below to explore!`;
+        return `ACTION_REQUIRED:SHOW_HELP`;
 
       default:
         return "I'm not quite sure how to handle that request yet. I'm specialized in attendance tracking, predictions, and social standing. Try asking 'How many can I skip?' or 'Check my friend's attendance'. Type 'help' to see everything I can do!";

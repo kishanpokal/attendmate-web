@@ -14,14 +14,18 @@ import {
   Target,
   Calendar,
   CheckCircle2,
-  ChevronLeft
+  ChevronLeft,
+  Command,
+  BookText,
+  Activity,
+  Users,
+  Flag
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, Timestamp, addDoc, query, where, limit, orderBy, doc, getDoc } from "firebase/firestore";
 import { OfflineAiEngine } from "@/lib/ai/engine";
-import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
 
 const MESH_GRADIENT = `
   .mesh-gradient {
@@ -54,7 +58,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
-  type?: "text" | "card" | "prediction" | "summary" | "trend";
+  type?: "text" | "card" | "prediction" | "summary" | "trend" | "help";
   data?: any;
 }
 
@@ -135,6 +139,8 @@ export default function AIPage() {
       } else if (reply.startsWith("ACTION_REQUIRED:GET_FRIEND_DATA:")) {
         const [, , friendName] = reply.split(":");
         await handleFriendQueryAction(friendName);
+      } else if (reply.startsWith("ACTION_REQUIRED:SHOW_HELP")) {
+        addBotMessage("Here is a complete list of my capabilities and available commands:", "help");
       } else {
         let type: Message["type"] = "text";
         let data: any = null;
@@ -281,37 +287,60 @@ export default function AIPage() {
     recognition.start();
   };
 
+  const formatMessageContent = (content: string) => {
+    return content.split('\n').map((line, i) => {
+      // Handle bold formatting **bold**
+      const parts = line.split(/(\*\*.*?\*\*)/g);
+      return (
+        <span key={i} className="block mb-2 last:mb-0">
+          {parts.map((part, j) => 
+            part.startsWith('**') && part.endsWith('**') 
+              ? <strong key={j} className="text-white font-black">{part.slice(2, -2)}</strong>
+              : part
+          )}
+        </span>
+      );
+    });
+  };
+
   return (
-    <ProfessionalPageLayout>
+    <main className="h-[100dvh] w-[100dvw] flex flex-col bg-[#0b0f19] text-white overflow-hidden relative">
       <style dangerouslySetInnerHTML={{ __html: MESH_GRADIENT }} />
-      <div className="h-screen w-full flex flex-col mesh-gradient overflow-hidden relative inset-0">
-        {/* Header */}
-        <div className="p-6 md:p-8 bg-black/40 backdrop-blur-3xl border-b border-white/10 flex items-center justify-between">
+      <div className="absolute inset-0 mesh-gradient pointer-events-none" />
+
+      {/* Top Navbar */}
+      <header className="relative z-10 flex items-center justify-between px-6 py-4 bg-black/40 backdrop-blur-3xl border-b border-white/10 shrink-0">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => router.push("/dashboard")}
+            className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-105 transition-all text-white"
+            aria-label="Back to Dashboard"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => router.back()}
-              className="p-2.5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:scale-105 transition-all md:hidden"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
             <div className="w-12 h-12 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <BrainCircuit className="w-7 h-7 text-white" />
+              <BrainCircuit className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight">AttendMate Pro AI</h1>
+              <h1 className="text-xl font-black text-white tracking-tight uppercase">AttendMate AI</h1>
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Neural System Online</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">System Online</span>
               </div>
             </div>
           </div>
         </div>
+      </header>
 
-        {/* Chat Messages */}
+      {/* Chat Messages */}
+      <div className="relative z-10 flex-1 flex flex-col min-h-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:24px_24px]">
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-6 md:p-10 space-y-6 custom-scrollbar bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)] [background-size:20px_20px]"
+          className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth"
         >
+          <div className="max-w-4xl mx-auto space-y-8">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
               <div className={`flex gap-4 max-w-[90%] md:max-w-[85%] ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
@@ -321,12 +350,12 @@ export default function AIPage() {
                   {msg.role === "user" ? <User className="w-6 h-6" /> : <Bot className="w-6 h-6" />}
                 </div>
                 <div className="flex flex-col gap-3">
-                  <div className={`p-5 md:p-6 rounded-[2rem] text-sm md:text-base font-semibold leading-relaxed glass-card ${
+                  <div className={`p-5 md:p-6 rounded-[2rem] text-sm md:text-base font-medium leading-relaxed glass-card ${
                     msg.role === "user" 
                     ? "bg-indigo-600/90 text-white rounded-tr-none border-indigo-400/40" 
-                    : "bot-bubble rounded-tl-none shadow-xl"
+                    : "bot-bubble rounded-tl-none shadow-xl text-gray-200"
                   }`}>
-                    {msg.content}
+                    {formatMessageContent(msg.content)}
                   </div>
                   {msg.type && <AiResponseCard type={msg.type} data={msg.data} />}
                 </div>
@@ -347,56 +376,59 @@ export default function AIPage() {
               </div>
             </div>
           )}
+          </div>
         </div>
 
         {/* Input Area */}
-        <div className="p-6 md:p-10 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
-          <div className="flex gap-3 overflow-x-auto pb-6 no-scrollbar">
-            {["Predict my attendance", "How many classes can I skip?", "Show my insights", "How is my friend doing?"].map(s => (
-              <button 
-                key={s} 
-                onClick={() => setInput(s)}
-                className="shrink-0 px-5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-xs font-black text-gray-400 hover:text-white border border-white/10 transition-all uppercase tracking-widest backdrop-blur-md"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+        <div className="p-4 sm:p-6 bg-gradient-to-t from-black/80 via-[#0b0f19]/90 to-transparent shrink-0">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+              {["Predict my attendance", "How many classes can I skip?", "Show my insights", "How is my friend doing?"].map(s => (
+                <button 
+                  key={s} 
+                  onClick={() => setInput(s)}
+                  className="shrink-0 px-5 py-2.5 rounded-[1.2rem] bg-white/5 hover:bg-white/10 text-[10px] font-black text-gray-300 hover:text-white border border-white/10 transition-all uppercase tracking-widest backdrop-blur-md"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
 
-          <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-3xl blur opacity-20 group-focus-within:opacity-40 transition duration-300" />
-            <div className="relative flex items-end gap-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl p-3 focus-within:bg-white dark:focus-within:bg-gray-900 transition-all">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-                placeholder="Ask me anything..."
-                className="flex-1 bg-transparent px-4 py-3 text-base font-semibold focus:outline-none resize-none max-h-40 min-h-[56px] text-gray-900 dark:text-white"
-                rows={1}
-              />
-              <div className="flex items-center gap-2 pr-2">
-                <button 
-                  onClick={toggleVoice}
-                  className={`p-3.5 rounded-2xl transition-all ${isListening ? 'text-rose-500 bg-rose-50 dark:bg-rose-900/20' : 'text-gray-400 hover:text-indigo-500 hover:bg-white dark:hover:bg-gray-700'}`}
-                >
-                  {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                </button>
-                <button 
-                  onClick={handleSend}
-                  disabled={!input.trim() || isTyping}
-                  className="p-3.5 rounded-2xl bg-indigo-500 text-white shadow-xl shadow-indigo-500/30 hover:bg-indigo-600 disabled:opacity-50 disabled:shadow-none transition-all active:scale-95 flex items-center justify-center"
-                >
-                  <Send className="w-5 h-5" />
-                </button>
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-[2rem] blur opacity-20 group-focus-within:opacity-40 transition duration-300" />
+              <div className="relative flex items-end gap-3 glass-card rounded-[2rem] p-2 focus-within:bg-white/10 transition-all border border-white/10">
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
+                  placeholder="Ask me anything..."
+                  className="flex-1 bg-transparent px-4 py-3.5 text-base font-semibold focus:outline-none resize-none max-h-40 min-h-[56px] text-white placeholder-gray-400 custom-scrollbar"
+                  rows={1}
+                />
+                <div className="flex items-center gap-2 pr-2 pb-1 text-white">
+                  <button 
+                    onClick={toggleVoice}
+                    className={`p-3.5 rounded-2xl transition-all ${isListening ? 'text-rose-500 bg-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.4)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                  >
+                    {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                  </button>
+                  <button 
+                    onClick={handleSend}
+                    disabled={!input.trim() || isTyping}
+                    className="p-3.5 rounded-2xl bg-white text-indigo-900 hover:bg-indigo-100 disabled:opacity-50 disabled:shadow-none transition-all active:scale-95 flex items-center justify-center font-black shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </div>
+            <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mt-6 text-center">
+              Encrypted Local AI Processing Unit
+            </p>
           </div>
-          <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] mt-6 text-center">
-            Encrypted Local AI Processing Unit
-          </p>
         </div>
       </div>
-    </ProfessionalPageLayout>
+    </main>
   );
 }
 
@@ -458,8 +490,66 @@ function AiResponseCard({ type, data }: { type: string, data?: any }) {
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight">{data?.title || "System Update"}</span>
+            <span className="text-sm font-black text-white uppercase tracking-tight">{data?.title || "System Update"}</span>
             <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Action Executed Successfully</p>
+          </div>
+        </div>
+      );
+    case "help":
+      return (
+        <div className="p-6 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 space-y-6 shadow-2xl glass-card">
+          {/* Section 1 */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <BookText className="w-5 h-5 text-indigo-400" />
+              <h4 className="text-sm font-black text-white uppercase tracking-widest">Attendance Tracking</h4>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Mark present for Math&quot;</span></div>
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Log absent for Physics&quot;</span></div>
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Mark all present till 4pm&quot;</span></div>
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Set all absent today&quot;</span></div>
+            </div>
+          </div>
+
+          {/* Section 2 */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-5 h-5 text-purple-400" />
+              <h4 className="text-sm font-black text-white uppercase tracking-widest">Forecasting & Predictions</h4>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;How many can I skip?&quot;</span></div>
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Predict my attendance&quot;</span></div>
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;What&apos;s my score by 25th March?&quot;</span></div>
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Should I bunk Math next week?&quot;</span></div>
+            </div>
+          </div>
+
+          {/* Section 3 */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <BrainCircuit className="w-5 h-5 text-emerald-400" />
+              <h4 className="text-sm font-black text-white uppercase tracking-widest">Neural Insights</h4>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Show my insights&quot;</span></div>
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Give me tips&quot;</span></div>
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Explain my patterns&quot;</span></div>
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Weekly snapshot&quot;</span></div>
+            </div>
+          </div>
+
+          {/* Section 4 */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-5 h-5 text-rose-400" />
+              <h4 className="text-sm font-black text-white uppercase tracking-widest">Social Standing & Goals</h4>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;How is my friend doing?&quot;</span></div>
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Set my target to 80%&quot;</span></div>
+            </div>
           </div>
         </div>
       );

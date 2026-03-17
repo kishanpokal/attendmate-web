@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   collection, doc, getDocs, getDoc, query, where, setDoc, deleteDoc 
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
+import { Users, UserPlus, Search, UserMinus, ShieldAlert, X, ChevronRight } from "lucide-react";
 
 // --- TYPES ---
 type Friend = {
@@ -94,62 +96,60 @@ export default function FriendsPage() {
   );
 
   return (
-    <main className="min-h-screen relative bg-[#f8fafc] dark:bg-[#0b0f19] overflow-x-hidden selection:bg-indigo-500/30">
-      
-      {/* --- BACKGROUND ORBS --- */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <motion.div
-          animate={{ y: [0, 28, 0], opacity: [0.05, 0.13, 0.05] }}
-          transition={{ duration: 6.2, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-10 -left-10 w-[380px] h-[380px] bg-indigo-500 rounded-full blur-[110px]"
-        />
-        <motion.div
-          animate={{ y: [0, -22, 0], opacity: [0.04, 0.10, 0.04] }}
-          transition={{ duration: 7.1, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-20 right-10 w-[300px] h-[300px] bg-purple-500 rounded-full blur-[100px]"
-        />
-      </div>
-
-      <div className="relative z-10 flex flex-col min-h-screen pb-24">
-        {/* --- HEADER --- */}
-        <div className="sticky top-0 z-30 bg-white/60 dark:bg-[#0b0f19]/60 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => router.back()}
-                className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
-                <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
-              </button>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">
-                Friends
-              </h1>
+    <ProfessionalPageLayout>
+      <div className="content-container p-4 sm:p-10 lg:p-16 space-y-12">
+        
+        {/* HEADER */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 pb-10 border-b border-gray-100 dark:border-white/5">
+          <div className="space-y-4 max-w-2xl">
+            <div className="flex items-center gap-3 text-primary">
+              <div className="flex -space-x-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_var(--primary)]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-primary/40 animate-pulse delay-75" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Community Hub</span>
             </div>
-            
-            <div className="bg-indigo-100 dark:bg-indigo-900/40 px-3 py-1.5 rounded-full border border-indigo-200 dark:border-indigo-800/50">
-              <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300">
-                {friends.length} / 10
-              </span>
+            <h1 className="text-4xl sm:text-7xl font-black text-foreground tracking-tight leading-none uppercase">
+              Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-rose-500">Friends</span>
+            </h1>
+            <p className="text-gray-400 font-bold text-base sm:text-lg max-w-xl leading-relaxed">
+              Connect with your classmates and compare your attendance progress.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-5 premium-glass px-8 py-5 rounded-[2rem] border-primary/5 shadow-2xl premium-card group shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/20 group-hover:scale-110 transition-transform duration-500">
+              <Users className="w-7 h-7" />
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] leading-none mb-2">Total Friends</p>
+              <p className="text-3xl font-black text-foreground tracking-tight">{friends.length} <span className="text-sm text-gray-400 font-bold">/ 10</span></p>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* --- MAIN CONTENT --- */}
-        <div className="max-w-3xl mx-auto w-full flex-1 px-4 sm:px-6 py-6 space-y-6">
+        <div className="space-y-8">
           
           {/* SEARCH BAR */}
-          <div className="relative">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <div className="relative group max-w-2xl">
+            <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+              <Search className="w-5 h-5 text-gray-500 group-focus-within:text-primary transition-colors" />
+            </div>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name or email..."
-              className="w-full pl-11 pr-11 py-3.5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-sm"
+              placeholder="System alias or communication link..."
+              className="w-full pl-16 pr-14 py-5 bg-white/5 border border-white/10 rounded-[1.8rem] text-sm text-foreground font-black tracking-widest placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/30 transition-all uppercase"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              <button 
+                onClick={() => setSearchQuery("")} 
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-white transition-colors"
+                aria-label="Clear Search"
+              >
+                <X className="w-5 h-5" />
               </button>
             )}
           </div>
@@ -177,18 +177,20 @@ export default function FriendsPage() {
         </div>
       </div>
 
-      {/* --- FLOATING ACTION BUTTON --- */}
+      {/* --- ADD FRIEND FAB --- */}
       <AnimatePresence>
         {!loading && (
           <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
+            initial={{ scale: 0, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0, opacity: 0, y: 20 }}
             onClick={() => setShowAddDialog(true)}
-            className="fixed bottom-8 right-6 z-40 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-4 rounded-2xl shadow-lg shadow-indigo-500/30 flex items-center gap-2 transition-transform active:scale-95"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="fixed bottom-24 right-6 md:bottom-12 md:right-12 z-40 bg-primary hover:bg-primary/90 text-white p-5 rounded-[2rem] shadow-[0_0_40px_var(--primary-glow)] flex items-center gap-3 transition-all border border-white/20 group"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-            <span className="font-bold hidden sm:block">Add Friend</span>
+            <UserPlus className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+            <span className="font-black text-xs uppercase tracking-[0.2em] hidden sm:block pr-2">Add Friend</span>
           </motion.button>
         )}
       </AnimatePresence>
@@ -216,7 +218,7 @@ export default function FriendsPage() {
           />
         )}
       </AnimatePresence>
-    </main>
+    </ProfessionalPageLayout>
   );
 }
 
@@ -230,36 +232,40 @@ function FriendCard({ friend, index, onClick, onDelete }: any) {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05, type: "spring", stiffness: 300, damping: 24 }}
-      className="group relative flex items-center bg-white dark:bg-gray-800/90 border border-gray-100 dark:border-gray-700/50 rounded-[22px] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden"
+      className="group relative flex items-center premium-glass border border-white/5 rounded-[2.5rem] p-6 shadow-xl hover:shadow-2xl hover:border-primary/20 transition-all cursor-pointer overflow-hidden premium-card"
       onClick={onClick}
     >
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+      
       <div 
-        className="w-12 h-12 rounded-full flex items-center justify-center text-white font-extrabold text-xl shadow-inner shrink-0"
+        className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-inner shrink-0 border border-white/10"
         style={{ background: `linear-gradient(135deg, ${avatarColor}CC, ${avatarColor})` }}
       >
         {friend.username.charAt(0).toUpperCase()}
       </div>
 
-      <div className="ml-4 flex-1 min-w-0">
-        <h3 className="font-bold text-gray-900 dark:text-white text-base truncate">
+      <div className="ml-6 flex-1 min-w-0 z-10">
+        <h3 className="font-black text-foreground text-xl truncate uppercase tracking-tight">
           {friend.username}
         </h3>
         {friend.email && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+          <p className="text-[10px] text-gray-400 font-bold tracking-widest truncate mt-1">
             {friend.email}
           </p>
         )}
       </div>
 
-      <div className="flex items-center gap-2 pl-2">
-        {/* Delete Button (Visible on Hover for Desktop / Always for Mobile) */}
+      <div className="flex items-center gap-2 pl-4 z-10">
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+          className="p-3 text-gray-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 border border-transparent hover:border-rose-500/20"
+          aria-label="Remove Friend"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          <UserMinus className="w-5 h-5" />
         </button>
-        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 group-hover:text-primary transition-colors border border-white/5 group-hover:border-primary/20 bg-white/5 shrink-0">
+          <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+        </div>
       </div>
     </motion.div>
   );
@@ -267,13 +273,13 @@ function FriendCard({ friend, index, onClick, onDelete }: any) {
 
 function LoadingState() {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
       {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="flex items-center bg-white dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-[22px] p-4 animate-pulse">
-          <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 shrink-0" />
-          <div className="ml-4 space-y-2 flex-1">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
+        <div key={i} className="flex items-center premium-glass border border-white/5 rounded-[2.5rem] p-6 animate-pulse">
+          <div className="w-14 h-14 rounded-2xl bg-white/10 shrink-0" />
+          <div className="ml-6 space-y-3 flex-1">
+            <div className="h-5 bg-white/10 rounded-full w-1/3" />
+            <div className="h-4 bg-white/5 rounded-full w-1/4" />
           </div>
         </div>
       ))}
@@ -285,21 +291,15 @@ function EmptyState({ hasSearch }: { hasSearch: boolean }) {
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-      className="flex flex-col items-center justify-center text-center py-20 px-4"
+      className="flex flex-col items-center justify-center text-center py-20 px-4 premium-glass rounded-[3.5rem] border-2 border-dashed border-primary/10 min-h-[400px]"
     >
-      <div className="w-24 h-24 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-6">
-        <svg className="w-12 h-12 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          {hasSearch ? (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-          ) : (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-          )}
-        </svg>
+      <div className="w-24 h-24 bg-primary/5 rounded-[2.5rem] flex items-center justify-center mb-8 border border-primary/10">
+        <Users className="w-12 h-12 text-primary/40" />
       </div>
-      <h3 className="text-xl font-extrabold text-gray-900 dark:text-white mb-2">
+      <h3 className="text-3xl font-black text-foreground mb-4 uppercase tracking-tight">
         {hasSearch ? "No Results Found" : "No Friends Yet"}
       </h3>
-      <p className="text-gray-500 dark:text-gray-400 max-w-xs">
+      <p className="text-gray-400 font-bold max-w-sm mx-auto leading-relaxed">
         {hasSearch ? "Try searching with a different name or email" : "Tap the Add Friend button below to find and connect with your classmates."}
       </p>
     </motion.div>
@@ -365,53 +365,60 @@ function AddFriendDialog({ currentCount, existingUids, currentUser, onClose, onS
 
   return (
     <Modal onClose={onClose}>
-      <div className="flex flex-col items-center mb-6 text-center">
-        <div className="w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-3">
-          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+      <div className="flex flex-col items-center mb-8 text-center">
+        <div className="w-16 h-16 rounded-[2rem] bg-primary/10 flex items-center justify-center text-primary mb-4 border border-primary/20 shadow-inner group-hover:scale-110 transition-transform duration-500">
+          <UserPlus className="w-8 h-8" />
         </div>
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Add a Friend</h3>
-        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full mt-2 ${slotsLeft <= 2 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'}`}>
+        <h3 className="text-2xl font-black text-foreground uppercase tracking-tight">Add a Friend</h3>
+        <span className={`text-[10px] font-black uppercase tracking-[0.3em] px-3 py-1.5 rounded-full mt-3 border ${slotsLeft <= 2 ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'}`}>
+
           {slotsLeft} slot{slotsLeft === 1 ? '' : 's'} remaining
         </span>
       </div>
 
       <div className="space-y-4">
-        <div className="relative">
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+        <div className="relative group">
+          <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+            <Search className="w-4 h-4 text-gray-500 group-focus-within:text-primary transition-colors" />
+          </div>
           <input
             type="text"
             value={input}
             onChange={(e) => { setInput(e.target.value); setError(null); }}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             placeholder="Username or Email"
-            className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-[1.5rem] text-xs text-foreground font-black tracking-widest placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all uppercase"
           />
         </div>
 
         {searching && (
-          <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-             <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-             <span className="text-sm text-gray-600 dark:text-gray-300">Looking up user...</span>
+          <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/5">
+             <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Looking up user...</span>
           </div>
         )}
 
-        {error && <p className="text-red-500 text-sm font-medium pl-1">{error}</p>}
+        {error && <p className="text-rose-500 text-[10px] font-black uppercase tracking-widest text-center mt-2">{error}</p>}
       </div>
 
-      <div className="flex flex-col gap-3 mt-8">
-        <button
-          onClick={handleAdd}
-          disabled={searching}
-          className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {searching ? "Adding..." : "Add Friend"}
-        </button>
-        <button
+      <div className="flex gap-4 mt-8">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={onClose}
-          className="w-full py-3.5 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 font-bold transition-colors"
+          className="flex-1 py-4 rounded-[1.5rem] bg-white/5 border border-white/10 text-foreground font-black text-[10px] uppercase tracking-[0.3em] transition-all"
         >
           Cancel
-        </button>
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleAdd}
+          disabled={searching}
+          className="flex-1 py-4 rounded-[1.5rem] bg-header-gradient text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-primary/30 transition-all border border-white/10 disabled:opacity-50"
+        >
+          {searching ? "Adding..." : "Add Friend"}
+        </motion.button>
       </div>
     </Modal>
   );
@@ -421,21 +428,31 @@ function ConfirmDeleteDialog({ friend, onClose, onConfirm }: any) {
   return (
     <Modal onClose={onClose}>
       <div className="flex flex-col items-center text-center">
-        <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mb-4">
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" /></svg>
+        <div className="w-20 h-20 mx-auto mb-8 rounded-[2rem] bg-rose-500/10 flex items-center justify-center text-rose-500 border border-rose-500/20">
+          <ShieldAlert className="w-10 h-10" />
         </div>
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Remove Friend?</h3>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
-          <strong>{friend.username}</strong> will be removed from your list. You can always add them back later.
+        <h3 className="text-3xl font-black text-foreground mb-4 uppercase tracking-tight">Remove Friend?</h3>
+        <p className="text-gray-400 font-bold mb-10 leading-relaxed uppercase text-xs tracking-widest">
+          <span className="text-foreground">{friend.username}</span> will be removed from your list. You can always add them back later.
         </p>
       </div>
-      <div className="flex flex-col gap-3 mt-8">
-        <button onClick={onConfirm} className="w-full py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-colors">
+      <div className="flex gap-4">
+        <motion.button 
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onClose} 
+          className="flex-1 py-5 rounded-[1.8rem] bg-white/5 border border-white/10 text-foreground font-black text-[10px] uppercase tracking-[0.3em] transition-all"
+        >
+          Keep
+        </motion.button>
+        <motion.button 
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onConfirm} 
+          className="flex-1 py-5 rounded-[1.8rem] bg-rose-500 text-white font-black text-[10px] uppercase tracking-[0.3em] border border-white/10 shadow-2xl shadow-rose-500/30 transition-all"
+        >
           Remove
-        </button>
-        <button onClick={onClose} className="w-full py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-bold transition-colors">
-          Keep Friend
-        </button>
+        </motion.button>
       </div>
     </Modal>
   );
@@ -445,17 +462,17 @@ function Modal({ children, onClose }: any) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
+      exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 dark:bg-black/80"
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 10 }}
+        initial={{ scale: 0.9, opacity: 0, y: 40 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0, y: 10 }}
+        exit={{ scale: 0.9, opacity: 0, y: 40 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm bg-white dark:bg-[#121827] rounded-[32px] p-6 sm:p-8 shadow-2xl border border-gray-200 dark:border-gray-800"
+        className="relative w-full max-w-md premium-glass rounded-[3.5rem] p-10 border border-primary/10 shadow-3xl premium-card"
       >
         {children}
       </motion.div>
