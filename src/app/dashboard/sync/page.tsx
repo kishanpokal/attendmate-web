@@ -109,7 +109,13 @@ export default function CollegeSyncPage() {
 
   const handleSync = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !user) return;
+    if (!email || !password) {
+      setScrapedData([]);
+      setSummary(null);
+      setError("Please enter your portal credentials to sync.");
+      return;
+    }
+    if (!user) return;
 
     setLoading(true);
     setError(null);

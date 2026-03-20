@@ -1,4 +1,5 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import { CollegeAttendanceRecord } from '@/lib/collegeSync';
 import fs from 'fs';
 import path from 'path';
@@ -40,9 +41,18 @@ export async function POST(req: Request) {
       try {
         send({ step: 'login', message: 'Launching secure browser instance...' });
 
+        const isLocal = process.env.NODE_ENV === 'development';
+        const executablePath = isLocal 
+          ? (fs.existsSync('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe') 
+              ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' 
+              : 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe')
+          : await chromium.executablePath();
+
         browser = await puppeteer.launch({
+          args: isLocal ? ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu", "--window-size=1920,1080"] : [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu", "--window-size=1920,1080"],
+          defaultViewport: { width: 1920, height: 1080 },
+          executablePath,
           headless: true,
-          args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu", "--window-size=1920,1080"]
         });
 
         const page = await browser.newPage();
