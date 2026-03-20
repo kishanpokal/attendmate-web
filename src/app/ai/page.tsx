@@ -15,43 +15,16 @@ import {
   Calendar,
   CheckCircle2,
   ChevronLeft,
-  Command,
   BookText,
   Activity,
   Users,
-  Flag
+  Compass
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, Timestamp, addDoc, query, where, limit, orderBy, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, Timestamp, addDoc, query, orderBy, limit, doc, getDoc, runTransaction, where } from "firebase/firestore";
 import { OfflineAiEngine } from "@/lib/ai/engine";
-
-const MESH_GRADIENT = `
-  .mesh-gradient {
-    background-color: #0f172a;
-    background-image: 
-      radial-gradient(at 0% 0%, hsla(253,80%,20%,1) 0, transparent 50%), 
-      radial-gradient(at 50% 0%, hsla(225,80%,25%,1) 0, transparent 50%), 
-      radial-gradient(at 100% 0%, hsla(339,80%,25%,1) 0, transparent 50%),
-      radial-gradient(at 0% 100%, hsla(253,80%,15%,1) 0, transparent 50%), 
-      radial-gradient(at 100% 100%, hsla(225,80%,15%,1) 0, transparent 50%);
-  }
-  .glass-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  }
-  .bot-bubble {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #f8fafc;
-  }
-  .neural-glow {
-    box-shadow: 0 0 50px -12px rgba(99, 102, 241, 0.4);
-  }
-`;
 
 interface Message {
   id: string;
@@ -71,7 +44,7 @@ export default function AIPage() {
     {
       id: "welcome",
       role: "assistant",
-      content: "Hello! I'm your AttendMate Pro AI. How can I assist you today? You can ask me to mark attendance, predict your scores, or give you study tips.",
+      content: "Hello! I'm your AttendMate Pro AI. I can now handle time-based split marking and navigate you across the app. How can I assist you today?",
       timestamp: new Date()
     }
   ]);
@@ -79,12 +52,36 @@ export default function AIPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // State for Confirmation
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isTyping]);
+
+  const executeAction = async (actionStr: string) => {
+    if (actionStr.startsWith("MARK_ATTENDANCE:")) {
+      const [, subject, status] = actionStr.split(":");
+      await handleMarkAttendanceAction(subject, status);
+      addBotMessage(`Successfully marked **${status}** for **${subject}**.`, "card", { title: "Attendance Updated" });
+    } else if (actionStr.startsWith("BULK_MARK:")) {
+      const [, status, time, subjectsStr] = actionStr.split(":");
+      const subjects = subjectsStr.split(",");
+      await handleBulkMarkAction(subjects, status);
+      addBotMessage(`Mass update complete! Marked ${subjects.length} lectures as **${status}** before ${time}.`, "card", { title: "Bulk Update Done" });
+    } else if (actionStr.startsWith("BULK_MARK_SPLIT:")) {
+      const [, time, subjectsStr] = actionStr.split(":");
+      const [presentStr, absentStr] = subjectsStr.split("|");
+      const pres = presentStr ? presentStr.split(",") : [];
+      const abs = absentStr ? absentStr.split(",") : [];
+      if (pres.length > 0) await handleBulkMarkAction(pres, "PRESENT");
+      if (abs.length > 0) await handleBulkMarkAction(abs, "ABSENT");
+      addBotMessage(`Split mark complete! Marked ${pres.length} present and ${abs.length} absent around ${time}.`, "card", { title: "Split Update Done" });
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -98,6 +95,34 @@ export default function AIPage() {
 
     setMessages(prev => [...prev, userMsg]);
     setInput("");
+
+    // Handle Confirmation Phase
+    if (pendingAction) {
+      const lower = userMsg.content.toLowerCase();
+      if (lower.includes("yes") || lower.includes("sure") || lower.includes("ok") || lower.includes("do it") || lower.includes("yep")) {
+        const action = pendingAction;
+        setPendingAction(null);
+        setIsTyping(true);
+        try {
+          await executeAction(action);
+        } catch (error) {
+           console.error("Action error:", error);
+           addBotMessage("I encountered an error executing this action. Please try again.");
+        } finally {
+           setIsTyping(false);
+        }
+        return;
+      } else if (lower.includes("no") || lower.includes("cancel") || lower.includes("stop") || lower.includes("nope")) {
+        setPendingAction(null);
+        addBotMessage("Action cancelled. How else can I help you?");
+        return;
+      } else {
+        // Did not explicitly say yes or no
+        addBotMessage("Please answer **Yes** or **No** to confirm the pending action, or say 'cancel' to abort.");
+        return;
+      }
+    }
+
     setIsTyping(true);
 
     try {
@@ -125,23 +150,46 @@ export default function AIPage() {
         aSnap.forEach(ad => allRecords.push({ subject: sDoc.data().name, ...ad.data() }));
       }
 
-      const reply = await aiEngine.processRequest(input, allRecords);
+      const reply = await aiEngine.processRequest(userMsg.content, allRecords);
 
-      if (reply.startsWith("ACTION_REQUIRED:MARK_ATTENDANCE:")) {
-        const [,, subject, status] = reply.split(":");
-        await handleMarkAttendanceAction(subject, status);
-        addBotMessage(`Successfully marked **${status}** for **${subject}**.`, "card", { title: "Attendance Updated", icon: "check" });
-      } else if (reply.startsWith("ACTION_REQUIRED:BULK_MARK:")) {
-        const [,, status, time, subjectsStr] = reply.split(":");
-        const subjects = subjectsStr.split(",");
-        await handleBulkMarkAction(subjects, status);
-        addBotMessage(`Mass update complete! Marked ${subjects.length} lectures as **${status}** (all sessions before ${time}).`, "card", { title: "Bulk Update Done", icon: "check" });
+      // ─────────────────────────────────────────────────────────
+      // Action Processing
+      // ─────────────────────────────────────────────────────────
+      if (reply.startsWith("ACTION_REQUIRED:NAVIGATE:")) {
+        const [, , route] = reply.split(":");
+        addBotMessage(`Navigating to **${route}**...`, "card", { title: "Navigation Commencing", icon: "navigate" });
+        setTimeout(() => router.push(route), 1500);
       } else if (reply.startsWith("ACTION_REQUIRED:GET_FRIEND_DATA:")) {
         const [, , friendName] = reply.split(":");
         await handleFriendQueryAction(friendName);
       } else if (reply.startsWith("ACTION_REQUIRED:SHOW_HELP")) {
         addBotMessage("Here is a complete list of my capabilities and available commands:", "help");
-      } else {
+      } 
+      // ─────────────────────────────────────────────────────────
+      // Confirmation Processing (Destructive Data Actions)
+      // ─────────────────────────────────────────────────────────
+      else if (reply.startsWith("CONFIRMATION_REQUIRED:")) {
+        const actionStr = reply.replace("CONFIRMATION_REQUIRED:", "");
+        setPendingAction(actionStr);
+        
+        if (actionStr.startsWith("BULK_MARK_SPLIT:")) {
+          const [, time, subjects] = actionStr.split(":");
+          const [pres, abs] = subjects.split("|");
+          const presText = pres ? pres : "none";
+          const absText = abs ? abs : "none";
+          addBotMessage(`**Hold on!** Are you sure you want to mark **${presText}** as PRESENT and **${absText}** as ABSENT today (split at ${time})?\n\n*Please reply **Yes** or **No**.*`, "card", { title: "Confirmation Needed", requireConfirm: true });
+        } else if (actionStr.startsWith("BULK_MARK:")) {
+          const [, status, time, subjectsStr] = actionStr.split(":");
+          addBotMessage(`**Hold on!** Are you sure you want to mark **${status}** for all classes (${subjectsStr}) before ${time}?\n\n*Please reply **Yes** or **No**.*`, "card", { title: "Confirmation Needed", requireConfirm: true });
+        } else if (actionStr.startsWith("MARK_ATTENDANCE:")) {
+          const [, subject, status] = actionStr.split(":");
+          addBotMessage(`**Hold on!** Are you sure you want to mark **${status}** for **${subject}**?\n\n*Please reply **Yes** or **No**.*`, "card", { title: "Confirmation Needed", requireConfirm: true });
+        }
+      } 
+      // ─────────────────────────────────────────────────────────
+      // Display Data Formatting 
+      // ─────────────────────────────────────────────────────────
+      else {
         let type: Message["type"] = "text";
         let data: any = null;
 
@@ -150,7 +198,7 @@ export default function AIPage() {
           const match = reply.match(/(\d+\.?\d*)%/);
           data = { percentage: match ? match[1] : 75 };
         } else if (reply.includes("By") && reply.includes("Best Case")) {
-          type = "prediction"; // Reuse prediction style or add new
+          type = "prediction"; 
           const bestMatch = reply.match(/Best Case\*\*: Attending all will bring you to \*\*(\d+\.?\d*)%/);
           data = { percentage: bestMatch ? bestMatch[1] : 75, subtitle: "Future Forecast" };
         } else if (reply.includes("Weekly") || reply.includes("Snapshot") || reply.includes("Quick Stats")) {
@@ -184,42 +232,119 @@ export default function AIPage() {
 
   const handleMarkAttendanceAction = async (subjectName: string, status: string) => {
     if (!user) return;
+    
+    const today = new Date();
+    const dateKey = today.toISOString().split('T')[0];
+    const dayStr = today.toLocaleDateString("en-US", { weekday: "long" }).toUpperCase();
+    
+    const timetableSnap = await getDocs(query(collection(db, "users", user.uid, "timetable"), where("day", "==", dayStr)));
+    const matchingLecture = timetableSnap.docs.find(d => d.data().subjectName.toLowerCase() === subjectName.toLowerCase())?.data();
+    
+    let startTime = new Date();
+    let endTime = new Date();
+    
+    if (matchingLecture) {
+      startTime = new Date(`${dateKey}T${matchingLecture.startTime}`);
+      endTime = new Date(`${dateKey}T${matchingLecture.endTime}`);
+    } else {
+      startTime.setMinutes(0,0,0);
+      endTime.setHours(startTime.getHours() + 1, 0, 0, 0);
+    }
+
+    const lectureId = `${dateKey}_${startTime.toTimeString().slice(0, 5).replace(":", "")}_${endTime.toTimeString().slice(0, 5).replace(":", "")}`;
+
     const subjectsSnap = await getDocs(collection(db, "users", user.uid, "subjects"));
     const subjectDoc = subjectsSnap.docs.find(d => d.data().name.toLowerCase() === subjectName.toLowerCase());
+    
     if (subjectDoc) {
-      const today = new Date().toISOString().split('T')[0];
-      await addDoc(collection(subjectDoc.ref, "attendance"), {
-        date: today,
-        status: status.toUpperCase(),
-        timestamp: Timestamp.now()
+      await runTransaction(db, async (tx) => {
+        const subjectRef = subjectDoc.ref;
+        const snap = await tx.get(subjectRef);
+        const attendanceRef = doc(subjectRef, "attendance", lectureId);
+        
+        if ((await tx.get(attendanceRef)).exists()) return;
+        
+        let formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+        if (formattedStatus.toUpperCase() === "PRESENT") formattedStatus = "Present";
+        if (formattedStatus.toUpperCase() === "ABSENT") formattedStatus = "Absent";
+        
+        tx.set(attendanceRef, {
+          status: formattedStatus,
+          date: Timestamp.fromDate(today),
+          startTime: Timestamp.fromDate(startTime),
+          endTime: Timestamp.fromDate(endTime),
+          createdAt: Timestamp.now(),
+          note: "Marked by AI Copilot"
+        });
+
+        tx.update(subjectRef, {
+          totalClasses: (snap.data()?.totalClasses ?? 0) + 1,
+          attendedClasses: (snap.data()?.attendedClasses ?? 0) + (formattedStatus === "Present" ? 1 : 0),
+        });
       });
     }
   };
 
   const handleBulkMarkAction = async (subjectNames: string[], status: string) => {
     if (!user) return;
+    const today = new Date();
+    const dateKey = today.toISOString().split('T')[0];
+    const dayStr = today.toLocaleDateString("en-US", { weekday: "long" }).toUpperCase();
+    
+    const timetableSnap = await getDocs(query(collection(db, "users", user.uid, "timetable"), where("day", "==", dayStr)));
     const subjectsSnap = await getDocs(collection(db, "users", user.uid, "subjects"));
-    const today = new Date().toISOString().split('T')[0];
+    
     for (const name of subjectNames) {
       const subjectDoc = subjectsSnap.docs.find(d => d.data().name.toLowerCase() === name.toLowerCase());
-      if (subjectDoc) {
-        await addDoc(collection(subjectDoc.ref, "attendance"), {
-          date: today,
-          status: status.toUpperCase(),
-          timestamp: Timestamp.now()
-        });
+      if (!subjectDoc) continue;
+      
+      const matchingLecture = timetableSnap.docs.find(d => d.data().subjectName.toLowerCase() === name.toLowerCase())?.data();
+      
+      let startTime = new Date();
+      let endTime = new Date();
+      
+      if (matchingLecture) {
+        startTime = new Date(`${dateKey}T${matchingLecture.startTime}`);
+        endTime = new Date(`${dateKey}T${matchingLecture.endTime}`);
+      } else {
+        startTime.setMinutes(0,0,0);
+        endTime.setHours(startTime.getHours() + 1, 0, 0, 0);
       }
+
+      const lectureId = `${dateKey}_${startTime.toTimeString().slice(0, 5).replace(":", "")}_${endTime.toTimeString().slice(0, 5).replace(":", "")}`;
+
+      await runTransaction(db, async (tx) => {
+        const subjectRef = subjectDoc.ref;
+        const snap = await tx.get(subjectRef);
+        const attendanceRef = doc(subjectRef, "attendance", lectureId);
+        
+        if ((await tx.get(attendanceRef)).exists()) return;
+
+        let formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+        if (formattedStatus.toUpperCase() === "PRESENT") formattedStatus = "Present";
+        if (formattedStatus.toUpperCase() === "ABSENT") formattedStatus = "Absent";
+        
+        tx.set(attendanceRef, {
+          status: formattedStatus,
+          date: Timestamp.fromDate(today),
+          startTime: Timestamp.fromDate(startTime),
+          endTime: Timestamp.fromDate(endTime),
+          createdAt: Timestamp.now(),
+          note: "Bulk Marked by AI Copilot"
+        });
+
+        tx.update(subjectRef, {
+          totalClasses: (snap.data()?.totalClasses ?? 0) + 1,
+          attendedClasses: (snap.data()?.attendedClasses ?? 0) + (formattedStatus === "Present" ? 1 : 0),
+        });
+      });
     }
   };
 
   const handleFriendQueryAction = async (friendName: string) => {
-    if (!user || !friendName) {
-      if (!friendName) addBotMessage("I need a friend's name to search. Example: 'How is Kishan?'");
-      return;
-    }
+    if (!user || !friendName) return;
     setIsTyping(true);
     try {
-      // 1. Search friend subcollection for matches
       const friendsSnap = await getDocs(collection(db, "users", user.uid, "friends"));
       let targetFriend: any = null;
 
@@ -236,11 +361,10 @@ export default function AIPage() {
       }
 
       if (!targetFriend) {
-        addBotMessage(`I couldn't find a friend named **${friendName}** in your list. Make sure you've added them in the Friends page first!`);
+        addBotMessage(`I couldn't find a friend named **${friendName}** in your list. Check the Friends page!`);
         return;
       }
 
-      // 2. Fetch latest snapshot (Today first, then past)
       const todayDate = new Date().toISOString().split('T')[0];
       const snapshotRef = collection(db, "users", targetFriend.uid, "dailySnapshot");
       const todaySnap = await getDoc(doc(snapshotRef, todayDate));
@@ -260,7 +384,7 @@ export default function AIPage() {
 
       if (data) {
         addBotMessage(
-          `Found records for **${targetFriend.username}** ${isFallback ? `(from ${data.date})` : "(Today)"}. ${targetFriend.username}'s current attendance is **${data.percentage}%**.`,
+          `Found records for **${targetFriend.username}**. Their current attendance is **${data.percentage}%**.`,
           "summary",
           { percentage: data.percentage, subtitle: "Friend Standing", friend: targetFriend.username }
         );
@@ -295,7 +419,7 @@ export default function AIPage() {
         <span key={i} className="block mb-2 last:mb-0">
           {parts.map((part, j) => 
             part.startsWith('**') && part.endsWith('**') 
-              ? <strong key={j} className="text-white font-black">{part.slice(2, -2)}</strong>
+              ? <strong key={j} className={line.includes(content) ? "font-black" : "font-black text-gray-900 dark:text-white"}>{part.slice(2, -2)}</strong>
               : part
           )}
         </span>
@@ -304,28 +428,27 @@ export default function AIPage() {
   };
 
   return (
-    <main className="h-[100dvh] w-[100dvw] flex flex-col bg-[#0b0f19] text-white overflow-hidden relative">
-      <style dangerouslySetInnerHTML={{ __html: MESH_GRADIENT }} />
-      <div className="absolute inset-0 mesh-gradient pointer-events-none" />
+    <main className="h-[100dvh] w-[100dvw] flex flex-col bg-gray-50 dark:bg-[#09090b] text-gray-900 dark:text-white overflow-hidden relative">
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#ffffff05_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
 
       {/* Top Navbar */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-4 bg-black/40 backdrop-blur-3xl border-b border-white/10 shrink-0">
+      <header className="relative z-10 flex items-center justify-between px-6 py-4 bg-white/70 dark:bg-black/40 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 shrink-0 shadow-sm">
         <div className="flex items-center gap-4">
           <button 
             onClick={() => router.push("/dashboard")}
-            className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-105 transition-all text-white"
+            className="p-3 rounded-2xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/10 hover:scale-105 transition-all text-gray-700 dark:text-white"
             aria-label="Back to Dashboard"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
               <BrainCircuit className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-black text-white tracking-tight uppercase">AttendMate AI</h1>
-              <div className="flex items-center gap-2">
+              <h1 className="text-xl font-black text-gray-900 dark:text-white tracking-tight uppercase">AttendMate AI</h1>
+              <div className="flex items-center gap-2 mt-0.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
                 <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">System Online</span>
               </div>
@@ -335,29 +458,42 @@ export default function AIPage() {
       </header>
 
       {/* Chat Messages */}
-      <div className="relative z-10 flex-1 flex flex-col min-h-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:24px_24px]">
+      <div className="relative z-10 flex-1 flex flex-col min-h-0">
         <div 
           ref={scrollRef}
           className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth"
         >
-          <div className="max-w-4xl mx-auto space-y-8">
+          <div className="max-w-4xl mx-auto space-y-8 pb-4">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
               <div className={`flex gap-4 max-w-[90%] md:max-w-[85%] ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
                 <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl shrink-0 flex items-center justify-center shadow-md ${
-                  msg.role === "user" ? "bg-indigo-500 text-white" : "bg-white dark:bg-gray-800 text-indigo-500 border border-gray-100 dark:border-gray-700"
+                  msg.role === "user" ? "bg-primary text-white" : "bg-white dark:bg-zinc-900 text-primary border border-gray-200 dark:border-zinc-800"
                 }`}>
                   {msg.role === "user" ? <User className="w-6 h-6" /> : <Bot className="w-6 h-6" />}
                 </div>
                 <div className="flex flex-col gap-3">
-                  <div className={`p-5 md:p-6 rounded-[2rem] text-sm md:text-base font-medium leading-relaxed glass-card ${
+                  <div className={`p-5 md:p-6 rounded-[2rem] text-sm md:text-base font-medium leading-relaxed ${
                     msg.role === "user" 
-                    ? "bg-indigo-600/90 text-white rounded-tr-none border-indigo-400/40" 
-                    : "bot-bubble rounded-tl-none shadow-xl text-gray-200"
+                    ? "bg-primary text-white rounded-tr-none shadow-md" 
+                    : "bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300 rounded-tl-none shadow-xl border border-gray-100 dark:border-zinc-800"
                   }`}>
                     {formatMessageContent(msg.content)}
                   </div>
-                  {msg.type && <AiResponseCard type={msg.type} data={msg.data} />}
+
+                  {/* Yes/No Inline Buttons for Confirmation Phase */}
+                  {pendingAction && msg.data?.requireConfirm && msg.id === messages[messages.length - 1].id && (
+                    <div className="flex gap-3 mt-2">
+                       <button onClick={() => { setInput("Yes"); setTimeout(handleSend, 50); }} className="flex-1 py-3 px-6 rounded-xl bg-primary text-white font-bold text-sm shadow-md hover:scale-105 transition-transform">
+                         Confirm
+                       </button>
+                       <button onClick={() => { setInput("No"); setTimeout(handleSend, 50); }} className="flex-1 py-3 px-6 rounded-xl bg-gray-200 dark:bg-zinc-800 text-gray-900 dark:text-white font-bold text-sm shadow-sm hover:scale-105 transition-transform">
+                         Cancel
+                       </button>
+                    </div>
+                  )}
+
+                  {msg.type && (msg.type === "card" || msg.type === "prediction" || msg.type === "summary" || msg.type === "trend" || msg.type === "help") && <AiResponseCard type={msg.type} data={msg.data} />}
                 </div>
               </div>
             </div>
@@ -365,13 +501,13 @@ export default function AIPage() {
           {isTyping && (
             <div className="flex justify-start">
               <div className="flex gap-4 max-w-[75%]">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl shrink-0 bg-white dark:bg-gray-800 text-indigo-500 flex items-center justify-center border border-gray-100 dark:border-gray-700 shadow-sm">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl shrink-0 bg-white dark:bg-zinc-900 text-primary border border-gray-200 dark:border-zinc-800 flex items-center justify-center shadow-sm">
                   <Bot className="w-6 h-6" />
                 </div>
-                <div className="p-6 rounded-[2rem] bg-indigo-50 dark:bg-gray-800/50 flex gap-2 items-center rounded-tl-none border border-indigo-100 dark:border-gray-700">
-                  <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1 }} className="w-2 h-2 rounded-full bg-indigo-400" />
-                  <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-2 h-2 rounded-full bg-indigo-400" />
-                  <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-2 h-2 rounded-full bg-indigo-400" />
+                <div className="p-6 rounded-[2rem] bg-white dark:bg-zinc-900 flex gap-2 items-center rounded-tl-none border border-gray-200 dark:border-zinc-800 shadow-xl">
+                  <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1 }} className="w-2 h-2 rounded-full bg-primary" />
+                  <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-2 h-2 rounded-full bg-primary" />
+                  <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-2 h-2 rounded-full bg-primary" />
                 </div>
               </div>
             </div>
@@ -380,42 +516,73 @@ export default function AIPage() {
         </div>
 
         {/* Input Area */}
-        <div className="p-4 sm:p-6 bg-gradient-to-t from-black/80 via-[#0b0f19]/90 to-transparent shrink-0">
+        <div className="p-4 sm:p-6 bg-gradient-to-t from-gray-50 via-gray-50/90 dark:from-[#09090b] dark:via-[#09090b]/90 to-transparent shrink-0">
           <div className="max-w-4xl mx-auto">
-            <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
-              {["Predict my attendance", "How many classes can I skip?", "Show my insights", "How is my friend doing?"].map(s => (
-                <button 
-                  key={s} 
-                  onClick={() => setInput(s)}
-                  className="shrink-0 px-5 py-2.5 rounded-[1.2rem] bg-white/5 hover:bg-white/10 text-[10px] font-black text-gray-300 hover:text-white border border-white/10 transition-all uppercase tracking-widest backdrop-blur-md"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
+              {/* Suggestions */}
+              <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+                {["/timetable", "/analyze", "Mark all present till 4pm", "/help"].map(s => (
+                  <button 
+                    key={s} 
+                    onClick={() => setInput(s)}
+                    className="shrink-0 px-5 py-2.5 rounded-xl bg-white dark:bg-zinc-900 hover:bg-gray-100 dark:hover:bg-zinc-800 text-[11px] font-black text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-800 shadow-sm transition-all uppercase tracking-widest"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
 
-            <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-[2rem] blur opacity-20 group-focus-within:opacity-40 transition duration-300" />
-              <div className="relative flex items-end gap-3 glass-card rounded-[2rem] p-2 focus-within:bg-white/10 transition-all border border-white/10">
+              <div className="relative group">
+                <AnimatePresence>
+                  {input.startsWith("/") && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute bottom-full left-0 w-full mb-3 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden z-50 transform origin-bottom"
+                    >
+                      <div className="flex flex-col">
+                        {[
+                          { cmd: "/timetable", label: "Show today's schedule" },
+                          { cmd: "/analyze", label: "Get attendance summary" },
+                          { cmd: "/mark", label: "Mark attendance" },
+                          { cmd: "/dashboard", label: "Go to Dashboard" },
+                          { cmd: "/help", label: "Show all commands" },
+                        ].filter(c => c.cmd.toLowerCase().startsWith(input.toLowerCase())).map(cmd => (
+                          <button
+                            key={cmd.cmd}
+                            onClick={() => setInput(cmd.cmd + " ")}
+                            className="text-left px-5 py-4 hover:bg-gray-50 dark:hover:bg-zinc-800 border-b border-gray-100 dark:border-zinc-800/50 last:border-0 transition-colors flex items-center justify-between"
+                          >
+                            <span className="font-bold text-primary text-base">{cmd.cmd}</span>
+                            <span className="text-sm font-semibold text-gray-500">{cmd.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/30 to-purple-600/30 rounded-[2rem] blur opacity-0 group-focus-within:opacity-100 transition duration-300" />
+              <div className="relative flex items-end gap-3 bg-white dark:bg-zinc-900 rounded-[2rem] p-2 shadow-lg border border-gray-200 dark:border-zinc-800">
                 <textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
-                  placeholder="Ask me anything..."
-                  className="flex-1 bg-transparent px-4 py-3.5 text-base font-semibold focus:outline-none resize-none max-h-40 min-h-[56px] text-white placeholder-gray-400 custom-scrollbar"
+                  placeholder="Ask me anything... (e.g. 'Mark all present till 4pm')"
+                  className="flex-1 bg-transparent px-4 py-3.5 text-base font-semibold focus:outline-none resize-none max-h-40 min-h-[56px] text-gray-900 dark:text-white placeholder-gray-400 custom-scrollbar"
                   rows={1}
                 />
-                <div className="flex items-center gap-2 pr-2 pb-1 text-white">
+                <div className="flex items-center gap-2 pr-2 pb-1 text-gray-900 dark:text-white">
                   <button 
                     onClick={toggleVoice}
-                    className={`p-3.5 rounded-2xl transition-all ${isListening ? 'text-rose-500 bg-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.4)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                    className={`p-3.5 rounded-2xl transition-all ${isListening ? 'text-white bg-rose-500 shadow-md' : 'text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800'}`}
                   >
                     {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                   </button>
                   <button 
                     onClick={handleSend}
                     disabled={!input.trim() || isTyping}
-                    className="p-3.5 rounded-2xl bg-white text-indigo-900 hover:bg-indigo-100 disabled:opacity-50 disabled:shadow-none transition-all active:scale-95 flex items-center justify-center font-black shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                    className="p-3.5 rounded-2xl bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:shadow-none transition-all active:scale-95 shadow-md flex items-center justify-center font-black"
                   >
                     <Send className="w-5 h-5" />
                   </button>
@@ -423,7 +590,7 @@ export default function AIPage() {
               </div>
             </div>
             <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mt-6 text-center">
-              Encrypted Local AI Processing Unit
+              Intelligent Local Rules Engine
             </p>
           </div>
         </div>
@@ -436,35 +603,35 @@ function AiResponseCard({ type, data }: { type: string, data?: any }) {
   switch (type) {
     case "prediction":
       return (
-        <div className="p-6 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-3xl border border-indigo-500/20 space-y-4 glass-card">
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-100 dark:border-zinc-800 shadow-md space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <TrendingUp className="w-5 h-5 text-indigo-500" />
-              <span className="text-xs font-black uppercase tracking-[0.2em] text-indigo-500">{data?.subtitle || "Forecasting Unit"}</span>
+              <TrendingUp className="w-5 h-5 text-primary" />
+              <span className="text-xs font-black uppercase tracking-[0.2em] text-primary">{data?.subtitle || "Forecasting Unit"}</span>
             </div>
-            <span className="text-xl font-black text-indigo-500 line-clamp-1">{data?.percentage}%</span>
+            <span className="text-xl font-black text-primary line-clamp-1">{data?.percentage}%</span>
           </div>
-          <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden shadow-inner">
-            <motion.div initial={{ width: 0 }} animate={{ width: `${data?.percentage || 0}%` }} transition={{ duration: 1 }} className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+          <div className="h-2 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden shadow-inner">
+            <motion.div initial={{ width: 0 }} animate={{ width: `${data?.percentage || 0}%` }} transition={{ duration: 1 }} className="h-full bg-primary" />
           </div>
           <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Likelihood of maintaining threshold</p>
         </div>
       );
     case "summary":
       return (
-        <div className="p-6 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-3xl border border-emerald-500/20 space-y-4 glass-card">
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-100 dark:border-zinc-800 shadow-md space-y-4">
           <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-emerald-500" />
-            <span className="text-xs font-black uppercase tracking-[0.2em] text-emerald-500">
+            <Calendar className="w-5 h-5 text-primary" />
+            <span className="text-xs font-black uppercase tracking-[0.2em] text-primary">
               {data?.friend ? `${data.friend}'s Insight` : "Attendance Insight"}
             </span>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="p-4 rounded-2xl bg-white/5 text-center border border-emerald-500/10 shadow-sm backdrop-blur-md">
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-950 text-center border border-gray-100 dark:border-zinc-800 shadow-sm">
               <span className="text-xl font-black text-gray-900 dark:text-white">{data?.percentage || "0"}%</span>
               <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">Average</p>
             </div>
-            <div className="p-4 rounded-2xl bg-white/5 text-center border border-emerald-500/10 shadow-sm backdrop-blur-md">
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-950 text-center border border-gray-100 dark:border-zinc-800 shadow-sm">
               <span className={`text-xl font-black uppercase ${(data?.percentage || 0) >= 75 ? "text-emerald-500" : "text-rose-500"}`}>
                 {(data?.percentage || 0) >= 75 ? "Pro" : "Risk"}
               </span>
@@ -475,7 +642,7 @@ function AiResponseCard({ type, data }: { type: string, data?: any }) {
       );
     case "trend":
       return (
-        <div className="p-6 bg-purple-500/5 dark:bg-purple-500/10 rounded-3xl border border-purple-500/20 space-y-3 glass-card">
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-100 dark:border-zinc-800 shadow-md space-y-3">
           <div className="flex items-center gap-3">
             <Target className="w-5 h-5 text-purple-500" />
             <span className="text-xs font-black uppercase tracking-[0.2em] text-purple-500">Pattern Detected</span>
@@ -484,71 +651,43 @@ function AiResponseCard({ type, data }: { type: string, data?: any }) {
         </div>
       );
     case "card":
+      // Hide standard card visually if it's the confirmation prompt (since we render custom inline buttons instead of standard card display)
+      // Actually we show it to display the message visually, or maybe we just want the check circle.
+      if (data?.requireConfirm) return null;
+      
       return (
-        <div className="p-4 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 flex items-center gap-4 shadow-sm glass-card">
+        <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 flex items-center gap-4 shadow-md mt-2">
           <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">
-            <CheckCircle2 className="w-6 h-6" />
+            {data?.icon === 'navigate' ? <Compass className="w-6 h-6" /> : <CheckCircle2 className="w-6 h-6" />}
           </div>
           <div>
-            <span className="text-sm font-black text-white uppercase tracking-tight">{data?.title || "System Update"}</span>
-            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Action Executed Successfully</p>
+            <span className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight">{data?.title || "System Update"}</span>
+            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{data?.icon === 'navigate' ? 'Redirecting Engine' : 'Action Executed Successfully'}</p>
           </div>
         </div>
       );
     case "help":
       return (
-        <div className="p-6 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 space-y-6 shadow-2xl glass-card">
-          {/* Section 1 */}
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-[2rem] border border-gray-100 dark:border-zinc-800 space-y-6 shadow-xl">
           <div className="space-y-3">
             <div className="flex items-center gap-2 mb-2">
-              <BookText className="w-5 h-5 text-indigo-400" />
-              <h4 className="text-sm font-black text-white uppercase tracking-widest">Attendance Tracking</h4>
+              <BookText className="w-5 h-5 text-primary" />
+              <h4 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">Attendance Tracking</h4>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Mark present for Math&quot;</span></div>
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Log absent for Physics&quot;</span></div>
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Mark all present till 4pm&quot;</span></div>
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Set all absent today&quot;</span></div>
+              <div className="p-3 bg-gray-50 dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 text-xs text-gray-600 dark:text-gray-300"><span className="text-gray-900 dark:text-white font-bold">&quot;Mark present for Math&quot;</span></div>
+              <div className="p-3 bg-gray-50 dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 text-xs text-gray-600 dark:text-gray-300"><span className="text-gray-900 dark:text-white font-bold">&quot;Mark all present till 4pm&quot;</span></div>
             </div>
           </div>
-
-          {/* Section 2 */}
+          
           <div className="space-y-3">
             <div className="flex items-center gap-2 mb-2">
-              <Activity className="w-5 h-5 text-purple-400" />
-              <h4 className="text-sm font-black text-white uppercase tracking-widest">Forecasting & Predictions</h4>
+              <Compass className="w-5 h-5 text-purple-500" />
+              <h4 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">Navigation</h4>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;How many can I skip?&quot;</span></div>
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Predict my attendance&quot;</span></div>
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;What&apos;s my score by 25th March?&quot;</span></div>
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Should I bunk Math next week?&quot;</span></div>
-            </div>
-          </div>
-
-          {/* Section 3 */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 mb-2">
-              <BrainCircuit className="w-5 h-5 text-emerald-400" />
-              <h4 className="text-sm font-black text-white uppercase tracking-widest">Neural Insights</h4>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Show my insights&quot;</span></div>
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Give me tips&quot;</span></div>
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Explain my patterns&quot;</span></div>
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Weekly snapshot&quot;</span></div>
-            </div>
-          </div>
-
-          {/* Section 4 */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="w-5 h-5 text-rose-400" />
-              <h4 className="text-sm font-black text-white uppercase tracking-widest">Social Standing & Goals</h4>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;How is my friend doing?&quot;</span></div>
-              <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-300"><span className="text-white font-bold">&quot;Set my target to 80%&quot;</span></div>
+              <div className="p-3 bg-gray-50 dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 text-xs text-gray-600 dark:text-gray-300"><span className="text-gray-900 dark:text-white font-bold">&quot;Go to dashboard&quot;</span></div>
+              <div className="p-3 bg-gray-50 dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800 text-xs text-gray-600 dark:text-gray-300"><span className="text-gray-900 dark:text-white font-bold">&quot;Open timetable&quot;</span></div>
             </div>
           </div>
         </div>

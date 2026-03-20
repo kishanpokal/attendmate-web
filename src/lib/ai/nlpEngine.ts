@@ -7,6 +7,8 @@ export type Intent =
   | "MARK_ATTENDANCE"
   | "BULK_MARK_PRESENT"
   | "BULK_MARK_ABSENT"
+  | "BULK_MARK_SPLIT"
+  | "NAVIGATE"
   | "PREDICT_BY_DATE"
   | "GET_FRIEND_ATTENDANCE"
   | "GET_SUMMARY"
@@ -21,6 +23,7 @@ export type Intent =
   | "SET_GOAL"
   | "QA_POLICY"
   | "HELP"
+  | "GET_TIMETABLE"
   | "UNKNOWN";
 
 export interface ExtractedEntities {
@@ -30,6 +33,7 @@ export interface ExtractedEntities {
   target?: number;
   time?: string; // HH:mm format
   friend?: string;
+  page?: string;
 }
 
 const SYNONYMS: Record<string, string[]> = {
@@ -46,7 +50,30 @@ const SYNONYMS: Record<string, string[]> = {
   FRIEND: ["friend", "someone", "mate", "classmate", "buddy"],
   INSIGHTS: ["insights", "burnout", "slump", "behavior", "analysis"],
   GREETING: ["hi", "hello", "hey", "sup", "yo", "morning", "evening", "thanks", "thank"],
+  NAVIGATE: ["go", "open", "show", "take", "navigate", "visit", "redirect", "page", "screen"],
+  PAGES: ["dashboard", "attendance", "analytics", "settings", "timetable", "friends", "subjects", "home", "ai"],
+  SPLIT_INDICATORS: ["till", "until", "before", "after", "rest", "remaining"],
+  TIMETABLE: ["timetable", "schedule", "classes", "today", "lectures", "routine"]
 };
+
+function levenshtein(a: string, b: string): number {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const matrix = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+  for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return matrix[a.length][b.length];
+}
 
 export class NlpEngine {
   private subjects: string[] = [];
@@ -70,8 +97,17 @@ export class NlpEngine {
       return "GET_FRIEND_ATTENDANCE";
     }
 
+    // Check for navigation
+    if (this.matches(tokens, SYNONYMS.NAVIGATE) && this.matches(tokens, SYNONYMS.PAGES)) {
+      return "NAVIGATE";
+    }
+
     // Check for bulk marking (More flexible: "mark all present" OR "all present")
     if (this.matches(tokens, SYNONYMS.BULK) || this.matches(tokens, ["mark", "set", "log"])) {
+      // Split marking check
+      if (this.matches(tokens, SYNONYMS.SPLIT_INDICATORS) && entities.time) {
+        return "BULK_MARK_SPLIT";
+      }
       if (this.matches(tokens, SYNONYMS.BULK) && this.matches(tokens, SYNONYMS.PRESENT)) return "BULK_MARK_PRESENT";
       if (this.matches(tokens, SYNONYMS.BULK) && this.matches(tokens, SYNONYMS.ABSENT)) return "BULK_MARK_ABSENT";
     }
@@ -85,6 +121,7 @@ export class NlpEngine {
     }
 
     if (this.matches(tokens, SYNONYMS.SUMMARY)) return "GET_SUMMARY";
+    if (this.matches(tokens, SYNONYMS.TIMETABLE)) return "GET_TIMETABLE";
     if (this.matches(tokens, SYNONYMS.TREND)) return "GET_TRENDS";
     if (this.matches(tokens, SYNONYMS.PATTERN)) return "GET_PATTERNS";
     if (this.matches(tokens, ["weekly", "week"])) return "WEEKLY_SUMMARY";
@@ -125,8 +162,16 @@ export class NlpEngine {
 
     // Subject Extraction
     for (const sub of this.subjects) {
-      if (text.toLowerCase().includes(sub)) {
+      if (text.toLowerCase().includes(sub) || tokens.some(t => this.isFuzzyMatch(t, sub))) {
         entities.subject = sub;
+        break;
+      }
+    }
+
+    // Page Extraction for Navigation
+    for (const p of SYNONYMS.PAGES) {
+      if (text.toLowerCase().includes(p)) {
+        entities.page = p;
         break;
       }
     }
@@ -182,11 +227,23 @@ export class NlpEngine {
     return entities;
   }
 
+  private isFuzzyMatch(word: string, target: string): boolean {
+    if (word === target) return true;
+    if (Math.abs(word.length - target.length) > 2) return false;
+    
+    // Exact match for very short words
+    if (target.length <= 3) return word === target;
+    
+    const dist = levenshtein(word, target);
+    if (target.length <= 5) return dist <= 1;
+    return dist <= 2;
+  }
+
   private matches(tokens: string[], keywords: string[]): boolean {
-    return tokens.some(token => keywords.includes(token));
+    return tokens.some(token => keywords.some(keyword => this.isFuzzyMatch(token, keyword)));
   }
 
   private hasSubject(tokens: string[]): boolean {
-    return tokens.some(token => this.subjects.includes(token));
+    return tokens.some(token => this.subjects.some(sub => this.isFuzzyMatch(token, sub)));
   }
 }

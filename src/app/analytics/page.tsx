@@ -28,10 +28,10 @@ type AnalyticsAttendance = {
 };
 
 /* ---------------- UTILS ---------------- */
-function lecturesNeededFor75(present: number, total: number) {
+function getAttendanceDeficit(present: number, total: number) {
   if (total === 0) return 0;
   if (present / total >= 0.75) return 0;
-  return Math.ceil((0.75 * total - present) / 0.25);
+  return Math.ceil(0.75 * total - present);
 }
 
 function maxBunkableLectures(present: number, total: number) {
@@ -239,8 +239,8 @@ export default function AnalyticsPage() {
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Attendance Health</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                           {percentage >= 75
-                            ? `You are in excellent standing. You can miss up to ${maxBunkableLectures(present, total)} classes while maintaining the required 75% threshold.`
-                            : `Warning: You are below the required threshold. You need to attend the next ${lecturesNeededFor75(present, total)} consecutive classes to recover.`}
+                            ? `You are in excellent standing. You can safely skip ${maxBunkableLectures(present, total)} upcoming classes while maintaining the required 75% threshold.`
+                            : `Warning: You are currently short of the 75% threshold. You have a deficit of ${getAttendanceDeficit(present, total)} class${getAttendanceDeficit(present, total) > 1 ? 'es' : ''}. Attend upcoming classes to cover this deficit.`}
                         </p>
                       </div>
 

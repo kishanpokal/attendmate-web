@@ -35,18 +35,30 @@ export class OfflineAiEngine {
     this.context.push(intent, entities);
 
     switch (intent) {
+      case "NAVIGATE":
+        if (!entities.page) return "I'm not sure which page you want to go to. Try saying 'go to dashboard' or 'open subjects'.";
+        const targetRoute = entities.page === 'home' ? 'dashboard' : entities.page;
+        return `ACTION_REQUIRED:NAVIGATE:/${targetRoute}`;
+
       case "MARK_ATTENDANCE":
         return this.handleMarkAttendance(entities);
       
       case "BULK_MARK_PRESENT":
       case "BULK_MARK_ABSENT":
         return this.handleBulkMark(intent, entities);
+
+      case "BULK_MARK_SPLIT":
+        if (!entities.time) return "Please specify a time, like 'mark all present till 4pm'.";
+        return this.handleBulkMarkSplit(entities.time);
       
       case "GET_SUMMARY":
         return this.handleSummary(records, resolvedSubject);
       
       case "PREDICT_ATTENDANCE":
         return this.handlePrediction(records, resolvedSubject);
+      
+      case "GET_TIMETABLE":
+        return this.handleTimetable();
       
       case "GET_TRENDS":
       case "GET_PATTERNS":
@@ -99,7 +111,7 @@ export class OfflineAiEngine {
     if (!entities.subject || !entities.status) {
       return "I need to know which subject and status. Example: 'Mark present for Math'.";
     }
-    return `ACTION_REQUIRED:MARK_ATTENDANCE:${entities.subject}:${entities.status}`;
+    return `CONFIRMATION_REQUIRED:MARK_ATTENDANCE:${entities.subject}:${entities.status}`;
   }
 
   private handleBulkMark(intent: Intent, entities: ExtractedEntities): string {
@@ -116,7 +128,24 @@ export class OfflineAiEngine {
       return `I couldn't find any lectures scheduled before ${time} today in your timetable.`;
     }
 
-    return `ACTION_REQUIRED:BULK_MARK:${status}:${time}:${targets.join(",")}`;
+    return `CONFIRMATION_REQUIRED:BULK_MARK:${status}:${time}:${targets.join(",")}`;
+  }
+
+  private handleBulkMarkSplit(time: string): string {
+    const today = new Date().toLocaleDateString("en-US", { weekday: "long" }).toUpperCase();
+    const presentTargets = this.timetable
+      .filter(t => t.day.toUpperCase() === today && t.startTime < time)
+      .map(t => t.subjectName);
+    
+    const absentTargets = this.timetable
+      .filter(t => t.day.toUpperCase() === today && t.startTime >= time)
+      .map(t => t.subjectName);
+
+    if (presentTargets.length === 0 && absentTargets.length === 0) {
+      return `I couldn't find any lectures scheduled today.`;
+    }
+
+    return `CONFIRMATION_REQUIRED:BULK_MARK_SPLIT:${time}:${presentTargets.join(",")}|${absentTargets.join(",")}`;
   }
 
   private handleSummary(records: AttendanceRecord[], subject?: string): string {
@@ -161,5 +190,31 @@ export class OfflineAiEngine {
     } else {
       return `Safe: Your ${scope} attendance is ${stats.current}%. You can safely skip up to **${stats.bunkable}** more classes while staying above 75%.`;
     }
+  }
+
+  private handleTimetable(): string {
+    const today = new Date().toLocaleDateString("en-US", { weekday: "long" }).toUpperCase();
+    const todayClasses = this.timetable.filter(t => t.day.toUpperCase() === today).sort((a, b) => a.startTime.localeCompare(b.startTime));
+    
+    if (todayClasses.length === 0) {
+      return "You don't have any classes scheduled for today. Enjoy your day off!";
+    }
+
+    let response = `Here is your schedule for today (${new Date().toLocaleDateString("en-US", { weekday: "short", month: "long", day: "numeric" })}):\n\n`;
+    todayClasses.forEach(c => {
+      // Convert 24h to 12h for better readability
+      const formatTime = (time24?: string) => {
+        if (!time24) return "TBA";
+        let [h, m] = time24.split(":");
+        if (!h || !m) return time24;
+        let hours = parseInt(h);
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        return `${hours}:${m} ${ampm}`;
+      };
+      response += `• **${c.subjectName}**: ${formatTime(c.startTime)} - ${formatTime(c.endTime)}\n`;
+    });
+    
+    return response;
   }
 }

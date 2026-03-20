@@ -1,0 +1,1021 @@
+{
+  "records": [
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "18/03/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "18/03/202614:0015:00landing page hosting(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "17/03/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "17/03/202614:0015:00ec2 instance(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "05/03/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "05/03/202614:0015:00life cycle management(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "03/03/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "03/03/202614:0015:00bucket policy practical(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "02/03/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "02/03/202614:0015:00s3 bucket creation practical(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "26/02/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "26/02/202614:0015:00aws practical(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "24/02/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "24/02/202614:0015:00s3 bucket(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "23/02/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "23/02/202614:0015:00s3 bucket(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "19/02/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "19/02/202614:0015:00introduction to aws(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "18/02/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "18/02/202614:0015:00open source saas, paas,iaas(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "17/02/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "17/02/202614:0015:00security issue and portability and inter...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "16/02/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "16/02/202614:0015:00cdn(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "13/02/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "13/02/202615:0016:00networking in cloud(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "12/02/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "12/02/202614:0015:00database in cloud(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "03/02/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "03/02/202614:0015:00storage services(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "02/02/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "02/02/202614:0015:00file system(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "27/01/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "27/01/202614:0015:00capacity planning case study(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "22/01/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "22/01/202614:0015:00load balancing(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "21/01/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "21/01/202614:0015:00capacity planning(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "20/01/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "20/01/202614:0015:00scaling in cloud(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "19/01/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "19/01/202614:0015:00type of virtualisation, benefits and lim...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "16/01/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "16/01/202614:0015:00virtualisation(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "13/01/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "13/01/202614:0015:00challanges and advantages of cloud compu...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "12/01/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "12/01/202614:0015:00service and deployment model(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "08/01/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "08/01/202614:0015:00who provide services?(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "17/03/2026",
+      "fromTime": "12:00",
+      "toTime": "13:00",
+      "topic": "17/03/202612:0013:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "17/03/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "17/03/202611:0012:00binary to multiclass classification intr...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "06/03/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "06/03/202615:0016:00multiple independent variables(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "05/03/2026",
+      "fromTime": "12:00",
+      "toTime": "13:00",
+      "topic": "05/03/202612:0013:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "05/03/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "05/03/202611:0012:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "03/03/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "03/03/202611:0012:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "02/03/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "02/03/202615:0016:00generalized mle for bernoulli trials, lo...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "02/03/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "02/03/202611:0012:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "26/02/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "26/02/202615:0016:00meaning of maximum likelihood function a...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "26/02/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "26/02/202611:0012:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "25/02/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "25/02/202615:0016:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "25/02/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "25/02/202611:0012:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "24/02/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "24/02/202615:0016:00examples of maximum likelihood function...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "23/02/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "23/02/202615:0016:00steps of logistic regression and introdu...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "23/02/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "23/02/202611:0012:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "20/02/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "20/02/202611:0012:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "19/02/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "19/02/202615:0016:00introduction to sigmoid function and dec...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "19/02/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "19/02/202611:0012:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "18/02/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "18/02/202615:0016:00odds of an event and probability of odds...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "18/02/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "18/02/202611:0012:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "17/02/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "17/02/202615:0016:00coefficient of determination and introdu...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "17/02/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "17/02/202611:0012:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "12/02/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "12/02/202615:0016:00gradient descent : feature scaling, assu...(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "03/02/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "03/02/202615:0016:00practical of simple linear regression...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "02/02/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "02/02/202615:0016:00multiple linear regression (gradient des...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "28/01/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "28/01/202615:0016:00normal equations(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "27/01/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "27/01/202615:0016:00introduction to multiple linear regressi...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "22/01/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "22/01/202615:0016:00examples of gradient descent(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "21/01/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "21/01/202615:0016:00examples of gradient descent(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "20/01/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "20/01/202615:0016:00gradient descent method theory for the s...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "16/01/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "16/01/202615:0016:00matrix inversion for simple linear regre...(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "13/01/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "13/01/202615:0016:00solution of a0 and a1 using cramer’s  ru...(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "12/01/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "12/01/202615:0016:00parameter derivation of a0 and a1 and ex...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "08/01/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "08/01/202615:0016:00simple linear regression and introductio...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "07/01/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "07/01/202615:0016:00introduction to regression(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "06/01/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "06/01/202615:0016:00introduction to unsupervised machine lea...(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "05/01/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "05/01/202615:0016:00introduction to supervised machine learn...(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING - PRACTICAL",
+      "date": "05/03/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "05/03/202616:0018:00ml(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING - PRACTICAL",
+      "date": "26/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "26/02/202616:0018:00ml(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING - PRACTICAL",
+      "date": "25/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "25/02/202616:0018:00ml(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING - PRACTICAL",
+      "date": "19/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "19/02/202616:0018:00ml(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING - PRACTICAL",
+      "date": "18/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "18/02/202616:0018:00ml(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING - PRACTICAL",
+      "date": "12/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "12/02/202616:0018:00ml(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING - PRACTICAL",
+      "date": "05/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "05/02/202616:0018:00ml(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING - PRACTICAL",
+      "date": "04/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "04/02/202616:0018:00ml(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "MACHINE LEARNING - PRACTICAL",
+      "date": "08/01/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "08/01/202616:0018:00ml(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING - PRACTICAL",
+      "date": "07/01/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "07/01/202616:0018:00ml(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING - PRACTICAL",
+      "date": "01/01/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "01/01/202616:0018:00ml(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "20/03/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "20/03/202615:0016:00dropout(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "20/03/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "20/03/202614:0015:00dropout(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "18/03/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "18/03/202613:0014:00regularisation(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "05/03/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "05/03/202615:0016:00revision(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "03/03/2026",
+      "fromTime": "12:00",
+      "toTime": "13:00",
+      "topic": "03/03/202612:0013:00lstm(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "03/03/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "03/03/202611:0012:00lstm(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "02/03/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "02/03/202611:0012:00bi directional rnn(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "26/02/2026",
+      "fromTime": "12:00",
+      "toTime": "13:00",
+      "topic": "26/02/202612:0013:00backpragation by time(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "25/02/2026",
+      "fromTime": "12:00",
+      "toTime": "13:00",
+      "topic": "25/02/202612:0013:00rnn(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "24/02/2026",
+      "fromTime": "11:00",
+      "toTime": "12:00",
+      "topic": "24/02/202611:0012:00language modeling(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "23/02/2026",
+      "fromTime": "12:00",
+      "toTime": "13:00",
+      "topic": "23/02/202612:0013:00depth wise convolution(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "20/02/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "20/02/202613:0014:00practical(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "20/02/2026",
+      "fromTime": "12:00",
+      "toTime": "13:00",
+      "topic": "20/02/202612:0013:00practical(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "19/02/2026",
+      "fromTime": "12:00",
+      "toTime": "13:00",
+      "topic": "19/02/202612:0013:00stride(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "18/02/2026",
+      "fromTime": "12:00",
+      "toTime": "13:00",
+      "topic": "18/02/202612:0013:00strudet(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "17/02/2026",
+      "fromTime": "12:00",
+      "toTime": "13:00",
+      "topic": "17/02/202612:0013:00pooling(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "16/02/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "16/02/202613:0014:00cnn(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "16/02/2026",
+      "fromTime": "12:00",
+      "toTime": "13:00",
+      "topic": "16/02/202612:0013:00cnn(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "12/02/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "12/02/202613:0014:00convolution(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "05/02/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "05/02/202613:0014:00revision 1(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "04/02/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "04/02/202613:0014:00convolution(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "03/02/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "03/02/202613:0014:00cnn(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "02/02/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "02/02/202613:0014:00curse of dimensionality(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "27/01/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "27/01/202614:0015:00bias(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "22/01/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "22/01/202613:0014:00approximation(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "21/01/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "21/01/202613:0014:00multiple linear(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "20/01/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "20/01/202613:0014:00approximation(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "19/01/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "19/01/202613:0014:00parallelize(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "16/01/2026",
+      "fromTime": "12:30",
+      "toTime": "13:30",
+      "topic": "16/01/202612:3013:30backpragation(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "13/01/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "13/01/202613:0014:00backpragation(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "12/01/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "12/01/202613:0014:00neural network(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "08/01/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "08/01/202614:0015:00activation function(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "07/01/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "07/01/202614:0015:00neural network(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "07/01/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "07/01/202613:0014:00neural network(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "06/01/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "06/01/202613:0014:00multiple linear(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "05/01/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "05/01/202613:0014:00logistic regression(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "02/01/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "02/01/202613:0014:00linear regression(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "01/01/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "01/01/202613:0014:00introduction(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "06/03/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "06/03/202616:0018:00dl(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "02/03/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "02/03/202616:0018:00dl(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "24/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "24/02/202616:0018:00dl(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "23/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "23/02/202616:0018:00dl(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "20/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "20/02/202616:0018:00dl(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "17/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "17/02/202616:0018:00dl(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "16/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "16/02/202616:0018:00dl(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "13/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "13/02/202616:0018:00dl(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "03/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "03/02/202616:0018:00dl(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "02/02/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "02/02/202616:0018:00dl(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "12/01/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "12/01/202616:0018:00dl(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "09/01/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "09/01/202616:0018:00dl(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "06/01/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "06/01/202616:0018:00dl(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "05/01/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "05/01/202616:0018:00dl(Extra)",
+      "status": "Absent"
+    },
+    {
+      "subject": "DEEP LEARNING - PRACTICAL",
+      "date": "02/01/2026",
+      "fromTime": "16:00",
+      "toTime": "18:00",
+      "topic": "02/01/202616:0018:00dl(Extra)",
+      "status": "Absent"
+    }
+  ],
+  "lastSynced": "2026-03-20T14:01:58.470Z",
+  "totalRecords": 126,
+  "subjects": [
+    "CLOUD COMPUTING",
+    "MACHINE LEARNING",
+    "MACHINE LEARNING - PRACTICAL",
+    "DEEP LEARNING",
+    "DEEP LEARNING - PRACTICAL"
+  ]
+}

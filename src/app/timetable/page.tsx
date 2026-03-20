@@ -11,21 +11,18 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
-import { 
-  Calendar, 
-  Clock, 
-  Plus, 
-  Trash2, 
-  Copy, 
-  Save, 
-  Check, 
-  AlertCircle, 
-  ChevronRight,
-  BookOpen,
-  Zap,
-  Activity,
+import {
+  Calendar,
+  Clock,
+  Plus,
+  Trash2,
+  Copy,
+  Save,
+  Check,
+  AlertCircle,
   X,
-  Layers
+  ChevronDown,
+  BookOpen
 } from "lucide-react";
 
 /* ---------------- TYPES ---------------- */
@@ -110,10 +107,10 @@ export default function TimetablePage() {
   const [selectedDay, setSelectedDay] = useState<Day>("MONDAY");
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [timetable, setTimetable] = useState<Record<Day, Lecture[]>>({} as any);
-  const [mounted, setMounted] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Form State
   const [showAdd, setShowAdd] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -122,16 +119,13 @@ export default function TimetablePage() {
     duration: 1,
   });
 
+  const [isSubjectDropdownOpen, setIsSubjectDropdownOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" }>({ message: "", type: "success" });
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast({ message: "", type: "success" }), 3000);
   };
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   /* ---------------- AUTH GUARD ---------------- */
   useEffect(() => {
@@ -144,52 +138,39 @@ export default function TimetablePage() {
 
     const load = async () => {
       setPageLoading(true);
+      try {
+        const subjectSnap = await getDocs(collection(db, "users", user.uid, "subjects"));
+        setSubjects(subjectSnap.docs.map((d) => ({ id: d.id, name: d.data().name })));
 
-      // Subjects
-      const subjectSnap = await getDocs(
-        collection(db, "users", user.uid, "subjects")
-      );
-      setSubjects(
-        subjectSnap.docs.map((d) => ({
-          id: d.id,
-          name: d.data().name,
-        }))
-      );
+        const ttSnap = await getDocs(collection(db, "users", user.uid, "timetable"));
+        const map: Record<Day, Lecture[]> = {
+          MONDAY: [], TUESDAY: [], WEDNESDAY: [], THURSDAY: [], FRIDAY: [], SATURDAY: [],
+        };
 
-      // Timetable
-      const ttSnap = await getDocs(
-        collection(db, "users", user.uid, "timetable")
-      );
-
-      const map: Record<Day, Lecture[]> = {
-        MONDAY: [],
-        TUESDAY: [],
-        WEDNESDAY: [],
-        THURSDAY: [],
-        FRIDAY: [],
-        SATURDAY: [],
-      };
-
-      ttSnap.forEach((docu) => {
-        const d = docu.data();
-        map[d.day as Day].push({
-          id: docu.id,
-          subjectId: d.subjectId,
-          subjectName: d.subjectName,
-          startTime: d.startTime,
-          durationHours: d.durationHours,
+        ttSnap.forEach((docu) => {
+          const d = docu.data();
+          if (map[d.day as Day]) {
+            map[d.day as Day].push({
+              id: docu.id,
+              subjectId: d.subjectId,
+              subjectName: d.subjectName,
+              startTime: d.startTime,
+              durationHours: d.durationHours,
+            });
+          }
         });
-      });
 
-      DAYS.forEach(
-        (d) =>
-        (map[d] = map[d].sort(
-          (a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime)
-        ))
-      );
+        DAYS.forEach((d) => {
+          map[d] = map[d].sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+        });
 
-      setTimetable(map);
-      setPageLoading(false);
+        setTimetable(map);
+      } catch (error) {
+        console.error("Error loading timetable", error);
+        showToast("Failed to load data", "error");
+      } finally {
+        setPageLoading(false);
+      }
     };
 
     load();
@@ -200,10 +181,7 @@ export default function TimetablePage() {
   /* ---------------- ACTIONS ---------------- */
   function addLecture() {
     const subject = subjects.find((s) => s.id === form.subjectId);
-    if (!subject) {
-      alert("Please select a subject");
-      return;
-    }
+    if (!subject) return showToast("Please select a subject", "error");
 
     const newLecture: Lecture = {
       id: crypto.randomUUID(),
@@ -214,8 +192,7 @@ export default function TimetablePage() {
     };
 
     if (lectures.some((l) => overlaps(l, newLecture))) {
-      alert("This lecture overlaps with an existing one");
-      return;
+      return showToast("Class overlaps with an existing schedule", "error");
     }
 
     setTimetable((prev) => ({
@@ -231,30 +208,35 @@ export default function TimetablePage() {
 
   async function saveTimetable() {
     if (!user) return;
-
     setSaving(true);
-    const batch = writeBatch(db);
-    const ref = collection(db, "users", user.uid, "timetable");
+    try {
+      const batch = writeBatch(db);
+      const ref = collection(db, "users", user.uid, "timetable");
 
-    const old = await getDocs(ref);
-    old.forEach((d) => batch.delete(d.ref));
+      const old = await getDocs(ref);
+      old.forEach((d) => batch.delete(d.ref));
 
-    Object.entries(timetable).forEach(([day, list]) => {
-      list.forEach((lec) => {
-        batch.set(doc(ref, `${day}_${lec.id}`), {
-          day,
-          subjectId: lec.subjectId,
-          subjectName: lec.subjectName,
-          startTime: lec.startTime,
-          durationHours: lec.durationHours,
-          createdAt: new Date(),
+      Object.entries(timetable).forEach(([day, list]) => {
+        list.forEach((lec) => {
+          batch.set(doc(ref, `${day}_${lec.id}`), {
+            day,
+            subjectId: lec.subjectId,
+            subjectName: lec.subjectName,
+            startTime: lec.startTime,
+            durationHours: lec.durationHours,
+            createdAt: new Date(),
+          });
         });
       });
-    });
 
-    await batch.commit();
-    setSaving(false);
-    showToast("Timetable saved successfully! 🎉", "success");
+      await batch.commit();
+      showToast("Schedule updated successfully", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to save schedule", "error");
+    } finally {
+      setSaving(false);
+    }
   }
 
   function copyPreviousDay() {
@@ -275,269 +257,163 @@ export default function TimetablePage() {
     }));
   }
 
-  /* ================= UI ================= */  return (
+  /* ================= UI ================= */
+  if (pageLoading) {
+    return (
+      <ProfessionalPageLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+        </div>
+      </ProfessionalPageLayout>
+    );
+  }
+
+  return (
     <ProfessionalPageLayout>
-      <div className="content-container p-4 sm:p-10 lg:p-16 space-y-12">
-        
+      <div className="max-w-6xl mx-auto p-4 sm:p-8 space-y-8">
+
         {/* HEADER */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 pb-10 border-b border-gray-100 dark:border-white/5">
-          <div className="space-y-4 max-w-2xl">
-            <div className="flex items-center gap-3 text-primary">
-              <div className="flex -space-x-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_var(--primary)]" />
-                <span className="w-2.5 h-2.5 rounded-full bg-primary/40 animate-pulse delay-75" />
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Weekly Schedule</span>
-            </div>
-            <h1 className="text-4xl sm:text-7xl font-black text-foreground tracking-tight leading-none uppercase">
-              Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-rose-500">Timetable</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-gray-200 dark:border-zinc-800">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-50 tracking-tight mb-2">
+              Timetable
             </h1>
-            <p className="text-gray-400 font-bold text-base sm:text-lg max-w-xl leading-relaxed uppercase tracking-tighter">
-              Manage your weekly classes. Set up your schedule for the semester.
+            <p className="text-sm text-gray-500 dark:text-zinc-400">
+              Manage your weekly class schedule and view upcoming sessions.
             </p>
           </div>
-          
-          <div className="flex items-center gap-5 premium-glass px-8 py-5 rounded-[2rem] border-primary/5 shadow-2xl premium-card group shrink-0">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/20 group-hover:scale-110 transition-transform duration-500">
-              <Calendar className="w-7 h-7" />
-            </div>
-            <div className="text-left">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] leading-none mb-2">Status</p>
-              <p className="text-3xl font-black text-foreground tracking-tight">Active</p>
-            </div>
-          </div>
-        </header>
 
-        {/* DAY SELECTOR */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-4 px-2">
-            <Layers className="w-4 h-4 text-primary" />
-            <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.5em]">Select Day</h2>
-            <div className="flex-1 h-px bg-gradient-to-r from-border-color/50 to-transparent" />
-          </div>
-          
-          <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide px-2">
-            {DAYS.map((d, index) => {
-              const isSelected = selectedDay === d;
-              const lectureCount = (timetable[d] || []).length;
-
-              return (
-                <motion.button
-                  key={d}
-                  whileHover={{ y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedDay(d)}
-                  className={`relative flex-shrink-0 flex flex-col items-center min-w-[7rem] p-6 rounded-[2.5rem] transition-all duration-500 border-2 overflow-hidden group ${
-                    isSelected
-                      ? "bg-primary border-primary shadow-2xl shadow-primary/30"
-                      : "bg-white/5 border-white/5 hover:border-primary/20 premium-glass"
-                  }`}
-                >
-                  {isSelected && (
-                    <motion.div
-                      layoutId="activeDayGlow"
-                      className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"
-                    />
-                  )}
-                  <span className={`text-xs font-black uppercase tracking-widest mb-2 transition-colors duration-500 ${
-                    isSelected ? "text-white" : "text-gray-500 group-hover:text-foreground"
-                  }`}>
-                    {d.slice(0, 3)}
-                  </span>
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black transition-all duration-500 ${
-                    isSelected 
-                      ? "bg-white/20 text-white border border-white/30" 
-                      : "bg-white/5 text-gray-400 border border-white/5 group-hover:scale-110"
-                  }`}>
-                    {lectureCount}
-                  </div>
-                </motion.button>
-              );
-            })}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowAdd(true)}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg text-sm font-medium text-gray-900 dark:text-zinc-100 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add Class
+            </button>
+            <button
+              onClick={saveTimetable}
+              disabled={saving}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
+            >
+              {saving ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              Save Changes
+            </button>
           </div>
         </div>
 
-        {/* MAIN GRID */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-12">
-          
-          {/* LECTURES LIST */}
-          <div className="xl:col-span-3 space-y-8">
-            <div className="flex items-center justify-between px-2">
-              <div className="flex items-center gap-4">
-                <div className="w-1 h-10 bg-gradient-to-b from-primary to-purple-600 rounded-full" />
-                <div>
-                  <h3 className="text-3xl font-black text-foreground uppercase tracking-tight">{DAY_LABELS[selectedDay]} Schedule</h3>
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">
-                    {lectures.length} Classes Scheduled
-                  </p>
-                </div>
-              </div>
+        {/* MAIN CONTENT AREA */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
-              {selectedDay !== "MONDAY" && (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={copyPreviousDay}
-                  className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 hover:border-primary/30 text-gray-400 hover:text-primary transition-all group"
-                >
-                  <Copy className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Duplicate Previous Day</span>
-                </motion.button>
-              )}
+          {/* SIDEBAR: DAY SELECTOR */}
+          <div className="lg:col-span-1">
+            <div className="bg-gray-50 dark:bg-zinc-900/50 p-1 rounded-xl border border-gray-200 dark:border-zinc-800 flex flex-row lg:flex-col gap-1 overflow-x-auto">
+              {DAYS.map((d) => {
+                const isSelected = selectedDay === d;
+                const count = (timetable[d] || []).length;
+
+                return (
+                  <button
+                    key={d}
+                    onClick={() => setSelectedDay(d)}
+                    className={`flex items-center justify-between w-full px-4 py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${isSelected
+                        ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-50 shadow-sm border border-gray-200 dark:border-zinc-700"
+                        : "text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800/50 border border-transparent"
+                      }`}
+                  >
+                    <span>{DAY_LABELS[d]}</span>
+                    {count > 0 && (
+                      <span className={`px-2 py-0.5 rounded-full text-xs ${isSelected
+                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                          : "bg-gray-200 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400"
+                        }`}>
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
-
-            {pageLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="h-40 premium-glass rounded-[2.5rem] p-8 border-white/5 animate-pulse" />
-                ))}
-              </div>
-            ) : lectures.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <AnimatePresence mode="popLayout">
-                  {lectures.map((lec, index) => (
-                    <motion.div
-                      key={lec.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="group relative h-full"
-                    >
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-purple-600/50 rounded-[2.5rem] blur opacity-0 group-hover:opacity-20 transition duration-1000 group-hover:duration-200" />
-                      <div className="relative premium-glass rounded-[2.5rem] p-8 border-white/10 shadow-2xl premium-card overflow-hidden h-full flex flex-col justify-between">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 border border-primary/20">
-                              <BookOpen className="w-7 h-7" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1 leading-none">Subject</p>
-                              <h4 className="text-xl font-black text-foreground tracking-tight leading-none uppercase truncate group-hover:text-primary transition-colors">
-                                {lec.subjectName}
-                              </h4>
-                            </div>
-                          </div>
-                          
-                          <motion.button
-                            whileHover={{ scale: 1.1, rotate: 12 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => setDeleteConfirm(lec.id)}
-                            className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all duration-300 opacity-0 group-hover:opacity-100"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </motion.button>
-                        </div>
-
-                        <div className="mt-8 flex items-end justify-between">
-                          <div className="space-y-4">
-                            <div className="flex items-center gap-3 px-4 py-2 bg-white/5 rounded-full border border-white/5 w-fit">
-                              <Clock className="w-4 h-4 text-primary" />
-                              <span className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">
-                                {formatTime(lec.startTime)} - {formatTime(getEndTime(lec.startTime, lec.durationHours))}
-                              </span>
-                            </div>
-                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-4">
-                              Duration: <span className="text-foreground">{lec.durationHours} {lec.durationHours === 1 ? "Hour" : "Hours"}</span>
-                            </p>
-                          </div>
-                          <div className="w-12 h-1 bg-white/5 rounded-full" />
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="premium-glass rounded-[3.5rem] p-16 text-center border-dashed border-2 border-white/10"
-              >
-                <div className="relative inline-block mb-8">
-                  <div className="absolute -inset-4 bg-primary/20 rounded-full blur-2xl animate-pulse" />
-                  <div className="relative w-24 h-24 rounded-full bg-white/5 flex items-center justify-center text-primary border border-white/10 shadow-2xl">
-                    <Calendar className="w-12 h-12" />
-                  </div>
-                </div>
-                <h3 className="text-3xl font-black text-foreground uppercase tracking-tight mb-4">No Classes Scheduled</h3>
-                <p className="text-gray-500 font-bold uppercase text-[10px] tracking-[0.3em] max-w-sm mx-auto leading-relaxed">
-                  Your timetable is currently empty for this day. Add a class to get started.
-                </p>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowAdd(true)}
-                  className="mt-10 inline-flex items-center gap-3 px-10 py-5 rounded-[2rem] bg-primary text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-primary/30 border border-white/20"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Class
-                </motion.button>
-              </motion.div>
-            )}
           </div>
 
-          {/* ACTIONS SIDEBAR */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 px-2">
-              <Zap className="w-4 h-4 text-amber-500" />
-              <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.5em]">Actions</h2>
-              <div className="flex-1 h-px bg-gradient-to-r from-border-color/50 to-transparent" />
-            </div>
+          {/* SCHEDULE VIEW */}
+          <div className="lg:col-span-3">
+            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm overflow-hidden">
 
-            <div className="grid grid-cols-1 gap-4">
-              <motion.button
-                whileHover={{ y: -5 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setShowAdd(true)}
-                className="group relative w-full overflow-hidden p-8 rounded-[2.5rem] bg-primary text-white shadow-2xl shadow-primary/30 border border-white/10"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Plus className="w-8 h-8 mb-4 group-hover:rotate-90 transition-transform duration-500" />
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-1 opacity-80">New Class</p>
-                <p className="text-xl font-black uppercase tracking-tight">Add Class</p>
-              </motion.button>
-
-              <motion.button
-                whileHover={{ y: -5 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={saveTimetable}
-                disabled={saving}
-                className={`group relative w-full overflow-hidden p-8 rounded-[2.5rem] bg-emerald-500 text-white shadow-2xl shadow-emerald-500/30 border border-white/10 ${
-                  saving ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                {saving ? (
-                  <div className="w-8 h-8 mb-4 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <Save className="w-8 h-8 mb-4 group-hover:scale-110 transition-transform duration-500" />
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between bg-gray-50 dark:bg-zinc-900/50">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-zinc-50">
+                  {DAY_LABELS[selectedDay]} Classes
+                </h2>
+                {selectedDay !== "MONDAY" && (
+                  <button
+                    onClick={copyPreviousDay}
+                    className="text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-200 flex items-center gap-1.5"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    Copy from previous day
+                  </button>
                 )}
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-1 opacity-80">Save Changes</p>
-                <p className="text-xl font-black uppercase tracking-tight">Save Timetable</p>
-              </motion.button>
-            </div>
-
-            <div className="premium-glass rounded-[2.5rem] p-8 border-white/5 mt-10">
-              <div className="flex items-center gap-3 mb-6">
-                <Activity className="w-5 h-5 text-primary" />
-                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Schedule Overview</h4>
               </div>
-              <div className="space-y-4">
-                <div className="flex justify-between items-end">
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Total Classes</p>
-                  <p className="text-2xl font-black text-foreground">{Object.values(timetable).flat().length}</p>
-                </div>
-                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: "65%" }}
-                    className="h-full bg-gradient-to-r from-primary to-purple-600"
-                  />
-                </div>
-                <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
-                  Manage your schedule to ensure optimal attendance.
-                </p>
+
+              <div className="p-0">
+                {lectures.length > 0 ? (
+                  <div className="divide-y divide-gray-200 dark:divide-zinc-800">
+                    <AnimatePresence>
+                      {lectures.map((lec) => (
+                        <motion.div
+                          key={lec.id}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="group flex flex-col sm:flex-row sm:items-center justify-between p-6 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
+                        >
+                          <div className="flex items-start gap-4 mb-4 sm:mb-0">
+                            <div className="mt-1 w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 flex items-center justify-center shrink-0">
+                              <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div>
+                              <h3 className="text-base font-semibold text-gray-900 dark:text-zinc-100 mb-1">
+                                {lec.subjectName}
+                              </h3>
+                              <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-zinc-400">
+                                <span className="flex items-center gap-1.5">
+                                  <Clock className="w-4 h-4" />
+                                  {formatTime(lec.startTime)} - {formatTime(getEndTime(lec.startTime, lec.durationHours))}
+                                </span>
+                                <span>•</span>
+                                <span>{lec.durationHours} hr{lec.durationHours > 1 ? 's' : ''}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => setDeleteConfirm(lec.id)}
+                            className="w-full sm:w-auto px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-md transition-colors sm:opacity-0 group-hover:opacity-100"
+                          >
+                            Remove
+                          </button>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  <div className="p-12 text-center">
+                    <Calendar className="w-12 h-12 text-gray-300 dark:text-zinc-700 mx-auto mb-4" />
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-100 mb-1">No classes scheduled</h3>
+                    <p className="text-sm text-gray-500 dark:text-zinc-400 mb-6">You have a free day on {DAY_LABELS[selectedDay]}.</p>
+                    <button
+                      onClick={() => setShowAdd(true)}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Schedule a class
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -546,138 +422,157 @@ export default function TimetablePage() {
 
       {/* DIALOGS */}
       <AnimatePresence>
-        {/* ADD DIALOG */}
+
+        {/* ADD CLASS MODAL */}
         {showAdd && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
-              exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={() => setShowAdd(false)}
-              className="absolute inset-0 bg-black/60 dark:bg-black/80"
+              className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 40 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 40 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-md premium-glass rounded-[3.5rem] p-10 border border-primary/10 shadow-3xl premium-card"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-xl shadow-2xl overflow-hidden border border-gray-200 dark:border-zinc-800"
             >
-              <div className="flex items-center gap-5 mb-8">
-                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/20">
-                  <Plus className="w-7 h-7" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-black text-foreground tracking-tight uppercase">Add Class</h3>
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Schedule a Class</p>
-                </div>
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-50">Add Class</h3>
+                <button
+                  onClick={() => setShowAdd(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block px-2">Subject</label>
-                  <select
-                    value={form.subjectId}
-                    onChange={(e) => setForm({ ...form, subjectId: e.target.value })}
-                    className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-[1.8rem] text-sm text-foreground font-black tracking-widest focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/30 transition-all uppercase appearance-none"
-                  >
-                    <option value="" className="bg-gray-900">Select Subject</option>
-                    {subjects.map((s) => (
-                      <option key={s.id} value={s.id} className="bg-gray-900">
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
+              <div className="p-6 space-y-5">
+                {/* Subject Dropdown */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">Subject</label>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsSubjectDropdownOpen(!isSubjectDropdownOpen)}
+                      className="w-full flex items-center justify-between px-3.5 py-2.5 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg text-left focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
+                    >
+                      <span className={`text-sm ${form.subjectId ? "text-gray-900 dark:text-zinc-100" : "text-gray-500 dark:text-zinc-400"}`}>
+                        {form.subjectId ? subjects.find(s => s.id === form.subjectId)?.name : "Select a subject..."}
+                      </span>
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    </button>
+
+                    {isSubjectDropdownOpen && (
+                      <div className="absolute z-10 w-full mt-1 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-48 overflow-y-auto py-1">
+                        {subjects.length === 0 ? (
+                          <div className="p-3 text-sm text-gray-500 text-center">No subjects available.</div>
+                        ) : (
+                          subjects.map(s => (
+                            <button
+                              key={s.id}
+                              onClick={() => {
+                                setForm({ ...form, subjectId: s.id });
+                                setIsSubjectDropdownOpen(false);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                            >
+                              {s.name}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block px-2">Start Time</label>
+                {/* Start Time */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">Start Time</label>
                   <input
                     type="time"
                     value={form.startTime}
                     onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-                    className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-[1.8rem] text-sm text-foreground font-black tracking-widest focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary/30 transition-all uppercase"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-lg text-sm text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm [color-scheme:light_dark]"
                   />
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block px-2">Duration (Hours)</label>
-                  <div className="grid grid-cols-4 gap-3">
+                {/* Duration */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">Duration (Hours)</label>
+                  <div className="grid grid-cols-4 gap-2">
                     {[1, 2, 3, 4].map((hour) => (
                       <button
                         key={hour}
                         onClick={() => setForm({ ...form, duration: hour })}
-                        className={`py-6 rounded-[1.5rem] border-2 font-black transition-all ${
-                          form.duration === hour
-                            ? "bg-primary border-primary text-white shadow-xl shadow-primary/30"
-                            : "bg-white/5 border-white/5 text-gray-500 hover:border-primary/30"
-                        }`}
+                        className={`py-2 rounded-lg text-sm font-medium transition-all border ${form.duration === hour
+                            ? "bg-blue-50 border-blue-600 text-blue-700 dark:bg-blue-900/30 dark:border-blue-500 dark:text-blue-400"
+                            : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                          }`}
                       >
-                        <span className="text-xl leading-none">{hour}</span>
+                        {hour}
                       </button>
                     ))}
                   </div>
                 </div>
+              </div>
 
-                <div className="flex gap-4 pt-4">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowAdd(false)}
-                    className="flex-1 py-5 rounded-[1.8rem] bg-white/5 border border-white/10 text-foreground font-black text-[10px] uppercase tracking-[0.3em] transition-all"
-                  >
-                    Cancel
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={addLecture}
-                    className="flex-1 py-5 rounded-[1.8rem] bg-primary text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-primary/30 transition-all border border-white/10"
-                  >
-                    Add
-                  </motion.button>
-                </div>
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900/50 flex justify-end gap-3">
+                <button
+                  onClick={() => setShowAdd(false)}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={addLecture}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm"
+                >
+                  Add Schedule
+                </button>
               </div>
             </motion.div>
           </div>
         )}
 
-        {/* DELETE DIALOG */}
+        {/* DELETE CONFIRM MODAL */}
         {deleteConfirm && (
-          <div className="fixed inset-0 z-[105] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
-              exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={() => setDeleteConfirm(null)}
-              className="absolute inset-0 bg-black/60 dark:bg-black/80"
+              className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 40 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 40 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-md premium-glass rounded-[3.5rem] p-10 border border-primary/10 shadow-3xl text-center premium-card"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-xl shadow-2xl p-6 border border-gray-200 dark:border-zinc-800"
             >
-              <div className="w-20 h-20 mx-auto mb-8 rounded-[2rem] bg-rose-500/10 flex items-center justify-center text-rose-500 border border-rose-500/20">
-                <Trash2 className="w-10 h-10" />
+              <div className="flex items-start gap-4 mb-5">
+                <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-zinc-50 mb-1">Remove Class</h3>
+                  <p className="text-sm text-gray-500 dark:text-zinc-400 leading-relaxed">
+                    Are you sure you want to remove this class from your {DAY_LABELS[selectedDay]} schedule? This action cannot be undone.
+                  </p>
+                </div>
               </div>
-              <h3 className="text-3xl font-black text-foreground mb-4 uppercase tracking-tight">Delete Class?</h3>
-              <p className="text-gray-400 font-bold mb-10 leading-relaxed uppercase text-xs tracking-widest">
-                This class will be <span className="text-foreground">permanently removed</span> from your timetable.
-              </p>
-              <div className="flex gap-4">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+
+              <div className="flex gap-3 justify-end mt-6">
+                <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 py-5 rounded-[1.8rem] bg-white/5 border border-white/10 text-foreground font-black text-[10px] uppercase tracking-[0.3em] transition-all"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
                 >
-                  Hold
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  Cancel
+                </button>
+                <button
                   onClick={() => {
                     setTimetable((prev) => ({
                       ...prev,
@@ -685,56 +580,37 @@ export default function TimetablePage() {
                     }));
                     setDeleteConfirm(null);
                   }}
-                  className="flex-1 py-5 rounded-[1.8rem] bg-rose-500 text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-rose-500/30 transition-all border border-white/10"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm"
                 >
-                  Purge
-                </motion.button>
+                  Remove Class
+                </button>
               </div>
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
 
-      {/* TOAST PANEL */}
-      <AnimatePresence>
+        {/* TOAST */}
         {toast.message && (
           <motion.div
-            initial={{ y: 50, opacity: 0, scale: 0.9 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 50, opacity: 0, scale: 0.9 }}
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200]"
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 50, opacity: 0 }}
+            className="fixed bottom-6 right-6 z-[100]"
           >
-            <div className={`flex items-center gap-4 px-10 py-5 rounded-[2rem] border shadow-3xl premium-glass ${
-              toast.type === 'success' 
-                ? 'bg-emerald-500/90 border-emerald-400/50 text-white' 
-                : 'bg-rose-500/90 border-rose-400/50 text-white'
-            }`}>
-              {toast.type === 'success' ? <Check className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
-              <span className="font-black text-xs uppercase tracking-[0.2em]">{toast.message}</span>
+            <div className={`flex items-center gap-2.5 px-4 py-3 rounded-lg shadow-lg border ${toast.type === 'success'
+                ? 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-zinc-100'
+                : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/50 text-red-800 dark:text-red-200'
+              }`}>
+              {toast.type === 'success' ? (
+                <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+              ) : (
+                <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+              )}
+              <span className="text-sm font-medium">{toast.message}</span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* FULL PAGE LOADER */}
-      <AnimatePresence>
-        {pageLoading && (
-          <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-md flex items-center justify-center">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-center space-y-6"
-            >
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 blur-3xl animate-pulse rounded-full" />
-                <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto shadow-[0_0_20px_var(--primary-glow)]" />
-              </div>
-              <p className="text-gray-400 font-black uppercase tracking-[0.4em] text-[10px]">Loading Timetable...</p>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
     </ProfessionalPageLayout>
   );
 }
