@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import chromium from '@sparticuz/chromium-min';
 import { CollegeAttendanceRecord } from '@/lib/collegeSync';
 import fs from 'fs';
 import path from 'path';
@@ -46,7 +46,9 @@ export async function POST(req: Request) {
           ? (fs.existsSync('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe') 
               ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' 
               : 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe')
-          : await chromium.executablePath();
+          : await chromium.executablePath(
+              'https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar'
+            );
 
         browser = await puppeteer.launch({
           args: isLocal ? ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu", "--window-size=1920,1080"] : [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu", "--window-size=1920,1080"],
