@@ -28,7 +28,10 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  GraduationCap
+  GraduationCap,
+  Moon,
+  Sun,
+  Monitor
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -155,6 +158,13 @@ export default function SettingsPage() {
                   subtitle="Update your credentials"
                   onClick={() => setShowPassword(true)}
                 />
+              </div>
+            </SettingsSection>
+
+            {/* APPEARANCE */}
+            <SettingsSection title="Appearance" icon={<Moon className="w-4 h-4" />}>
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-sm p-4">
+                <ThemeSelector />
               </div>
             </SettingsSection>
 
@@ -460,6 +470,69 @@ function LogoutDialog({ onClose, onConfirm }: { onClose: () => void, onConfirm: 
           </button>
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+function ThemeSelector() {
+  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved === "light" || saved === "dark") {
+      setTheme(saved);
+    } else {
+      setTheme("system");
+    }
+    
+    // Listen for storage events (e.g. from nav bar toggle)
+    const onStorage = () => {
+      const newSaved = localStorage.getItem("theme");
+      if (newSaved === "light" || newSaved === "dark") setTheme(newSaved);
+      else setTheme("system");
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  const changeTheme = (newTheme: "light" | "dark" | "system") => {
+    setTheme(newTheme);
+    if (newTheme === "system") {
+      localStorage.removeItem("theme");
+      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (systemPrefersDark) document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+    } else {
+      localStorage.setItem("theme", newTheme);
+      if (newTheme === "dark") document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+    }
+    window.dispatchEvent(new Event("storage"));
+  };
+
+  return (
+    <div className="flex gap-2 p-1.5 bg-gray-50 dark:bg-zinc-950 rounded-xl border border-gray-100 dark:border-zinc-800">
+      <button 
+        onClick={() => changeTheme('system')} 
+        className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-lg text-sm font-medium transition-all ${theme === 'system' ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm border border-gray-200 dark:border-zinc-700' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 border border-transparent'}`}
+      >
+        <Monitor className="w-5 h-5 mb-1 text-blue-500/70" />
+        System
+      </button>
+      <button 
+        onClick={() => changeTheme('light')} 
+        className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-lg text-sm font-medium transition-all ${theme === 'light' ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm border border-gray-200 dark:border-zinc-700' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 border border-transparent'}`}
+      >
+        <Sun className="w-5 h-5 mb-1 text-amber-500/70" />
+        Light
+      </button>
+      <button 
+        onClick={() => changeTheme('dark')} 
+        className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-lg text-sm font-medium transition-all ${theme === 'dark' ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm border border-gray-200 dark:border-zinc-700' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 border border-transparent'}`}
+      >
+        <Moon className="w-5 h-5 mb-1 text-indigo-500/70" />
+        Dark
+      </button>
     </div>
   );
 }

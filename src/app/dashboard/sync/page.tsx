@@ -66,7 +66,8 @@ export default function CollegeSyncPage() {
             let dateStr = "";
             const d = doc.data().date;
             if (d?.toDate) {
-              dateStr = d.toDate().toISOString().split("T")[0];
+              const dateObj = d.toDate();
+              dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
             } else {
               dateStr = d || "";
             }
