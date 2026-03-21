@@ -380,11 +380,7 @@ export async function POST(req: Request) {
               return { recs, topRow: rows.length ? rows[0].textContent! : "" };
             }, subject);
 
-            const newRecords = parsedData.recs.filter(nr => {
-              return !masterData.some(mr => mr.subject === nr.subject && mr.date === nr.date && mr.fromTime === nr.fromTime);
-            });
-
-            masterData.push(...newRecords);
+            masterData.push(...parsedData.recs);
             scraped += parsedData.recs.length;
 
             if (masterData.filter(r => r.subject === subject).length >= expectedTotal) break;
