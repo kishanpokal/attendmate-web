@@ -298,11 +298,12 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* ── Bottom Row: Subjects & Calendar ── */}
+                {/* Changed to remove fixed h-[450px] constraint, allowing content flex and natural stacking */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                  <div className="lg:col-span-5 h-[450px]">
+                  <div className="lg:col-span-5 h-full min-h-[400px]">
                     <SubjectBarGraph data={bySubject} />
                   </div>
-                  <div className="lg:col-span-7 h-[450px]">
+                  <div className="lg:col-span-7 h-full min-h-[400px]">
                     <AttendanceCalendar
                       attendance={attendance}
                       monthOffset={monthOffset}
@@ -631,27 +632,27 @@ function AttendanceCalendar({ attendance, monthOffset, setMonthOffset, onDateCli
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-2 mb-2">
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <div key={i} className="text-center text-[10px] font-bold text-gray-400 dark:text-zinc-500 py-1">{d}</div>)}
+      <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
+        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <div key={i} className="text-center text-xs font-bold text-gray-400 dark:text-zinc-500 py-2">{d}</div>)}
       </div>
 
-      <div className="grid grid-cols-7 gap-2 flex-1 content-start">
+      <div className="grid grid-cols-7 gap-2 sm:gap-3 flex-1">
         {days.map((day, i) => {
-          if (!day) return <div key={i} />;
+          if (!day) return <div key={i} className="w-full aspect-square bg-transparent" />;
+
           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const dayData = attendance.filter((a: any) => a.date === dateStr);
           const hasData = dayData.length > 0;
 
-          let cellClasses = "bg-gray-50 dark:bg-zinc-800/50 text-gray-400 dark:text-zinc-600";
+          let cellClasses = "bg-gray-50 dark:bg-[#1C1C1E] text-gray-400 dark:text-zinc-600 border border-gray-100 dark:border-zinc-800/50";
           if (hasData) {
             const presentCount = dayData.filter((a: any) => a.status === "PRESENT").length;
             const percent = (presentCount / dayData.length) * 100;
 
-            if (percent === 100) cellClasses = "bg-emerald-500 text-white";
-            else if (percent >= 75) cellClasses = "bg-emerald-400/80 text-white";
-            else if (percent >= 50) cellClasses = "bg-amber-400 text-white";
-            else if (percent > 0) cellClasses = "bg-rose-400 text-white";
-            else cellClasses = "bg-rose-500 text-white";
+            if (percent === 100) cellClasses = "bg-emerald-500 text-white shadow-sm border-transparent";
+            else if (percent >= 75) cellClasses = "bg-emerald-400 text-white shadow-sm border-transparent";
+            else if (percent >= 50) cellClasses = "bg-amber-400 text-white shadow-sm border-transparent";
+            else cellClasses = "bg-rose-500 text-white shadow-sm border-transparent";
           }
 
           return (
@@ -659,7 +660,7 @@ function AttendanceCalendar({ attendance, monthOffset, setMonthOffset, onDateCli
               key={i}
               onClick={() => hasData && onDateClick(dateStr)}
               disabled={!hasData}
-              className={`w-full aspect-square rounded-md flex items-center justify-center text-xs font-semibold transition-transform ${cellClasses} ${hasData ? 'cursor-pointer hover:scale-105 active:scale-95' : 'cursor-default opacity-50'}`}
+              className={`w-full aspect-square rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-200 ${cellClasses} ${hasData ? 'cursor-pointer hover:scale-[1.05] active:scale-95 hover:shadow-md' : 'cursor-default'}`}
             >
               {day}
             </button>
@@ -668,16 +669,16 @@ function AttendanceCalendar({ attendance, monthOffset, setMonthOffset, onDateCli
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap justify-center gap-4 mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800">
+      <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-6 pt-5 border-t border-gray-100 dark:border-zinc-800">
         {[
           { color: "bg-emerald-500", label: "100%" },
           { color: "bg-amber-400", label: "50-74%" },
           { color: "bg-rose-500", label: "< 50%" },
-          { color: "bg-gray-100 dark:bg-zinc-800", label: "Empty" }
+          { color: "bg-gray-100 dark:bg-[#1C1C1E]", label: "Empty" }
         ].map((item, idx) => (
-          <div key={idx} className="flex items-center gap-1.5">
-            <div className={`w-2.5 h-2.5 rounded-sm ${item.color}`}></div>
-            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">{item.label}</span>
+          <div key={idx} className="flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-md ${item.color}`}></div>
+            <span className="text-[10px] sm:text-xs text-gray-500 font-semibold uppercase tracking-wider">{item.label}</span>
           </div>
         ))}
       </div>
@@ -708,10 +709,10 @@ function SkipPrediction({ present, total, bySubject }: { present: number, total:
           <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">Impact analysis for skipping upcoming classes</p>
         </div>
 
-        <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 p-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+        <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 p-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm w-full sm:w-auto">
           <button
             onClick={() => setSelectedSubject("Global")}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${selectedSubject === "Global" ? "bg-primary text-white" : "text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800"}`}
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${selectedSubject === "Global" ? "bg-primary text-white" : "text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800"}`}
           >
             Overall
           </button>
@@ -719,7 +720,7 @@ function SkipPrediction({ present, total, bySubject }: { present: number, total:
           <select
             value={selectedSubject === "Global" ? "" : selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value || "Global")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold bg-transparent outline-none cursor-pointer appearance-none ${selectedSubject !== "Global" ? "text-primary" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"}`}
+            className={`flex-1 sm:flex-none px-3 py-2 rounded-lg text-xs font-semibold bg-transparent outline-none cursor-pointer appearance-none ${selectedSubject !== "Global" ? "text-primary" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"}`}
           >
             <option value="" disabled className="dark:bg-zinc-900">Subjects</option>
             {Object.keys(bySubject).map(s => (
@@ -734,15 +735,15 @@ function SkipPrediction({ present, total, bySubject }: { present: number, total:
           const newPercent = percentageAfterSkipping(currentStats.p, currentStats.t, skip);
           const theme = getTheme(newPercent);
 
-          let severityIcon = <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
+          let severityIcon = <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
           let advice = "Safe to skip";
 
           if (newPercent < 75) {
-            severityIcon = <AlertCircle className="w-4 h-4 text-rose-500" />;
+            severityIcon = <AlertCircle className="w-5 h-5 text-rose-500" />;
             const needed = Math.ceil((0.75 * (currentStats.t + skip) - currentStats.p) / 0.25);
             advice = `Will require +${needed} classes`;
           } else if (newPercent < 80) {
-            severityIcon = <AlertCircle className="w-4 h-4 text-amber-500" />;
+            severityIcon = <AlertCircle className="w-5 h-5 text-amber-500" />;
             advice = "Buffer getting thin";
           }
 

@@ -866,6 +866,14 @@
     },
     {
       "subject": "DEEP LEARNING",
+      "date": "06/01/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "06/01/202613:0014:00sigmoid(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
       "date": "05/01/2026",
       "fromTime": "13:00",
       "toTime": "14:00",
@@ -1009,8 +1017,8 @@
       "status": "Absent"
     }
   ],
-  "lastSynced": "2026-03-21T05:19:51.219Z",
-  "totalRecords": 126,
+  "lastSynced": "2026-03-21T05:41:55.996Z",
+  "totalRecords": 127,
   "subjects": [
     "CLOUD COMPUTING",
     "MACHINE LEARNING",

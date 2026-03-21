@@ -58,6 +58,7 @@ export async function POST(req: Request) {
         });
 
         const page = await browser.newPage();
+        await page.emulateTimezone('Asia/Kolkata');
         await page.setViewport({ width: 1920, height: 1080 });
 
         // ————————————————————————————————————————
