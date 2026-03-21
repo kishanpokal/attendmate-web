@@ -19,6 +19,22 @@ export const POLICY_QA = [
   {
     keywords: ["calculate", "how", "math"],
     answer: "Attendance is calculated as (Total Present / Total Classes Conducted) * 100. To reach 75%, you need at least 3 present marks for every 1 absent mark."
+  },
+  {
+    keywords: ["debarred", "debar", "exam", "not allowed", "barred"],
+    answer: "If your attendance drops below 75%, most universities will debar you from sitting the final exam. Some allow a grace period with a written application, but it is never guaranteed. Stay above 75% to be safe."
+  },
+  {
+    keywords: ["condonation", "condone", "grace", "exception"],
+    answer: "Condonation is a one-time exception some colleges grant when attendance is between 65-75% due to genuine reasons. It requires a formal application to the HOD. It is NOT automatic and NOT guaranteed."
+  },
+  {
+    keywords: ["proxy", "fake", "mark someone", "sign for"],
+    answer: "Proxy attendance (marking someone else present) is considered academic fraud and can result in disciplinary action including suspension. AttendMate only tracks your own attendance honestly."
+  },
+  {
+    keywords: ["semester", "how long", "weeks", "duration"],
+    answer: "A typical semester is 16-18 weeks long with around 90 working days. The 75% rule means you can miss a maximum of 22-23 days across the whole semester."
   }
 ];
 
@@ -26,12 +42,23 @@ export class KnowledgeBase {
   findAnswer(text: string): string | null {
     const tokens = text.toLowerCase().split(/\s+/);
     
+    let bestMatch: { answer: string, score: number } | null = null;
+
     for (const item of POLICY_QA) {
-      if (item.keywords.some(k => tokens.includes(k))) {
-        return item.answer;
+      let score = 0;
+      for (const k of item.keywords) {
+        if (tokens.includes(k)) {
+          score++;
+        }
+      }
+      
+      if (score >= 1) {
+        if (!bestMatch || score > bestMatch.score) {
+          bestMatch = { answer: item.answer, score };
+        }
       }
     }
     
-    return null;
+    return bestMatch ? bestMatch.answer : null;
   }
 }

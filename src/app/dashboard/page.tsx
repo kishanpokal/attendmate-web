@@ -19,6 +19,7 @@ import {
   ChevronRight,
   TrendingUp,
   Brain,
+  BrainCircuit,
   ShieldCheck,
   Calendar,
   Layers,
@@ -206,15 +207,37 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 px-5 py-3 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-0.5">Today's Date</p>
-              <p className="text-sm font-bold text-gray-900 dark:text-white">
-                {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-              </p>
+          <div className="flex items-center gap-4">
+            {/* AI Assistant Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push("/ai")}
+              className="relative hidden sm:flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white text-sm font-black shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all border border-white/20 overflow-hidden group"
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-violet-400/0 via-white/20 to-violet-400/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              <BrainCircuit className="w-5 h-5 relative z-10" />
+              <span className="relative z-10">AI Copilot</span>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push("/ai")}
+              className="relative flex sm:hidden items-center justify-center p-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30"
+            >
+               <BrainCircuit className="w-5 h-5" />
+            </motion.button>
+
+            <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 px-5 py-3 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div className="hidden sm:block">
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-0.5">Today's Date</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                  {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                </p>
+              </div>
             </div>
           </div>
         </header>

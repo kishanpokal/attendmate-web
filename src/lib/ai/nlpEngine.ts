@@ -24,12 +24,22 @@ export type Intent =
   | "QA_POLICY"
   | "HELP"
   | "GET_TIMETABLE"
+  | "COMPARE_SUBJECTS"
+  | "MONTHLY_REPORT"
+  | "SUBJECT_SKIP_CALC"
+  | "GET_STREAK"
+  | "GET_LOWEST_SUBJECT"
+  | "GET_BEST_SUBJECT"
+  | "RESET_CONTEXT"
+  | "CLARIFY"
   | "UNKNOWN";
 
 export interface ExtractedEntities {
   subject?: string;
+  subject2?: string;
   status?: "PRESENT" | "ABSENT";
   date?: string;
+  month?: number; // 0-indexed month
   target?: number;
   time?: string; // HH:mm format
   friend?: string;
@@ -53,7 +63,13 @@ const SYNONYMS: Record<string, string[]> = {
   NAVIGATE: ["go", "open", "show", "take", "navigate", "visit", "redirect", "page", "screen"],
   PAGES: ["dashboard", "attendance", "analytics", "settings", "timetable", "friends", "subjects", "home", "ai"],
   SPLIT_INDICATORS: ["till", "until", "before", "after", "rest", "remaining"],
-  TIMETABLE: ["timetable", "schedule", "classes", "today", "lectures", "routine"]
+  TIMETABLE: ["timetable", "schedule", "classes", "today", "lectures", "routine"],
+  COMPARE: ["compare", "versus", "vs", "difference", "between", "which", "better", "worse"],
+  MONTHLY: ["monthly", "month", "last month", "this month", "report", "30 days"],
+  SKIP_CALC: ["skip", "bunk", "miss", "how many", "can i", "afford", "allowed", "safe to"],
+  STREAK: ["streak", "consecutive", "row", "in a row", "chain"],
+  LOWEST: ["lowest", "worst", "weakest", "poor", "failing", "danger", "critical"],
+  BEST: ["best", "highest", "strongest", "top", "great", "excellent"]
 };
 
 function levenshtein(a: string, b: string): number {
@@ -86,13 +102,14 @@ export class NlpEngine {
     return text.toLowerCase().replace(/[?.,!]/g, "").split(/\s+/);
   }
 
-  classifyIntent(text: string): Intent {
+  classifyIntent(text: string, isPendingSubject: boolean = false): Intent {
     const tokens = this.tokenize(text);
+    const entities = this.extractEntities(text);
     
+    // Check for GREETING
     if (this.matches(tokens, SYNONYMS.GREETING)) return "GREETING";
 
     // Detect if a friend name is present to prioritize social intents
-    const entities = this.extractEntities(text);
     if (entities.friend && (this.matches(tokens, ["attendance", "score", "standing", "how", "hows", "check", "status", "summary", "stats"]))) {
       return "GET_FRIEND_ATTENDANCE";
     }
@@ -102,14 +119,25 @@ export class NlpEngine {
       return "NAVIGATE";
     }
 
-    // Check for bulk marking (More flexible: "mark all present" OR "all present")
+    // Check for bulk marking
     if (this.matches(tokens, SYNONYMS.BULK) || this.matches(tokens, ["mark", "set", "log"])) {
-      // Split marking check
       if (this.matches(tokens, SYNONYMS.SPLIT_INDICATORS) && entities.time) {
         return "BULK_MARK_SPLIT";
       }
       if (this.matches(tokens, SYNONYMS.BULK) && this.matches(tokens, SYNONYMS.PRESENT)) return "BULK_MARK_PRESENT";
       if (this.matches(tokens, SYNONYMS.BULK) && this.matches(tokens, SYNONYMS.ABSENT)) return "BULK_MARK_ABSENT";
+    }
+
+    // New intents explicitly ordered before UNKNOWN
+    if (this.matches(tokens, SYNONYMS.COMPARE) && entities.subject && entities.subject2) return "COMPARE_SUBJECTS";
+    if (this.matches(tokens, SYNONYMS.MONTHLY)) return "MONTHLY_REPORT";
+    if (this.matches(tokens, SYNONYMS.SKIP_CALC)) return "SUBJECT_SKIP_CALC";
+    if (this.matches(tokens, SYNONYMS.STREAK)) return "GET_STREAK";
+    if (this.matches(tokens, SYNONYMS.LOWEST)) return "GET_LOWEST_SUBJECT";
+    if (this.matches(tokens, SYNONYMS.BEST)) return "GET_BEST_SUBJECT";
+
+    if (tokens.length <= 2 && isPendingSubject && entities.subject) {
+      return "CLARIFY";
     }
 
     if (this.matches(tokens, SYNONYMS.PREDICT) || this.matches(tokens, ["skip", "bunk", "miss", "leave", "drop"]) || 
@@ -131,7 +159,7 @@ export class NlpEngine {
     if (this.matches(tokens, SYNONYMS.MOTIVATE)) return "MOTIVATE";
     if (this.matches(tokens, SYNONYMS.GOAL)) return "SET_GOAL";
 
-    // Help last to avoid hijacking commands like "Can you predict..."
+    // Help last to avoid hijacking
     if (this.matches(tokens, ["help", "commands", "support", "options"])) return "HELP";
     
     // Check for marking attendance
@@ -150,25 +178,46 @@ export class NlpEngine {
     const tokens = this.tokenize(text);
     const entities: ExtractedEntities = {};
 
-    // Friend Extraction (Improved RegEx)
-    // Matches: "how is kishan", "kishan attendance", "check kishan"
-    // Excludes common fillers like "my", "your", "my friend" from being the name
+    // Friend Extraction
     const friendMatch = text.match(/(?:how is|how's|check|attendance of|standing of|friend)\s+(?!my|friend|your)([a-zA-Z]+)/i) || 
                        text.match(/^([a-zA-Z]+)(?:\s+attendance|\s+standing|\s+score)/i);
-    
     if (friendMatch) {
        entities.friend = friendMatch[1];
     }
 
-    // Subject Extraction
+    // Identify single-subject only message (for CLARIFY)
+    const matchedSubjects: string[] = [];
     for (const sub of this.subjects) {
       if (text.toLowerCase().includes(sub) || tokens.some(t => this.isFuzzyMatch(t, sub))) {
-        entities.subject = sub;
-        break;
+        if (!matchedSubjects.includes(sub)) {
+          matchedSubjects.push(sub);
+        }
       }
     }
 
-    // Page Extraction for Navigation
+    if (matchedSubjects.length > 0) {
+      entities.subject = matchedSubjects[0];
+      if (matchedSubjects.length > 1) {
+        entities.subject2 = matchedSubjects[1];
+      }
+    }
+
+    if (tokens.length <= 2 && matchedSubjects.length === 1 && !this.matches(tokens, SYNONYMS.SUMMARY) && !this.matches(tokens, ["mark", "attendance", "score", "skip"])) {
+       // Message contains ONLY a subject name with no intent tokens -> treat it mostly as a subject response
+       entities.subject = matchedSubjects[0];
+    }
+
+    // Month Extraction
+    const months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+    const shortMonths = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+    for (let i = 0; i < months.length; i++) {
+       if (tokens.includes(months[i]) || tokens.includes(shortMonths[i])) {
+          entities.month = i;
+          break;
+       }
+    }
+
+    // Page Extraction
     for (const p of SYNONYMS.PAGES) {
       if (text.toLowerCase().includes(p)) {
         entities.page = p;
@@ -194,8 +243,7 @@ export class NlpEngine {
       if (dateMatch) {
          const day = parseInt(dateMatch[1]);
          const monthStr = dateMatch[3].toLowerCase();
-         const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
-         const month = months.indexOf(monthStr);
+         const month = shortMonths.indexOf(monthStr);
          const d = new Date();
          d.setMonth(month, day);
          if (d < new Date()) d.setFullYear(d.getFullYear() + 1);
@@ -203,25 +251,32 @@ export class NlpEngine {
       }
     }
 
-    // Time Extraction (e.g., "4pm", "16:00", "at 4", "till 4", "before 4")
+    // Time Extraction
     const timeMatch = text.match(/(?:till|before|at|by|until)?\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
-    if (timeMatch && !entities.date) { // Avoid mismatch if date uses numbers
+    if (timeMatch && !entities.date) {
       let hours = parseInt(timeMatch[1]);
       const minutes = timeMatch[2] ? timeMatch[2] : "00";
       const ampm = timeMatch[3] ? timeMatch[3].toLowerCase() : null;
 
       if (ampm === "pm" && hours < 12) hours += 12;
       if (ampm === "am" && hours === 12) hours = 0;
-      // Default to PM if time is small and no AM/PM (e.g., "till 4")
       if (!ampm && hours > 0 && hours < 8) hours += 12; 
 
       entities.time = `${hours.toString().padStart(2, '0')}:${minutes}`;
     }
 
-    // Target Extraction (for goals)
-    const targetMatch = text.match(/(\d+)%/);
+    // Target Extraction robust
+    const targetMatch = text.match(/((?:eighty|seventy|ninety|sixty) percent|\d+\s*(?:%|percent))/i);
     if (targetMatch) {
-      entities.target = parseInt(targetMatch[1]);
+      let valStr = targetMatch[1].toLowerCase();
+      if (valStr.includes("eighty")) entities.target = 80;
+      else if (valStr.includes("seventy")) entities.target = 70;
+      else if (valStr.includes("ninety")) entities.target = 90;
+      else if (valStr.includes("sixty")) entities.target = 60;
+      else {
+        const numMatch = valStr.match(/(\d+)/);
+        if (numMatch) entities.target = parseInt(numMatch[1]);
+      }
     }
 
     return entities;
@@ -229,10 +284,16 @@ export class NlpEngine {
 
   private isFuzzyMatch(word: string, target: string): boolean {
     if (word === target) return true;
-    if (Math.abs(word.length - target.length) > 2) return false;
     
     // Exact match for very short words
     if (target.length <= 3) return word === target;
+
+    // Truncated words handling (e.g., "pred" -> "predict")
+    if (target.length >= 3 && word.startsWith(target.substring(0, 3)) && Math.abs(word.length - target.length) <= 3) {
+      return true;
+    }
+
+    if (Math.abs(word.length - target.length) > 2) return false;
     
     const dist = levenshtein(word, target);
     if (target.length <= 5) return dist <= 1;
@@ -240,7 +301,14 @@ export class NlpEngine {
   }
 
   private matches(tokens: string[], keywords: string[]): boolean {
-    return tokens.some(token => keywords.some(keyword => this.isFuzzyMatch(token, keyword)));
+    // If ANY part of the multi-word keyword is matched directly or via hyphen
+    return tokens.some(token => keywords.some(keyword => {
+      if (keyword.includes(" ")) {
+        const kwTokens = keyword.split(" ");
+        return kwTokens.every(kwT => tokens.some(t => this.isFuzzyMatch(t, kwT)));
+      }
+      return this.isFuzzyMatch(token, keyword);
+    }));
   }
 
   private hasSubject(tokens: string[]): boolean {

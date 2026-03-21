@@ -18,19 +18,211 @@ export class PredictionEngine {
     const total = filtered.length;
     const present = filtered.filter(r => r.status.toUpperCase() === "PRESENT").length;
     
-    if (total === 0) return { current: 0, next: 0, status: "NO_DATA" };
+    if (total === 0) return { current: 0, next: 0, bunkable: 0, needed: 0, status: "NO_DATA", daysToRecover: 0 };
 
     const current = (present / total) * 100;
-    
-    // Basic linear projection (assuming next 5 classes are attended)
-    const projected = ((present + 5) / (total + 5)) * 100;
+    const projected = ((present + 5) / (total + 5)) * 100; // Basic linear projection
+
+    let status: "SAFE" | "WARNING" | "CRITICAL" = "SAFE";
+    if (current < 60) status = "CRITICAL";
+    else if (current < 75) status = "WARNING";
+
+    const needed = current < 75 ? Math.ceil((0.75 * total - present) / 0.25) : 0;
+    const daysToRecover = needed; // Exact number of consecutive classes
     
     return {
       current: Number(current.toFixed(1)),
       projected: Number(projected.toFixed(1)),
-      needed: Math.ceil((0.75 * (total + 10) - present) / 1), // Simplistic: how many more to reach 75%
-      bunkable: Math.max(0, Math.floor(present / 0.75 - total))
+      needed,
+      daysToRecover,
+      bunkable: Math.max(0, Math.floor(present / 0.75 - total)),
+      status
     };
+  }
+
+  compareSubjects(records: AttendanceRecord[], subjectA: string, subjectB: string) {
+    const aRecords = records.filter(r => r.subject.toLowerCase() === subjectA.toLowerCase());
+    const bRecords = records.filter(r => r.subject.toLowerCase() === subjectB.toLowerCase());
+
+    const getPct = (recs: AttendanceRecord[]) => recs.length === 0 ? 0 : (recs.filter(r => r.status.toUpperCase() === "PRESENT").length / recs.length) * 100;
+
+    const pctA = getPct(aRecords);
+    const pctB = getPct(bRecords);
+
+    // Trend analysis (last 7 days vs overall)
+    const getTrend = (recs: AttendanceRecord[], overallPct: number) => {
+      const last7 = new Date();
+      last7.setDate(last7.getDate() - 7);
+      const recent = recs.filter(r => new Date(r.date) >= last7);
+      if (recent.length === 0) return 0;
+      const recentPct = (recent.filter(r => r.status.toUpperCase() === "PRESENT").length / recent.length) * 100;
+      return recentPct - overallPct;
+    };
+
+    const trendA = getTrend(aRecords, pctA);
+    const trendB = getTrend(bRecords, pctB);
+
+    const winner = pctA > pctB ? subjectA : (pctB > pctA ? subjectB : "Tie");
+    const gap = Math.abs(pctA - pctB);
+
+    let recommendation = "";
+    if (trendA < -5) recommendation = `Focus on ${subjectA} — it's trending down by ${Math.abs(Number(trendA.toFixed(1)))}% this week.`;
+    else if (trendB < -5) recommendation = `Focus on ${subjectB} — it's trending down by ${Math.abs(Number(trendB.toFixed(1)))}% this week.`;
+    else recommendation = winner !== "Tie" ? `Keep maintaining your lead in ${winner}!` : "Both are balanced. Good job!";
+
+    return {
+      subjectA,
+      pctA: Number(pctA.toFixed(1)),
+      trendA: Number(trendA.toFixed(1)),
+      subjectB,
+      pctB: Number(pctB.toFixed(1)),
+      trendB: Number(trendB.toFixed(1)),
+      winner,
+      gap: Number(gap.toFixed(1)),
+      recommendation
+    };
+  }
+
+  getMonthlyReport(records: AttendanceRecord[], month?: number) {
+    const targetMonth = month !== undefined ? month : new Date().getMonth();
+    
+    const monthRecords = records.filter(r => new Date(r.date).getMonth() === targetMonth);
+    const totalClassesThisMonth = monthRecords.length;
+    const overallPresent = monthRecords.filter(r => r.status.toUpperCase() === "PRESENT").length;
+    const overallPct = totalClassesThisMonth === 0 ? 0 : (overallPresent / totalClassesThisMonth) * 100;
+
+    const subjectGroups: Record<string, { present: number, total: number }> = {};
+    monthRecords.forEach(r => {
+      if (!subjectGroups[r.subject]) subjectGroups[r.subject] = { present: 0, total: 0 };
+      subjectGroups[r.subject].total++;
+      if (r.status.toUpperCase() === "PRESENT") subjectGroups[r.subject].present++;
+    });
+
+    const subjectBreakdown = Object.keys(subjectGroups).map(sub => {
+      const st = subjectGroups[sub];
+      const pct = (st.present / st.total) * 100;
+      return {
+        subject: sub,
+        present: st.present,
+        absent: st.total - st.present,
+        total: st.total,
+        pct: Number(pct.toFixed(1))
+      };
+    }).sort((a,b) => b.pct - a.pct);
+
+    let bestSubject = "None";
+    let worstSubject = "None";
+    
+    if (subjectBreakdown.length > 0) {
+      bestSubject = subjectBreakdown[0].subject;
+      worstSubject = subjectBreakdown[subjectBreakdown.length - 1].subject;
+    }
+
+    return {
+      overallPct: Number(overallPct.toFixed(1)),
+      totalClassesThisMonth,
+      subjectBreakdown,
+      bestSubject,
+      worstSubject
+    };
+  }
+
+  subjectSkipCalculator(records: AttendanceRecord[], subject: string, targetPct: number = 75) {
+    const subRecords = records.filter(r => r.subject.toLowerCase() === subject.toLowerCase());
+    const total = subRecords.length;
+    const present = subRecords.filter(r => r.status.toUpperCase() === "PRESENT").length;
+    
+    if (total === 0) return { current: 0, target: targetPct, canSkip: 0, mustAttend: 0, safeSkipsPerWeek: 0, status: "SAFE" as const };
+
+    const current = (present / total) * 100;
+    const decTarget = targetPct / 100;
+    
+    const canSkip = Math.max(0, Math.floor((present / decTarget) - total));
+    const mustAttend = current < targetPct ? Math.ceil((decTarget * total - present) / (1 - decTarget)) : 0;
+
+    // Remaining weeks in semester. Assuming 16 weeks max.
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const days = Math.floor((new Date().getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
+    const currentWeek = Math.ceil(days / 7);
+    const remainingWeeks = Math.max(1, 16 - (currentWeek % 16));
+    
+    const safeSkipsPerWeek = Number((canSkip / remainingWeeks).toFixed(1));
+
+    let status: "SAFE" | "WARNING" | "CRITICAL" = "SAFE";
+    if (current < targetPct) status = "CRITICAL";
+    else if (canSkip <= 2) status = "WARNING";
+
+    return {
+      current: Number(current.toFixed(1)),
+      target: targetPct,
+      canSkip,
+      mustAttend,
+      safeSkipsPerWeek,
+      status
+    };
+  }
+
+  getStreak(records: AttendanceRecord[], subject?: string) {
+    const sorted = [...records]
+      .filter(r => !subject || r.subject.toLowerCase() === subject.toLowerCase())
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    let currentPresentStreak = 0;
+    let currentAbsentStreak = 0;
+    let longestPresentStreak = 0;
+
+    // Current streaks
+    for (const r of sorted) {
+      if (r.status.toUpperCase() === "PRESENT") {
+        if (currentAbsentStreak > 0) break;
+        currentPresentStreak++;
+      } else {
+        if (currentPresentStreak > 0) break;
+        currentAbsentStreak++;
+      }
+    }
+
+    // Longest streak
+    let temp = 0;
+    // Iterate ascending to find longest naturally
+    const ascending = [...sorted].reverse();
+    for (const r of ascending) {
+      if (r.status.toUpperCase() === "PRESENT") {
+        temp++;
+        if (temp > longestPresentStreak) longestPresentStreak = temp;
+      } else {
+        temp = 0;
+      }
+    }
+
+    return {
+      currentPresentStreak,
+      longestPresentStreak,
+      currentAbsentStreak
+    };
+  }
+
+  getSubjectRanking(records: AttendanceRecord[]) {
+    const subjectGroups: Record<string, { present: number, total: number }> = {};
+    records.forEach(r => {
+      if (!subjectGroups[r.subject]) subjectGroups[r.subject] = { present: 0, total: 0 };
+      subjectGroups[r.subject].total++;
+      if (r.status.toUpperCase() === "PRESENT") subjectGroups[r.subject].present++;
+    });
+
+    return Object.keys(subjectGroups).map(sub => {
+      const st = subjectGroups[sub];
+      const pct = (st.present / st.total) * 100;
+      let status: "SAFE" | "WARNING" | "CRITICAL" = "SAFE";
+      if (pct < 60) status = "CRITICAL";
+      else if (pct < 75) status = "WARNING";
+      
+      return {
+        subject: sub,
+        pct: Number(pct.toFixed(1)),
+        status
+      };
+    }).sort((a,b) => b.pct - a.pct);
   }
 
   analyzePatterns(records: AttendanceRecord[]) {
@@ -90,7 +282,6 @@ export class PredictionEngine {
     const currentTotal = filtered.length;
     const currentPresent = filtered.filter(r => r.status.toUpperCase() === "PRESENT").length;
 
-    // Estimate future classes based on timetable
     let estimatedFutureClasses = 0;
     const days = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
     
@@ -140,14 +331,12 @@ export class PredictionEngine {
     const insights: string[] = [];
     if (records.length < 5) return ["I need more data to provide personalized behavioral insights. Keep logging!"];
 
-    // 1. Monday Slump Detection
     const mondays = records.filter(r => new Date(r.date).getDay() === 1);
     const mondayMisses = mondays.filter(r => r.status.toUpperCase() === "ABSENT").length;
     if (mondays.length >= 3 && (mondayMisses / mondays.length) > 0.4) {
       insights.push("🚨 **Monday Slump Detected**: You miss over 40% of your Monday classes. Try setting an extra alarm or prepping your bag on Sunday night!");
     }
 
-    // 2. Subject Burnout Detection (trending down)
     const subjectStats: Record<string, { total: number, recentAbsent: number }> = {};
     const recentDate = new Date();
     recentDate.setDate(recentDate.getDate() - 10);
@@ -164,13 +353,6 @@ export class PredictionEngine {
       if (stats.recentAbsent >= 2) {
         insights.push(`🔥 **Subject Burnout**: You've missed multiple **${subject}** sessions recently. Consider review sessions to catch up before the gap grows.`);
       }
-    });
-
-    // 3. Peak Performance Detection
-    const morningClasses = records.filter(r => {
-        // Since we don't have time in AttendanceRecord yet, we might need to adjust or skip this 
-        // until we add time to records. For now, let's use a "win streak" insight.
-        return true;
     });
     
     const presentStreak = [...records].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
