@@ -105,24 +105,21 @@ export class OfflineAiEngine {
                `⚠️ Needs work: ${report.worstSubject}`;
 
       case "SUBJECT_SKIP_CALC":
-        if (!resolvedSubject) {
-           this.context.setPending("SUBJECT_SKIP_CALC", "subject");
-           return "Which subject's skip budget do you want to calculate?";
-        }
+        const skipTargetName = resolvedSubject || "Overall";
         const skipCalc = this.predictor.subjectSkipCalculator(records, resolvedSubject, entities.target || 75);
         if (skipCalc.status === "SAFE") {
-           return `✅ **${resolvedSubject} Skip Budget**\n\n` +
+           return `✅ **${skipTargetName} Skip Budget**\n\n` +
                   `Current: ${skipCalc.current}% | Target: ${skipCalc.target}%\n` +
                   `You can safely skip **${skipCalc.canSkip} more classes**.\n` +
                   `That's roughly **${skipCalc.safeSkipsPerWeek} per week** for the rest of semester.\n` +
                   `Don't blow it all at once! 😄`;
         } else if (skipCalc.status === "WARNING") {
-           return `⚠️ **${resolvedSubject} — Careful Zone**\n\n` +
+           return `⚠️ **${skipTargetName} — Careful Zone**\n\n` +
                   `Current: ${skipCalc.current}% | Target: ${skipCalc.target}%\n` +
                   `You can only skip **${skipCalc.canSkip} more class(es)** without dropping below ${skipCalc.target}%.\n` +
                   `Attend the next few to build a buffer.`;
         } else {
-           return `🚨 **${resolvedSubject} — Recovery Mode**\n\n` +
+           return `🚨 **${skipTargetName} — Recovery Mode**\n\n` +
                   `Current: ${skipCalc.current}% | Target: ${skipCalc.target}%\n` +
                   `No skips allowed. You need to attend **${skipCalc.mustAttend} consecutive classes**\n` +
                   `to get back above ${skipCalc.target}%. Every session counts now.`;
@@ -204,7 +201,51 @@ export class OfflineAiEngine {
         return answer || "I'm not entirely sure about that specific policy. Usually, keeping it above 75% is the safest bet!";
 
       case "HELP":
-        return `ACTION_REQUIRED:SHOW_HELP`;
+        return `🤖 **AttendMate AI Commands**\n\n` +
+               `**Attendance & Predictions**\n` +
+               `• "Summary for [Subject]"\n` +
+               `• "How many lectures needed for 75% in [Subject]?"\n` +
+               `• "How many can I skip in [Subject]?"\n` +
+               `• "What's my attendance if I skip tomorrow?"\n\n` +
+               `**Insights & Streaks**\n` +
+               `• "What is my best/lowest subject?"\n` +
+               `• "Show my streak for [Subject]"\n` +
+               `• "Compare [Subject A] vs [Subject B]"\n` +
+               `• "Get monthly report"\n\n` +
+               `**Actions**\n` +
+               `• "Mark present for [Subject]"\n` +
+               `• "Mark all absent before 2pm"\n` +
+               `• "Open timetable"`;
+
+      case "LECTURES_NEEDED_75":
+        let neededRecords = records;
+        let neededTargetName = "Overall";
+        if (resolvedSubject) {
+           neededRecords = records.filter(r => r.subject.toLowerCase() === resolvedSubject.toLowerCase());
+           neededTargetName = resolvedSubject;
+        }
+        
+        const total = neededRecords.length;
+        const attended = neededRecords.filter(r => r.status.toUpperCase() === "PRESENT").length;
+
+        if (total === 0) return `You don't have any classes logged ${resolvedSubject ? `for ${resolvedSubject}` : 'yet'}.`;
+        const cPct = (attended / total) * 100;
+        if (cPct >= 75) {
+            return `✅ **${neededTargetName}** is already at or above 75% (${cPct.toFixed(1)}%). You don't need to attend any extra catch-up classes!`;
+        }
+
+        let tempA = attended;
+        let tempT = total;
+        let needed = 0;
+        while (((tempA / tempT) * 100) < 75 && needed < 200) {
+            tempA++;
+            tempT++;
+            needed++;
+        }
+
+        return `⚠️ **${neededTargetName} Recovery**\n\n` +
+               `Current: ${cPct.toFixed(1)}%\n` +
+               `You need to attend **${needed} consecutive classes** without missing any to reach 75%.`;
 
       default:
         // Improve UNKNOWN fallback

@@ -30,13 +30,37 @@ type AnalyticsAttendance = {
 /* ---------------- UTILS ---------------- */
 function getAttendanceDeficit(present: number, total: number) {
   if (total === 0) return 0;
-  if (present / total >= 0.75) return 0;
-  return Math.ceil(0.75 * total - present);
+  const currentPercent = (present / total) * 100;
+  if (currentPercent >= 75) return 0;
+
+  let tempAttended = present;
+  let tempTotal = total;
+  let needed = 0;
+
+  while (((tempAttended / tempTotal) * 100) < 75 && needed < 200) {
+      tempAttended++;
+      tempTotal++;
+      needed++;
+  }
+
+  return needed;
 }
 
 function maxBunkableLectures(present: number, total: number) {
   if (total === 0) return 0;
-  return Math.max(Math.floor(present / 0.75 - total), 0);
+  const currentPercent = (present / total) * 100;
+  if (currentPercent < 75) return 0;
+
+  let tempAttended = present;
+  let tempTotal = total;
+  let canSkip = 0;
+
+  while (((tempAttended / (tempTotal + 1)) * 100) >= 75 && canSkip < 200) {
+      tempTotal++;
+      canSkip++;
+  }
+
+  return canSkip;
 }
 
 function percentageAfterSkipping(present: number, total: number, skip: number) {

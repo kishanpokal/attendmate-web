@@ -127,8 +127,10 @@ export class PredictionEngine {
     };
   }
 
-  subjectSkipCalculator(records: AttendanceRecord[], subject: string, targetPct: number = 75) {
-    const subRecords = records.filter(r => r.subject.toLowerCase() === subject.toLowerCase());
+  subjectSkipCalculator(records: AttendanceRecord[], subject?: string, targetPct: number = 75) {
+    const subRecords = subject 
+      ? records.filter(r => r.subject.toLowerCase() === subject.toLowerCase())
+      : records;
     const total = subRecords.length;
     const present = subRecords.filter(r => r.status.toUpperCase() === "PRESENT").length;
     

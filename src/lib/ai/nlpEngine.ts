@@ -32,6 +32,7 @@ export type Intent =
   | "GET_BEST_SUBJECT"
   | "RESET_CONTEXT"
   | "CLARIFY"
+  | "LECTURES_NEEDED_75"
   | "UNKNOWN";
 
 export interface ExtractedEntities {
@@ -67,6 +68,7 @@ const SYNONYMS: Record<string, string[]> = {
   COMPARE: ["compare", "versus", "vs", "difference", "between", "which", "better", "worse"],
   MONTHLY: ["monthly", "month", "last month", "this month", "report", "30 days"],
   SKIP_CALC: ["skip", "bunk", "miss", "how many", "can i", "afford", "allowed", "safe to"],
+  NEEDED_75: ["need to attend", "reach 75", "for 75", "how many need", "require", "required for 75", "to get 75", "75 percent"],
   STREAK: ["streak", "consecutive", "row", "in a row", "chain"],
   LOWEST: ["lowest", "worst", "weakest", "poor", "failing", "danger", "critical"],
   BEST: ["best", "highest", "strongest", "top", "great", "excellent"]
@@ -132,6 +134,7 @@ export class NlpEngine {
     if (this.matches(tokens, SYNONYMS.COMPARE) && entities.subject && entities.subject2) return "COMPARE_SUBJECTS";
     if (this.matches(tokens, SYNONYMS.MONTHLY)) return "MONTHLY_REPORT";
     if (this.matches(tokens, SYNONYMS.SKIP_CALC)) return "SUBJECT_SKIP_CALC";
+    if (this.matches(tokens, SYNONYMS.NEEDED_75)) return "LECTURES_NEEDED_75";
     if (this.matches(tokens, SYNONYMS.STREAK)) return "GET_STREAK";
     if (this.matches(tokens, SYNONYMS.LOWEST)) return "GET_LOWEST_SUBJECT";
     if (this.matches(tokens, SYNONYMS.BEST)) return "GET_BEST_SUBJECT";

@@ -82,19 +82,23 @@ export default function CollegeSyncPage() {
     fetchAppRecords();
   }, [user]);
 
-  // Load cached data from file on mount
+  // Load cached data from localStorage on mount
   useEffect(() => {
     if (!user) return;
-    const loadCached = async () => {
+    const loadCached = () => {
       setLoadingCached(true);
       try {
-        const res = await fetch(`/api/read-college-data?userId=${user.uid}`);
-        const json = await res.json();
-        if (json.found && json.records?.length > 0) {
-          setScrapedData(json.records);
-          setLastSynced(json.lastSynced || null);
+        const savedDataStr = localStorage.getItem(`college_sync_data_${user.uid}`);
+        if (savedDataStr) {
+          const savedData = JSON.parse(savedDataStr);
+          if (savedData.records && savedData.records.length > 0) {
+            setScrapedData(savedData.records);
+            setLastSynced(savedData.lastSynced || null);
+          }
         }
-      } catch { /* ignore */ }
+      } catch (e) {
+        console.error("Failed to parse cached sync data", e);
+      }
       setLoadingCached(false);
     };
     loadCached();
@@ -156,9 +160,20 @@ export default function CollegeSyncPage() {
 
               if (event.step === "complete" && event.totalRecords) {
                 setScrapedData(event.totalRecords);
-                setLastSynced(new Date().toISOString());
+                const syncTime = new Date().toISOString();
+                setLastSynced(syncTime);
                 const comparison = compareAttendanceData(event.totalRecords, appData);
                 setSummary(comparison);
+                
+                try {
+                  const saveData = {
+                    records: event.totalRecords,
+                    lastSynced: syncTime
+                  };
+                  localStorage.setItem(`college_sync_data_${user.uid}`, JSON.stringify(saveData));
+                } catch (e) {
+                  console.error("Failed to save to localStorage:", e);
+                }
               }
               if (event.step === "error") {
                 setError(event.message);
@@ -203,6 +218,7 @@ export default function CollegeSyncPage() {
                 onClick={() => {
                   setScrapedData([]); setSummary(null); setLastSynced(null);
                   setProgressEvents([]); setCurrentProgress(null);
+                  localStorage.removeItem(`college_sync_data_${user?.uid}`);
                 }}
                 className="px-3.5 py-2 border border-gray-200 dark:border-zinc-700 rounded-xl text-xs font-bold shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors text-gray-600 dark:text-gray-300"
               >
