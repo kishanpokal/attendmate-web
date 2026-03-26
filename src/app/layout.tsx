@@ -35,6 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
       <head>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4169484162979613" crossOrigin="anonymous"></script>
         <script
           dangerouslySetInnerHTML={{
             __html: `
