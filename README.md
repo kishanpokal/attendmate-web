@@ -1,73 +1,182 @@
-# AttendMate 📋
+<div align="center">
 
-> **Smart Attendance Management System** — built for modern classrooms and institutions.
+<!-- LOGO -->
+<img src="https://attendmateweb.vercel.app/favicon.ico" width="80" height="80" alt="AttendMate Logo" />
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-attendmateweb.vercel.app-blue?style=for-the-badge)](https://attendmateweb.vercel.app)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![Firebase](https://img.shields.io/badge/Firebase-12-orange?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+<h1>AttendMate</h1>
+
+<p><strong>Attendance, finally smart.</strong></p>
+
+<p>
+  A full-stack, AI-powered attendance management system built for students — know your exact attendance percentage, predict safe skips, and track friends in real-time.
+</p>
+
+<!-- BADGES -->
+<p>
+  <img src="https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Firebase-10-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase" />
+  <img src="https://img.shields.io/badge/Gemini_AI-Google-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini AI" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-3-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
+</p>
+
+<p>
+  <a href="https://attendmateweb.vercel.app" target="_blank">
+    <img src="https://img.shields.io/badge/🌐_Live_Demo-attendmateweb.vercel.app-5c6bc0?style=for-the-badge" alt="Live Demo" />
+  </a>
+</p>
+
+</div>
 
 ---
 
-## 🌟 Overview
+## 📸 Screenshots
 
-AttendMate is a full-stack attendance management web application built as a Final Year Project. It replaces traditional paper-based attendance with a fast, reliable, and data-driven digital system. Teachers can mark attendance in seconds, and students can view their attendance history and analytics in real time.
+### 🏠 Landing Page
 
-**Live at:** [https://attendmateweb.vercel.app](https://attendmateweb.vercel.app)
+> *The marketing homepage — clean, dark-themed, hero section with animated dashboard preview.*
+
+![AttendMate Landing Page](https://attendmateweb.vercel.app/og-image.png)
+
+> **Live:** [https://attendmateweb.vercel.app](https://attendmateweb.vercel.app)
 
 ---
 
-## ✨ Features
+## 🚀 Features
 
-### 📝 Attendance Tracking
-- Mark student attendance (Present / Absent / Late) with a single click
-- Session-based attendance management per subject and date
-- Real-time sync across all devices using Firebase Firestore
+| Feature | Description |
+|---|---|
+| ⚡ **One-Click Attendance** | Mark your attendance in under 10 seconds — present, absent, or anything in between |
+| 📊 **Live Analytics** | Real-time charts showing trends, subject-wise breakdowns, and performance tracking |
+| 🤖 **AI Copilot (Gemini)** | Ask the AI how many classes you can skip, or mark attendance by voice command |
+| 👥 **Friends Tracking** | Add friends and see their attendance in real-time — know who made the 8 AM lecture |
+| ☁️ **Cloud Sync** | Data securely saved to Firebase, synced instantly across all devices |
+| 📅 **Smart Timetable** | Set your weekly schedule once; auto-detect active lectures and get prompted |
 
-### 📊 Analytics & Reports
-- Visual attendance dashboards with charts and summaries
-- Per-student and per-subject attendance percentage breakdowns
-- Exportable PDF reports generated with Puppeteer
-- Identify at-risk students (below minimum attendance threshold)
+---
 
-### 🔐 Authentication
-- Secure Google Sign-In via Firebase Authentication
-- Role-based access: Teacher and Student views
-- Protected routes and session management
+## 🗂️ Project Structure
 
-### 📱 Mobile-First Design
-- Fully responsive UI optimized for phones, tablets, and desktops
-- Built with Material UI (MUI v7) and Tailwind CSS v4
-- Smooth page transitions powered by Framer Motion
-
-### 🤖 AI-Powered Insights *(Gemini AI)*
-- Attendance pattern analysis using Google Gemini AI
-- Smart suggestions for teachers based on class trends
+```
+attendmate-web/
+├── src/
+│   ├── app/                  # Next.js App Router pages
+│   │   ├── page.tsx          # Landing page
+│   │   ├── login/            # Auth — Login
+│   │   ├── register/         # Auth — Register
+│   │   └── dashboard/        # Main dashboard (protected)
+│   ├── components/           # Reusable UI components
+│   ├── lib/                  # Firebase config, utilities
+│   └── styles/               # Global styles
+├── data/                     # Static/seed data
+├── public/                   # Static assets & icons
+├── next.config.ts            # Next.js configuration
+├── tailwind.config.ts        # Tailwind CSS configuration
+├── tsconfig.json             # TypeScript configuration
+└── package.json
+```
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | Next.js 16, React 19, TypeScript |
-| **Styling** | Tailwind CSS v4, Material UI v7, Framer Motion |
-| **Backend / Database** | Firebase Firestore (real-time NoSQL) |
-| **Authentication** | Firebase Auth (Google Sign-In) |
-| **AI** | Google Gemini AI (`@google/generative-ai`) |
-| **PDF Export** | Puppeteer Core + Chromium |
-| **Deployment** | Vercel |
-| **Analytics** | Vercel Analytics |
+<table>
+  <thead>
+    <tr>
+      <th>Category</th>
+      <th>Technology</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Framework</strong></td>
+      <td>
+        <img src="https://img.shields.io/badge/Next.js-black?style=flat-square&logo=next.js" />
+      </td>
+      <td>Full-stack React framework (App Router, SSR)</td>
+    </tr>
+    <tr>
+      <td><strong>UI Library</strong></td>
+      <td>
+        <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black" />
+      </td>
+      <td>Component-based UI rendering</td>
+    </tr>
+    <tr>
+      <td><strong>Language</strong></td>
+      <td>
+        <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+      </td>
+      <td>Type-safe development across the entire codebase</td>
+    </tr>
+    <tr>
+      <td><strong>Backend / DB</strong></td>
+      <td>
+        <img src="https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black" />
+      </td>
+      <td>Authentication, Firestore database, real-time sync</td>
+    </tr>
+    <tr>
+      <td><strong>AI</strong></td>
+      <td>
+        <img src="https://img.shields.io/badge/Gemini_AI-4285F4?style=flat-square&logo=google&logoColor=white" />
+      </td>
+      <td>AI Copilot — skip predictions, voice commands</td>
+    </tr>
+    <tr>
+      <td><strong>Styling</strong></td>
+      <td>
+        <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" />
+        &nbsp;
+        <img src="https://img.shields.io/badge/MUI-007FFF?style=flat-square&logo=mui&logoColor=white" />
+      </td>
+      <td>Utility-first CSS + Material UI components</td>
+    </tr>
+    <tr>
+      <td><strong>Animations</strong></td>
+      <td>
+        <img src="https://img.shields.io/badge/Framer_Motion-EF0A7E?style=flat-square&logo=framer&logoColor=white" />
+      </td>
+      <td>Smooth page transitions and UI animations</td>
+    </tr>
+    <tr>
+      <td><strong>Deployment</strong></td>
+      <td>
+        <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
+      </td>
+      <td>CI/CD and hosting via Vercel</td>
+    </tr>
+  </tbody>
+</table>
 
 ---
 
-## 🚀 Getting Started
+## 📋 How It Works
+
+```
+Step 01 — Sign In
+  └─ Login with Google or email → Set up subjects & timetable
+
+Step 02 — Mark Attendance
+  └─ Get prompted when class starts → Tap Present / Absent
+
+Step 03 — Get AI Insights
+  └─ View real-time analytics → Ask AI how many you can skip
+```
+
+---
+
+## 🚦 Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
-- A Firebase project ([create one here](https://console.firebase.google.com/))
-- A Google Gemini API key ([get one here](https://aistudio.google.com/))
+- Node.js `v18+`
+- npm / yarn / pnpm
+- A Firebase project (Firestore + Auth enabled)
+- Google Gemini API key
 
 ### Installation
 
@@ -81,7 +190,7 @@ npm install
 
 # 3. Set up environment variables
 cp .env.example .env.local
-# Fill in your Firebase and Gemini API keys (see below)
+# Fill in your Firebase and Gemini API credentials
 
 # 4. Run the development server
 npm run dev
@@ -94,92 +203,78 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 Create a `.env.local` file in the root directory:
 
 ```env
-# Firebase Config
+# Firebase
 NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
-# Google Gemini AI
-GEMINI_API_KEY=your_gemini_api_key
+# Gemini AI
+NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 ```
 
 ---
 
-## 📁 Project Structure
+## 📦 Available Scripts
 
-```
-attendmate-web/
-├── src/
-│   ├── app/                  # Next.js App Router pages
-│   │   ├── (auth)/           # Login / signup pages
-│   │   ├── dashboard/        # Teacher & student dashboards
-│   │   ├── attendance/       # Attendance marking pages
-│   │   ├── analytics/        # Charts and reports
-│   │   └── api/              # API routes (PDF export, AI)
-│   ├── components/           # Reusable UI components
-│   ├── lib/                  # Firebase config, utilities
-│   └── types/                # TypeScript type definitions
-├── data/                     # Static/seed data
-├── public/                   # Static assets
-└── package.json
-```
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the development server at `localhost:3000` |
+| `npm run build` | Create an optimized production build |
+| `npm run start` | Start the production server |
+| `npm run lint` | Run ESLint across the codebase |
 
 ---
 
-## 🏗️ Architecture
+## 🌐 Deployment
 
-```
-┌─────────────────────────────────────────────────┐
-│                   Client (Browser)               │
-│         Next.js 16 App Router + React 19         │
-│         MUI + Tailwind CSS + Framer Motion       │
-└──────────────────────┬──────────────────────────┘
-                       │
-          ┌────────────▼─────────────┐
-          │     Next.js API Routes   │
-          │  (PDF Export, AI Proxy)  │
-          └────────────┬─────────────┘
-                       │
-        ┌──────────────┼──────────────┐
-        ▼              ▼              ▼
-  ┌──────────┐  ┌──────────┐  ┌──────────────┐
-  │ Firebase │  │ Firebase │  │  Gemini AI   │
-  │   Auth   │  │Firestore │  │   (Google)   │
-  └──────────┘  └──────────┘  └──────────────┘
-```
+This project is deployed on **Vercel**. Every push to `main` triggers an automatic deployment.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/kishanpokal/attendmate-web)
 
 ---
 
-## 📸 Screenshots
+## 📊 Key Metrics (Dashboard)
 
-> *(Add screenshots of your dashboard, attendance page, and analytics here)*
+The dashboard provides a live overview of:
+
+- 📈 **Per-subject attendance %** (e.g. Mathematics 82%, Data Structures 76%)
+- 🎯 **Overall attendance** across all subjects
+- 🤖 **AI prediction** — how many classes you can safely skip
+- ⚡ **Quick mark** — attendance marked in < 10 seconds
+- ☁️ **100% cloud-synced** — accessible anywhere
 
 ---
 
-## 🔮 Future Improvements
+## 🤝 Contributing
 
-- [ ] QR Code-based attendance marking
-- [ ] Email/SMS notifications for low attendance
-- [ ] Bulk CSV import for student data
-- [ ] Parent portal with read-only access
-- [ ] Offline support with PWA capabilities
+Contributions, issues, and feature requests are welcome!
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Commit your changes: `git commit -m 'Add my feature'`
+4. Push to the branch: `git push origin feature/my-feature`
+5. Open a Pull Request
 
 ---
 
 ## 👨‍💻 Author
 
 **Kishan Pokal**
+
 - GitHub: [@kishanpokal](https://github.com/kishanpokal)
+- Live App: [attendmateweb.vercel.app](https://attendmateweb.vercel.app)
 
 ---
 
 ## 📄 License
 
-This project is developed as a Final Year Project. All rights reserved.
+This project is open source. Feel free to use it as a reference or build on top of it.
 
 ---
 
-> Built with ❤️ using Next.js and Firebase
+<div align="center">
+  <sub>Built with ❤️ by Kishan Pokal · © 2026 AttendMate</sub>
+</div>
