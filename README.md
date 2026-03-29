@@ -1,82 +1,132 @@
-<div align="center">
+<![CDATA[<div align="center">
 
-<!-- LOGO -->
-<img src="https://attendmateweb.vercel.app/favicon.ico" width="80" height="80" alt="AttendMate Logo" />
+<!-- HERO BANNER -->
+<img src="https://attendmateweb.vercel.app/favicon.ico" width="100" height="100" alt="AttendMate Logo" />
 
-<h1>AttendMate</h1>
+# ✨ AttendMate
 
-<p><strong>Attendance, finally smart.</strong></p>
+### **Attendance, finally smart.**
 
-<p>
-  A full-stack, AI-powered attendance management system built for students — know your exact attendance percentage, predict safe skips, and track friends in real-time.
-</p>
+A full-stack, AI-powered attendance management system built for college students — know your exact attendance percentage, predict safe skips, and track friends in real-time.
 
-<!-- BADGES -->
-<p>
-  <img src="https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
-  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
-  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Firebase-10-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase" />
-  <img src="https://img.shields.io/badge/Gemini_AI-Google-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini AI" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-3-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
-</p>
+<br />
 
-<p>
-  <a href="https://attendmateweb.vercel.app" target="_blank">
-    <img src="https://img.shields.io/badge/🌐_Live_Demo-attendmateweb.vercel.app-5c6bc0?style=for-the-badge" alt="Live Demo" />
-  </a>
-</p>
+<!-- TECH BADGES -->
+[![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript_5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Firebase](https://img.shields.io/badge/Firebase_12-DD2C00?style=for-the-badge&logo=firebase&logoColor=white)](https://firebase.google.com/)
+[![Gemini AI](https://img.shields.io/badge/Gemini_AI-8E75B2?style=for-the-badge&logo=google-gemini&logoColor=white)](https://ai.google.dev/)
+[![Three.js](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)](https://www.framer.com/motion/)
+[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+
+<br />
+
+<!-- LIVE DEMO BUTTON -->
+<a href="https://attendmateweb.vercel.app" target="_blank">
+  <img src="https://img.shields.io/badge/🌐_LIVE_DEMO-attendmateweb.vercel.app-7c3aed?style=for-the-badge&labelColor=1e1e2e" alt="Live Demo" />
+</a>
+&nbsp;&nbsp;
+<a href="https://github.com/kishanpokal/attendmate-web" target="_blank">
+  <img src="https://img.shields.io/badge/⭐_Star_on_GitHub-171515?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+</a>
+
+<br />
+<br />
+
+<!-- HERO SCREENSHOT -->
+<img src="public/screenshots/landing-hero.png" width="100%" alt="AttendMate Landing Page — Dark themed hero with animated dashboard preview" />
+
+<br />
+
+<sub>🎨 Dark-themed landing page with 3D particle animations, glassmorphism dashboard preview, and real-time stats</sub>
 
 </div>
 
 ---
 
-## 📸 Screenshots
+## 📸 Screenshots & Live Preview
 
-### 🏠 Landing Page
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="public/screenshots/features-stats.png" width="100%" alt="Stats & Features Section" />
+      <br />
+      <sub><b>📊 Real-time Stats Bar</b> — < 10s attendance, 100% cloud sync, AI predictions</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="public/screenshots/features-grid.png" width="100%" alt="Feature Cards Grid" />
+      <br />
+      <sub><b>🧩 Feature Cards</b> — One-Click Attendance, Live Analytics, AI Copilot & more</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="public/screenshots/login-page.png" width="100%" alt="Login Page" />
+      <br />
+      <sub><b>🔐 Login Page</b> — Clean auth UI with Google Sign-In and animated background</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="public/screenshots/register-page.png" width="100%" alt="Register Page" />
+      <br />
+      <sub><b>📝 Register Page</b> — Onboarding flow with form validation</sub>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <img src="public/screenshots/cta-section.png" width="100%" alt="CTA Section" />
+      <br />
+      <sub><b>🚀 Call to Action</b> — "Ready to take control of your semester?" with floating badges</sub>
+    </td>
+  </tr>
+</table>
 
-> *The marketing homepage — clean, dark-themed, hero section with animated dashboard preview.*
+> **🌐 Try it live:** [attendmateweb.vercel.app](https://attendmateweb.vercel.app)
 
-![AttendMate Landing Page](https://attendmateweb.vercel.app/og-image.png)
+---
 
-> **Live:** [https://attendmateweb.vercel.app](https://attendmateweb.vercel.app)
+## 🧠 What is AttendMate?
+
+Most college students track attendance mentally — "I think I've attended enough classes." That guesswork leads to shortages, debarment notices, and panic.
+
+**AttendMate replaces guesswork with real-time, AI-powered data.** It tells you your *exact* attendance percentage, predicts how many classes you can safely skip before hitting the 75% threshold, and even lets you track your friends' attendance — all from a beautiful, dark-themed dashboard.
 
 ---
 
 ## 🚀 Features
 
-| Feature | Description |
-|---|---|
-| ⚡ **One-Click Attendance** | Mark your attendance in under 10 seconds — present, absent, or anything in between |
-| 📊 **Live Analytics** | Real-time charts showing trends, subject-wise breakdowns, and performance tracking |
-| 🤖 **AI Copilot (Gemini)** | Ask the AI how many classes you can skip, or mark attendance by voice command |
-| 👥 **Friends Tracking** | Add friends and see their attendance in real-time — know who made the 8 AM lecture |
-| ☁️ **Cloud Sync** | Data securely saved to Firebase, synced instantly across all devices |
-| 📅 **Smart Timetable** | Set your weekly schedule once; auto-detect active lectures and get prompted |
-
----
-
-## 🗂️ Project Structure
-
-```
-attendmate-web/
-├── src/
-│   ├── app/                  # Next.js App Router pages
-│   │   ├── page.tsx          # Landing page
-│   │   ├── login/            # Auth — Login
-│   │   ├── register/         # Auth — Register
-│   │   └── dashboard/        # Main dashboard (protected)
-│   ├── components/           # Reusable UI components
-│   ├── lib/                  # Firebase config, utilities
-│   └── styles/               # Global styles
-├── data/                     # Static/seed data
-├── public/                   # Static assets & icons
-├── next.config.ts            # Next.js configuration
-├── tailwind.config.ts        # Tailwind CSS configuration
-├── tsconfig.json             # TypeScript configuration
-└── package.json
-```
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <h3>⚡ One-Click Attendance</h3>
+      <p>Mark attendance in under <b>10 seconds</b>. Choose Present, Absent, or anything in between. No forms, no friction.</p>
+    </td>
+    <td align="center" width="33%">
+      <h3>📊 Live Analytics</h3>
+      <p>Real-time charts with <b>subject-wise breakdowns</b>, trend lines, and performance tracking that update instantly.</p>
+    </td>
+    <td align="center" width="33%">
+      <h3>🤖 AI Copilot (Gemini)</h3>
+      <p>Ask the AI how many classes you can skip. Get <b>smart predictions</b> based on your current attendance patterns.</p>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <h3>👥 Friends Tracking</h3>
+      <p>Add friends and see their attendance <b>in real-time</b>. Know who actually made it to the 8 AM lecture.</p>
+    </td>
+    <td align="center" width="33%">
+      <h3>☁️ Cloud Sync</h3>
+      <p>Data securely saved to <b>Firebase</b>, synced instantly across all your devices. Never lose your records.</p>
+    </td>
+    <td align="center" width="33%">
+      <h3>📅 Smart Timetable</h3>
+      <p>Set your weekly schedule once. <b>Auto-detect</b> active lectures and get prompted to mark attendance.</p>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -92,62 +142,54 @@ attendmate-web/
   </thead>
   <tbody>
     <tr>
-      <td><strong>Framework</strong></td>
-      <td>
-        <img src="https://img.shields.io/badge/Next.js-black?style=flat-square&logo=next.js" />
-      </td>
-      <td>Full-stack React framework (App Router, SSR)</td>
+      <td><b>⚡ Framework</b></td>
+      <td><img src="https://img.shields.io/badge/Next.js_16-000?style=flat-square&logo=next.js" /></td>
+      <td>Full-stack React framework with App Router & SSR</td>
     </tr>
     <tr>
-      <td><strong>UI Library</strong></td>
-      <td>
-        <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black" />
-      </td>
-      <td>Component-based UI rendering</td>
+      <td><b>🧩 UI Library</b></td>
+      <td><img src="https://img.shields.io/badge/React_19-61DAFB?style=flat-square&logo=react&logoColor=black" /></td>
+      <td>Component-based UI rendering with concurrent features</td>
     </tr>
     <tr>
-      <td><strong>Language</strong></td>
-      <td>
-        <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" />
-      </td>
+      <td><b>📘 Language</b></td>
+      <td><img src="https://img.shields.io/badge/TypeScript_5-3178C6?style=flat-square&logo=typescript&logoColor=white" /></td>
       <td>Type-safe development across the entire codebase</td>
     </tr>
     <tr>
-      <td><strong>Backend / DB</strong></td>
-      <td>
-        <img src="https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black" />
-      </td>
-      <td>Authentication, Firestore database, real-time sync</td>
+      <td><b>🔥 Backend & DB</b></td>
+      <td><img src="https://img.shields.io/badge/Firebase_12-DD2C00?style=flat-square&logo=firebase&logoColor=white" /></td>
+      <td>Authentication, Firestore database, real-time cloud sync</td>
     </tr>
     <tr>
-      <td><strong>AI</strong></td>
-      <td>
-        <img src="https://img.shields.io/badge/Gemini_AI-4285F4?style=flat-square&logo=google&logoColor=white" />
-      </td>
-      <td>AI Copilot — skip predictions, voice commands</td>
+      <td><b>🤖 AI Engine</b></td>
+      <td><img src="https://img.shields.io/badge/Gemini_AI-8E75B2?style=flat-square&logo=google-gemini&logoColor=white" /></td>
+      <td>AI Copilot — skip predictions, voice commands, insights</td>
     </tr>
     <tr>
-      <td><strong>Styling</strong></td>
+      <td><b>🎨 Styling</b></td>
       <td>
-        <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" />
+        <img src="https://img.shields.io/badge/Tailwind_CSS_4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" />
         &nbsp;
         <img src="https://img.shields.io/badge/MUI-007FFF?style=flat-square&logo=mui&logoColor=white" />
       </td>
-      <td>Utility-first CSS + Material UI components</td>
+      <td>Utility-first CSS + Material UI component library</td>
     </tr>
     <tr>
-      <td><strong>Animations</strong></td>
+      <td><b>🌀 3D & Animations</b></td>
       <td>
-        <img src="https://img.shields.io/badge/Framer_Motion-EF0A7E?style=flat-square&logo=framer&logoColor=white" />
+        <img src="https://img.shields.io/badge/Three.js-000?style=flat-square&logo=three.js&logoColor=white" />
+        &nbsp;
+        <img src="https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white" />
+        &nbsp;
+        <img src="https://img.shields.io/badge/GSAP-88CE02?style=flat-square&logo=greensock&logoColor=black" />
       </td>
-      <td>Smooth page transitions and UI animations</td>
+      <td>3D particle scenes, smooth transitions, scroll animations</td>
     </tr>
     <tr>
-      <td><strong>Deployment</strong></td>
-      <td>
-        <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
-      </td>
-      <td>CI/CD and hosting via Vercel</td>
+      <td><b>🚀 Deployment</b></td>
+      <td><img src="https://img.shields.io/badge/Vercel-000?style=flat-square&logo=vercel&logoColor=white" /></td>
+      <td>CI/CD with automatic deployments on every push</td>
     </tr>
   </tbody>
 </table>
@@ -157,14 +199,95 @@ attendmate-web/
 ## 📋 How It Works
 
 ```
-Step 01 — Sign In
-  └─ Login with Google or email → Set up subjects & timetable
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│   Step 01 ─── Sign In                                       │
+│   └─ Login with Google or email                             │
+│   └─ Set up your subjects & weekly timetable                │
+│                                                             │
+│   Step 02 ─── Mark Attendance                               │
+│   └─ Get auto-prompted when class starts                    │
+│   └─ Tap Present / Absent — done in < 10 seconds            │
+│                                                             │
+│   Step 03 ─── Get AI Insights                               │
+│   └─ View real-time analytics on your dashboard             │
+│   └─ Ask the AI: "How many can I skip this week?"           │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
 
-Step 02 — Mark Attendance
-  └─ Get prompted when class starts → Tap Present / Absent
+---
 
-Step 03 — Get AI Insights
-  └─ View real-time analytics → Ask AI how many you can skip
+## 📊 Dashboard Metrics
+
+The dashboard provides a live, glassmorphism-styled overview:
+
+| Metric | Description |
+|:---|:---|
+| 📈 **Per-subject %** | Individual attendance for each subject (e.g. Mathematics 82%, DSA 76%) |
+| 🎯 **Overall Attendance** | Aggregate attendance percentage across all subjects |
+| 🤖 **AI Skip Prediction** | How many classes you can safely skip before dropping below 75% |
+| ⚡ **Quick Mark** | One-tap attendance marking in under 10 seconds |
+| 📅 **Today's Lectures** | Auto-populated from your timetable with live status indicators |
+| 👥 **Friends Feed** | Real-time attendance status of your connected friends |
+
+---
+
+## 🗂️ Project Structure
+
+```
+attendmate-web/
+├── 📁 src/
+│   ├── 📁 app/                       # Next.js App Router
+│   │   ├── page.tsx                  # Landing page (3D hero, features, CTA)
+│   │   ├── layout.tsx                # Root layout with metadata & fonts
+│   │   ├── globals.css               # Global styles & CSS variables
+│   │   ├── 📁 login/                 # Authentication — Login
+│   │   ├── 📁 register/              # Authentication — Register
+│   │   ├── 📁 forgot-password/       # Password recovery
+│   │   ├── 📁 dashboard/             # Main dashboard (protected route)
+│   │   ├── 📁 attendance/            # Attendance marking & history
+│   │   ├── 📁 subjects/              # Subject management
+│   │   ├── 📁 timetable/             # Weekly schedule setup
+│   │   ├── 📁 friends/               # Friends tracking
+│   │   ├── 📁 analytics/             # Charts & performance analytics
+│   │   ├── 📁 ai/                    # AI Copilot interface
+│   │   ├── 📁 settings/              # User settings
+│   │   └── 📁 api/                   # API routes
+│   ├── 📁 components/
+│   │   ├── 📁 landing/               # Landing page components
+│   │   │   ├── SmoothNav.tsx         # Animated navigation bar
+│   │   │   ├── HeroScene.tsx         # 3D Three.js hero scene
+│   │   │   ├── FloatingDashboard.tsx # Glassmorphism dashboard preview
+│   │   │   ├── FeatureCards.tsx      # Interactive feature cards grid
+│   │   │   ├── HowItWorks.tsx       # Step-by-step guide section
+│   │   │   ├── StatsBar.tsx         # Animated statistics counter
+│   │   │   ├── TechStack.tsx        # Technology showcase
+│   │   │   └── FinalCTA.tsx         # Call-to-action with floating badges
+│   │   ├── 📁 dashboard/             # Dashboard UI components
+│   │   │   ├── DashboardBackground.tsx   # 3D animated background
+│   │   │   ├── GlassCard.tsx             # Reusable glassmorphism card
+│   │   │   ├── QuickStatsGrid.tsx        # Metrics overview grid
+│   │   │   ├── AttendanceSummaryCard.tsx  # Attendance breakdown
+│   │   │   ├── SubjectPerformanceCard.tsx # Per-subject analytics
+│   │   │   ├── TodayLecturesSection.tsx   # Today's schedule
+│   │   │   ├── AICopilotCard.tsx          # AI insights widget
+│   │   │   └── AttendanceDialog.tsx       # Quick mark modal
+│   │   ├── 📁 navigation/            # Navigation components
+│   │   └── 📁 sync/                   # College sync 3D visualization
+│   ├── 📁 context/                   # React context providers
+│   ├── 📁 hooks/                     # Custom React hooks
+│   └── 📁 lib/                       # Utilities & configuration
+│       ├── firebase.ts               # Firebase SDK initialization
+│       ├── collegeSync.ts            # College data sync logic
+│       └── 📁 ai/                    # AI/Gemini integration
+├── 📁 data/                          # Static & seed data
+├── 📁 public/                        # Static assets & favicons
+│   └── 📁 screenshots/              # README screenshots
+├── next.config.ts                    # Next.js configuration
+├── tailwind.config.ts                # Tailwind CSS configuration
+├── tsconfig.json                     # TypeScript configuration
+└── package.json                      # Dependencies & scripts
 ```
 
 ---
@@ -173,10 +296,12 @@ Step 03 — Get AI Insights
 
 ### Prerequisites
 
-- Node.js `v18+`
-- npm / yarn / pnpm
-- A Firebase project (Firestore + Auth enabled)
-- Google Gemini API key
+| Requirement | Version |
+|:---|:---|
+| Node.js | `v18+` |
+| npm / yarn / pnpm | Latest |
+| Firebase Project | Firestore + Authentication enabled |
+| Gemini API Key | [Get one here](https://ai.google.dev/) |
 
 ### Installation
 
@@ -190,20 +315,20 @@ npm install
 
 # 3. Set up environment variables
 cp .env.example .env.local
-# Fill in your Firebase and Gemini API credentials
+# Fill in your Firebase and Gemini API credentials (see below)
 
 # 4. Run the development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser 🚀
 
 ### Environment Variables
 
-Create a `.env.local` file in the root directory:
+Create a `.env.local` file in the project root:
 
 ```env
-# Firebase
+# ─── Firebase Configuration ───────────────────────────────
 NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
@@ -211,7 +336,7 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
-# Gemini AI
+# ─── Gemini AI ────────────────────────────────────────────
 NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 ```
 
@@ -220,61 +345,121 @@ NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 ## 📦 Available Scripts
 
 | Command | Description |
-|---|---|
-| `npm run dev` | Start the development server at `localhost:3000` |
-| `npm run build` | Create an optimized production build |
-| `npm run start` | Start the production server |
-| `npm run lint` | Run ESLint across the codebase |
+|:---|:---|
+| `npm run dev` | 🔧 Start the development server at `localhost:3000` |
+| `npm run build` | 📦 Create an optimized production build |
+| `npm run start` | 🚀 Start the production server |
+| `npm run lint` | 🔍 Run ESLint across the codebase |
 
 ---
 
 ## 🌐 Deployment
 
-This project is deployed on **Vercel**. Every push to `main` triggers an automatic deployment.
+This project is deployed on **Vercel** with automatic CI/CD. Every push to `main` triggers a new production deployment.
+
+<div align="center">
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/kishanpokal/attendmate-web)
 
+</div>
+
+### Deploy your own:
+
+1. Fork this repository
+2. Connect it to [Vercel](https://vercel.com)
+3. Add your environment variables in the Vercel dashboard
+4. Push to `main` — deployed automatically! ✨
+
 ---
 
-## 📊 Key Metrics (Dashboard)
+## 🏗️ Architecture Highlights
 
-The dashboard provides a live overview of:
-
-- 📈 **Per-subject attendance %** (e.g. Mathematics 82%, Data Structures 76%)
-- 🎯 **Overall attendance** across all subjects
-- 🤖 **AI prediction** — how many classes you can safely skip
-- ⚡ **Quick mark** — attendance marked in < 10 seconds
-- ☁️ **100% cloud-synced** — accessible anywhere
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                        CLIENT (Browser)                         │
+│                                                                  │
+│  ┌──────────────┐  ┌──────────────┐  ┌───────────────────────┐  │
+│  │  Next.js 16   │  │  React 19    │  │  Three.js / R3F       │  │
+│  │  App Router   │  │  Components  │  │  3D Scenes & Particles│  │
+│  └──────┬───────┘  └──────┬───────┘  └───────────┬───────────┘  │
+│         │                 │                       │              │
+│  ┌──────┴─────────────────┴───────────────────────┴──────────┐  │
+│  │              Framer Motion + GSAP + Lenis                 │  │
+│  │            (Animations, Transitions, Smooth Scroll)       │  │
+│  └───────────────────────────┬───────────────────────────────┘  │
+│                              │                                   │
+└──────────────────────────────┼───────────────────────────────────┘
+                               │
+                    ┌──────────┴──────────┐
+                    │    Firebase SDK      │
+                    │  (Client-side Auth)  │
+                    └──────────┬──────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              │                │                │
+    ┌─────────┴──────┐ ┌──────┴──────┐ ┌───────┴───────┐
+    │   Firestore    │ │  Firebase   │ │   Gemini AI   │
+    │   Database     │ │    Auth     │ │   (Copilot)   │
+    │  (Real-time)   │ │  (Google +  │ │  Predictions  │
+    │                │ │   Email)    │ │  & Insights   │
+    └────────────────┘ └─────────────┘ └───────────────┘
+```
 
 ---
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome!
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/kishanpokal/attendmate-web/issues).
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes: `git commit -m 'Add my feature'`
-4. Push to the branch: `git push origin feature/my-feature`
-5. Open a Pull Request
+```bash
+# 1. Fork the repository
+# 2. Create your feature branch
+git checkout -b feature/amazing-feature
+
+# 3. Commit your changes
+git commit -m "feat: add amazing feature"
+
+# 4. Push to the branch
+git push origin feature/amazing-feature
+
+# 5. Open a Pull Request 🎉
+```
 
 ---
 
 ## 👨‍💻 Author
 
+<div align="center">
+
 **Kishan Pokal**
 
-- GitHub: [@kishanpokal](https://github.com/kishanpokal)
-- Live App: [attendmateweb.vercel.app](https://attendmateweb.vercel.app)
+[![GitHub](https://img.shields.io/badge/GitHub-@kishanpokal-181717?style=for-the-badge&logo=github)](https://github.com/kishanpokal)
+[![Live App](https://img.shields.io/badge/Live_App-attendmateweb.vercel.app-7c3aed?style=for-the-badge&logo=vercel)](https://attendmateweb.vercel.app)
+
+</div>
 
 ---
 
 ## 📄 License
 
-This project is open source. Feel free to use it as a reference or build on top of it.
+This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by Kishan Pokal · © 2026 AttendMate</sub>
+
+<br />
+
+**If AttendMate helped you, give it a ⭐ on GitHub!**
+
+<br />
+
+<sub>Built with ❤️ and ☕ by <a href="https://github.com/kishanpokal">Kishan Pokal</a> · © 2026 AttendMate</sub>
+
+<br />
+<br />
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=100&section=footer" width="100%" />
+
 </div>
+]]>
