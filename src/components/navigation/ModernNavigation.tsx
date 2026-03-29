@@ -99,7 +99,7 @@ export default function ModernNavigation() {
           {!collapsed && <p className="px-3 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Main Menu</p>}
           {NAV_ITEMS.map((item) => {
             const isActive = active === item.key;
-            const Icon = item.icon;
+            const Icon = item.icon as any;
             return (
               <button
                 key={item.key}

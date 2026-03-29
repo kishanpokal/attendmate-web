@@ -11,8 +11,23 @@ import {
   GraduationCap, XCircle, CloudOff, Search, Filter, ArrowUpDown,
   ChevronLeft, ChevronDown, ChevronUp, Database, GitCompare,
   Loader2, LogIn, Navigation, Settings2, BookOpen, Clock,
-  CalendarDays, Eye, SlidersHorizontal, X, ArrowUp, ArrowDown
+  CalendarDays, Eye, SlidersHorizontal, X, ArrowUp, ArrowDown, ArrowLeft, ArrowRight
 } from "lucide-react";
+import dynamic from 'next/dynamic';
+
+const SyncScene = dynamic(() => import('@/components/sync/SyncScene'), { 
+  ssr: false, 
+  loading: () => <div className="h-full w-full flex items-center justify-center"><Loader2 className="w-8 h-8 text-[#6C63FF] animate-spin" /></div> 
+});
+
+import StepTracker from '@/components/sync/StepTracker';
+import SyncStats, { GlassCard } from '@/components/sync/SyncStats';
+import LiveLogFeed from '@/components/sync/LiveLogFeed';
+import SubjectProgressList from '@/components/sync/SubjectProgressList';
+import OverallProgressBar from '@/components/sync/OverallProgressBar';
+import SuccessView from '@/components/sync/SuccessView';
+import ErrorView from '@/components/sync/ErrorView';
+
 import {
   CollegeAttendanceRecord,
   AppAttendanceRecord,
@@ -41,8 +56,19 @@ export default function CollegeSyncPage() {
   const [loadingCached, setLoadingCached] = useState(true);
 
   const [activeTab, setActiveTab] = useState<"college" | "compare">("college");
+  
+  // Immersive Sync State
+  const [isImmersionMode, setIsImmersionMode] = useState(false);
   const [progressEvents, setProgressEvents] = useState<SyncProgressEvent[]>([]);
   const [currentProgress, setCurrentProgress] = useState<SyncProgressEvent | null>(null);
+  
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [completedSubjects, setCompletedSubjects] = useState<string[]>([]);
+  const [activeSubjectIndex, setActiveSubjectIndex] = useState(-1);
+  const [recordsFound, setRecordsFound] = useState(0);
+  const [activeSubjectRecords, setActiveSubjectRecords] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [timeTakenMs, setTimeTakenMs] = useState(0);
 
   // Restore saved credentials
   useEffect(() => {
@@ -112,20 +138,30 @@ export default function CollegeSyncPage() {
     }
   }, [scrapedData, appData]);
 
-  const handleSync = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSync = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!email || !password) {
       setScrapedData([]);
       setSummary(null);
       setError("Please enter your portal credentials to sync.");
+      setIsImmersionMode(false);
       return;
     }
     if (!user) return;
 
+    // Reset all state for new sync
     setLoading(true);
+    setIsImmersionMode(true);
     setError(null);
     setProgressEvents([]);
     setCurrentProgress(null);
+    setSubjects([]);
+    setCompletedSubjects([]);
+    setActiveSubjectIndex(-1);
+    setRecordsFound(0);
+    setActiveSubjectRecords(0);
+    setStartTime(Date.now());
+    setTimeTakenMs(0);
 
     localStorage.setItem("syncEmail", email);
     localStorage.setItem("syncPass", password);
@@ -143,6 +179,9 @@ export default function CollegeSyncPage() {
 
       if (!reader) throw new Error("No response stream");
 
+      let totalSubjectCount = 0;
+      let totalRecs = 0;
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -155,28 +194,66 @@ export default function CollegeSyncPage() {
           if (line.startsWith("data: ")) {
             try {
               const event: SyncProgressEvent = JSON.parse(line.slice(6));
+              
               setCurrentProgress(event);
               setProgressEvents(prev => [...prev, event]);
 
-              if (event.step === "complete" && event.totalRecords) {
-                setScrapedData(event.totalRecords);
-                const syncTime = new Date().toISOString();
-                setLastSynced(syncTime);
-                const comparison = compareAttendanceData(event.totalRecords, appData);
-                setSummary(comparison);
+              // Update Subjects Map
+              if (event.subject && event.step === "scraping_subject") {
+                setSubjects(prev => {
+                  if (!prev.includes(event.subject!)) {
+                     setActiveSubjectRecords(0); // reset for new subject
+                     return [...prev, event.subject!];
+                  }
+                  return prev;
+                });
                 
-                try {
-                  const saveData = {
-                    records: event.totalRecords,
-                    lastSynced: syncTime
-                  };
-                  localStorage.setItem(`college_sync_data_${user.uid}`, JSON.stringify(saveData));
-                } catch (e) {
-                  console.error("Failed to save to localStorage:", e);
+                if (event.currentSubjectIndex !== undefined) {
+                  setActiveSubjectIndex(event.currentSubjectIndex - 1);
+                }
+                
+                if (event.message.includes("Completed")) {
+                   setCompletedSubjects(prev => {
+                     if (!prev.includes(event.subject!)) return [...prev, event.subject!];
+                     return prev;
+                   });
+                }
+              }
+
+              if (event.totalSubjects !== undefined) totalSubjectCount = event.totalSubjects;
+              
+              if (event.recordsFound !== undefined) {
+                 totalRecs = event.recordsFound;
+                 setRecordsFound(totalRecs);
+                 // If recordsFound is emitting total, we can guesstimate active subject records
+                 // We don't have perfect mapping unless we delta, let's assume it increments
+                 setActiveSubjectRecords(prev => prev + 1); 
+              }
+
+              if (event.step === "complete") {
+                if (startTime) setTimeTakenMs(Date.now() - startTime);
+                
+                if (event.totalRecords) {
+                  setScrapedData(event.totalRecords);
+                  const syncTime = new Date().toISOString();
+                  setLastSynced(syncTime);
+                  const comparison = compareAttendanceData(event.totalRecords, appData);
+                  setSummary(comparison);
+                  
+                  try {
+                    const saveData = {
+                      records: event.totalRecords,
+                      lastSynced: syncTime
+                    };
+                    localStorage.setItem(`college_sync_data_${user.uid}`, JSON.stringify(saveData));
+                  } catch (e) {
+                    console.error("Failed to save to localStorage:", e);
+                  }
                 }
               }
               if (event.step === "error") {
                 setError(event.message);
+                if (startTime) setTimeTakenMs(Date.now() - startTime);
               }
             } catch { /* skip unparseable lines */ }
           }
@@ -184,14 +261,140 @@ export default function CollegeSyncPage() {
       }
     } catch (err: any) {
       setError(err.message);
+      if (startTime) setTimeTakenMs(Date.now() - startTime);
     } finally {
       setLoading(false);
     }
   };
 
   const hasData = scrapedData.length > 0;
-  const showForm = !hasData && !loading && !loadingCached;
+  const showForm = !hasData && !loading && !loadingCached && !isImmersionMode;
 
+  // Calculate overall progress securely
+  let overallProgress = 0;
+  if (currentProgress) {
+    if (currentProgress.step === 'complete') {
+      overallProgress = 100;
+    } else if (currentProgress.step === 'error') {
+      overallProgress = 100; 
+    } else if (currentProgress.step === 'scraping_subject' && currentProgress.totalSubjects) {
+      // 10% for init steps, 90% for scraping
+      const baseProgress = 10;
+      const subjectsDone = Math.max(0, (currentProgress.currentSubjectIndex || 1) - 1);
+      const subjectPct = (subjectsDone / currentProgress.totalSubjects) * 90;
+      
+      // Page progress within subject
+      const pagePct = currentProgress.totalPages && currentProgress.page 
+        ? ((currentProgress.page / currentProgress.totalPages) * (90 / currentProgress.totalSubjects))
+        : 0;
+        
+      overallProgress = Math.min(99, baseProgress + subjectPct + pagePct);
+    } else if (currentProgress.step === 'select_params') {
+      overallProgress = 10;
+    } else if (currentProgress.step === 'navigate') {
+      overallProgress = 5;
+    }
+  }
+
+  // -------------------------------------------------------------
+  // RENDER IMMERSIVE MODE (STATE B / PROGRESS / SUCCESS)
+  // -------------------------------------------------------------
+  if (isImmersionMode) {
+    const isComplete = currentProgress?.step === 'complete';
+    const isError = currentProgress?.step === 'error' || error !== null;
+
+    return (
+      <div className="fixed inset-0 z-50 bg-[#050816] text-[#F0F0FF] overflow-hidden flex flex-col md:flex-row font-sans">
+        
+        {/* Back Button */}
+        {!loading && (
+           <button 
+             onClick={() => setIsImmersionMode(false)}
+             className="absolute top-6 left-6 z-50 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors"
+           >
+             <ArrowLeft className="w-5 h-5" />
+           </button>
+        )}
+
+        {/* LEFT COLUMN: 3D SCENE */}
+        <div className="w-full md:w-[60%] h-[40vh] md:h-screen relative flex-shrink-0">
+          {/* Subtle background glow */}
+          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-[#6C63FF] rounded-full mix-blend-screen filter blur-[128px] opacity-20 pointer-events-none" />
+          <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-[#00D9FF] rounded-full mix-blend-screen filter blur-[128px] opacity-20 pointer-events-none" />
+          
+          <SyncScene 
+            currentStep={currentProgress?.step || "idle"}
+            subjects={subjects}
+            activeSubjectIndex={activeSubjectIndex}
+            completedSubjects={completedSubjects}
+            overallProgress={overallProgress}
+            recordsFound={recordsFound}
+            activeSubjectRecords={activeSubjectRecords}
+          />
+        </div>
+
+        {/* RIGHT COLUMN: UI / FEED */}
+        <div className="w-full md:w-[40%] h-[60vh] md:h-screen p-6 md:p-8 flex flex-col pt-8 md:pt-12 bg-[#050816]/80 backdrop-blur-xl border-l border-white/5 overflow-y-auto overflow-x-hidden">
+          
+          <AnimatePresence mode="wait">
+            {isComplete ? (
+              <SuccessView 
+                key="success"
+                totalRecords={recordsFound}
+                totalSubjects={subjects.length || 1}
+                timeTakenMs={timeTakenMs}
+                onViewResults={() => setIsImmersionMode(false)}
+                onSyncAgain={() => handleSync()}
+              />
+            ) : isError ? (
+              <ErrorView 
+                key="error"
+                errorMessage={error || "Scraping failed."}
+                onTryAgain={() => handleSync()}
+              />
+            ) : (
+              <motion.div 
+                key="progress"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex flex-col h-full space-y-4"
+              >
+                <OverallProgressBar progress={overallProgress} />
+                
+                <div className="flex-1 overflow-y-auto pr-2 space-y-6 scrollbar-none">
+                  <StepTracker currentStep={currentProgress?.step || "idle"} />
+                  
+                  <SyncStats 
+                    totalSubjectsFound={subjects.length}
+                    recordsScraped={recordsFound}
+                    currentSubjectName={subjects[activeSubjectIndex] || ""}
+                    currentPage={currentProgress?.page || 0}
+                    totalPages={currentProgress?.totalPages || 0}
+                  />
+
+                  <LiveLogFeed events={progressEvents} />
+
+                  <SubjectProgressList 
+                    subjects={subjects}
+                    completedSubjects={completedSubjects}
+                    activeSubjectIndex={activeSubjectIndex}
+                    recordsFoundForActive={activeSubjectRecords}
+                    totalRecordsScraped={recordsFound}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+        </div>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // RENDER STANDARD LAYOUT (STATE A / RESULTS)
+  // -------------------------------------------------------------
   return (
     <ProfessionalPageLayout>
       <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
@@ -213,11 +416,12 @@ export default function CollegeSyncPage() {
                 Last synced: {new Date(lastSynced).toLocaleString()}
               </span>
             )}
-            {hasData && !loading && (
+            {hasData && (
               <button
                 onClick={() => {
                   setScrapedData([]); setSummary(null); setLastSynced(null);
                   setProgressEvents([]); setCurrentProgress(null);
+                  setIsImmersionMode(false);
                   localStorage.removeItem(`college_sync_data_${user?.uid}`);
                 }}
                 className="px-3.5 py-2 border border-gray-200 dark:border-zinc-700 rounded-xl text-xs font-bold shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors text-gray-600 dark:text-gray-300"
@@ -225,9 +429,9 @@ export default function CollegeSyncPage() {
                 Clear Data
               </button>
             )}
-            {hasData && !loading && (
+            {hasData && (
               <button
-                onClick={(e) => handleSync(e as any)}
+                onClick={(e) => handleSync(e)}
                 className="px-3.5 py-2 bg-primary text-white rounded-xl text-xs font-bold shadow-sm hover:bg-primary/90 transition-colors flex items-center gap-1.5"
               >
                 <RefreshCw className="w-3.5 h-3.5" /> Re-sync
@@ -237,147 +441,74 @@ export default function CollegeSyncPage() {
         </header>
 
         {/* Loading cached data */}
-        {loadingCached && !loading && (
+        {loadingCached && (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-6 h-6 text-primary animate-spin" />
             <span className="ml-3 text-sm text-gray-500">Loading saved data...</span>
           </div>
         )}
 
-        {/* ── Credential Form ── */}
+        {/* ── Credential Form (STATE A) ── */}
+        <AnimatePresence>
         {showForm && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-md mx-auto">
-            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl p-8 shadow-xl">
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                <Link className="w-8 h-8 text-primary" />
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="max-w-md mx-auto mt-12 bg-[#050816] rounded-3xl p-1 shadow-2xl relative overflow-hidden">
+            
+            {/* Background Orbs */}
+            <div className="absolute top-[-50px] right-[-50px] w-48 h-48 bg-[#6C63FF] opacity-30 blur-[80px] pointer-events-none" />
+            <div className="absolute bottom-[-50px] left-[-50px] w-48 h-48 bg-[#00D9FF] opacity-30 blur-[80px] pointer-events-none" />
+
+            <div className="bg-white/[0.04] border border-white/[0.08] backdrop-blur-[20px] rounded-[1.4rem] p-8 shadow-xl relative z-10 w-full h-full">
+              <div className="w-16 h-16 bg-[#6C63FF]/10 rounded-2xl flex items-center justify-center mb-6 mx-auto relative group">
+                <GraduationCap className="w-8 h-8 text-[#6C63FF] transition-transform group-hover:-translate-y-1" />
               </div>
-              <h2 className="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">Connect Portal</h2>
-              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mb-8 px-4">
-                We securely automate Chrome to read your college records. Your data is saved locally for instant access.
+              <h2 className="text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-[#6C63FF] to-[#00D9FF] mb-2 font-sans">College Sync</h2>
+              <p className="text-xs text-center text-[#8B8FA8] mb-6 px-2">
+                Securely stream and sync official college attendance records with AttendMate.
               </p>
+
+              <div className="mb-8 flex justify-center">
+                 <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] uppercase tracking-wider font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                   <Lock className="w-3 h-3" /> Credentials are never stored
+                 </div>
+              </div>
 
               <form onSubmit={handleSync} className="space-y-5">
                 {error && (
-                  <div className="p-3 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 rounded-xl text-xs font-semibold flex items-center gap-2">
+                  <div className="p-3 bg-[#FF4D6D]/10 text-[#FF4D6D] border border-[#FF4D6D]/20 rounded-xl text-xs font-semibold flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" /> {error}
                   </div>
                 )}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Portal Email</label>
+                <div className="space-y-1.5 group relative">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[#8B8FA8] ml-1 transition-colors group-focus-within:text-[#00D9FF]">Portal Email</label>
                   <input
                     type="text" required value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className="w-full bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl p-3.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full bg-[#050816]/50 border border-white/10 rounded-xl p-3.5 text-sm text-[#F0F0FF] focus:outline-none focus:ring-1 focus:ring-[#00D9FF] focus:border-[#00D9FF] transition-all"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1 flex items-center gap-1.5">
+                <div className="space-y-1.5 group relative">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[#8B8FA8] ml-1 flex items-center gap-1.5 transition-colors group-focus-within:text-[#00D9FF]">
                     <Lock className="w-3 h-3" /> Portal Password
                   </label>
                   <input
                     type="password" required value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="w-full bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl p-3.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full bg-[#050816]/50 border border-white/10 rounded-xl p-3.5 text-sm text-[#F0F0FF] focus:outline-none focus:ring-1 focus:ring-[#00D9FF] focus:border-[#00D9FF] transition-all"
                   />
                 </div>
                 <button type="submit"
-                  className="w-full py-3.5 rounded-xl bg-primary text-white font-bold transition-transform active:scale-[0.98] shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                  className="w-full mt-2 py-4 rounded-xl bg-gradient-to-r from-[#6C63FF] to-[#00D9FF] text-white font-bold transition-transform active:scale-[0.98] shadow-[0_0_20px_rgba(108,99,255,0.3)] flex items-center justify-center gap-2 hover:opacity-90 group"
                 >
-                  <RefreshCw className="w-4 h-4" /> Start Extraction
+                  Start College Sync <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </button>
               </form>
             </div>
           </motion.div>
         )}
-
-        {/* ── Live Progress Stepper ── */}
-        {loading && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl mx-auto space-y-6">
-            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-lg">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="relative">
-                  <div className="w-12 h-12 border-3 border-gray-100 dark:border-zinc-800 rounded-full" />
-                  <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin absolute inset-0" />
-                  <GraduationCap className="w-5 h-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Extracting Attendance Data</h3>
-                  <p className="text-xs text-gray-500">{currentProgress?.message || "Initializing..."}</p>
-                </div>
-              </div>
-
-              {/* Step Timeline */}
-              <div className="space-y-0">
-                {progressEvents.map((evt, i) => {
-                  const isLast = i === progressEvents.length - 1;
-                  const isDone = !isLast || evt.step === 'complete' || evt.step === 'error';
-                  const isError = evt.step === 'error';
-
-                  const StepIcon = evt.step === 'login' ? LogIn
-                    : evt.step === 'navigate' ? Navigation
-                    : evt.step === 'select_params' ? Settings2
-                    : evt.step === 'scraping_subject' ? BookOpen
-                    : evt.step === 'complete' ? CheckCircle2
-                    : AlertCircle;
-
-                  // Skip duplicate messages for same subject page updates (keep the latest)
-                  if (evt.step === 'scraping_subject' && i < progressEvents.length - 1) {
-                    const next = progressEvents[i + 1];
-                    if (next.step === 'scraping_subject' && next.subject === evt.subject && next.page !== undefined && evt.page !== undefined) {
-                      // Skip intermediate page updates for same subject, unless it's the completion message
-                      if (!evt.message.includes('Completed')) return null;
-                    }
-                  }
-
-                  return (
-                    <div key={i} className="flex gap-3 items-start">
-                      <div className="flex flex-col items-center">
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-                          isError ? 'bg-rose-100 dark:bg-rose-500/10 text-rose-500'
-                          : isDone ? 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-500'
-                          : 'bg-primary/10 text-primary'
-                        }`}>
-                          {isLast && !isDone
-                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            : <StepIcon className="w-3.5 h-3.5" />
-                          }
-                        </div>
-                        {i < progressEvents.length - 1 && (
-                          <div className="w-0.5 h-4 bg-gray-200 dark:bg-zinc-700" />
-                        )}
-                      </div>
-                      <div className="pb-3 min-w-0">
-                        <p className={`text-sm font-medium truncate ${
-                          isError ? 'text-rose-600 dark:text-rose-400'
-                          : isLast && !isDone ? 'text-gray-900 dark:text-white'
-                          : 'text-gray-500 dark:text-gray-400'
-                        }`}>
-                          {evt.message}
-                        </p>
-                        {evt.step === 'scraping_subject' && evt.currentSubjectIndex && evt.totalSubjects && (
-                          <div className="mt-1.5 flex items-center gap-2">
-                            <div className="flex-1 h-1.5 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden max-w-[200px]">
-                              <motion.div
-                                className="h-full bg-primary rounded-full"
-                                initial={{ width: 0 }}
-                                animate={{ width: `${(evt.currentSubjectIndex / evt.totalSubjects) * 100}%` }}
-                                transition={{ duration: 0.5 }}
-                              />
-                            </div>
-                            <span className="text-[10px] font-bold text-gray-400">{evt.currentSubjectIndex}/{evt.totalSubjects}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </motion.div>
-        )}
+        </AnimatePresence>
 
         {/* ── Results Area ── */}
-        {hasData && !loading && !loadingCached && (
+        {hasData && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
 
             {/* Summary Stats */}
@@ -413,6 +544,7 @@ export default function CollegeSyncPage() {
     </ProfessionalPageLayout>
   );
 }
+
 
 // ————————————————————————————————————————————————
 // TAB 1: COLLEGE DATA

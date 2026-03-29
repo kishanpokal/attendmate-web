@@ -4,6 +4,26 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  /* ───────────────────────────────────────────── */
+  /*  AttendMate Landing Page Custom Tokens        */
+  /* ───────────────────────────────────────────── */
+  --bg-deep: #03050F;
+  --bg-surface: #080C1A;
+  --primary: #5B5FEE;
+  --primary-glow: rgba(91,95,238,0.35);
+  --cyan: #00D4FF;
+  --cyan-glow: rgba(0,212,255,0.25);
+  --green: #00F0A0;
+  --amber: #FFB520;
+  --danger: #FF4D6D;
+  --text: #ECF0FF;
+  --muted: rgba(236,240,255,0.45);
+  --border: rgba(255,255,255,0.07);
+  --glass: rgba(255,255,255,0.04);
+  --font-heading: 'Cabinet Grotesk', sans-serif;
+  --font-body: 'Satoshi', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
   /* Core Palette - HSL for precise control */
   --primary-h: 239;
   --primary-s: 84%;
@@ -58,15 +78,34 @@
   --color-primary-dark: var(--primary-dark);
   --color-secondary: var(--secondary);
   --color-accent: var(--accent);
+
+  --color-attendmate-primary: #5B5FEE;
+  --color-attendmate-cyan: #00D4FF;
+  --color-attendmate-green: #00F0A0;
+  --color-attendmate-amber: #FFB520;
+  --color-attendmate-red: #FF4D6D;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-inter), sans-serif;
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: var(--font-body);
   transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+/* Background Noise Overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
 h1,
@@ -75,8 +114,17 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-outfit), sans-serif;
-  letter-spacing: -0.02em;
+  font-family: var(--font-heading);
+}
+
+h1 {
+  font-weight: 900;
+  letter-spacing: -4px;
+}
+
+h2 {
+  font-weight: 800;
+  letter-spacing: -2px;
 }
 
 /* Premium Scrollbar */

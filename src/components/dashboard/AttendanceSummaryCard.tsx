@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import GlassCard from "./GlassCard";
+import { PieChart, CheckCircle2, TrendingUp, AlertCircle } from "lucide-react";
 
 type Props = {
   total: number;
@@ -9,15 +11,35 @@ type Props = {
   loading: boolean;
 };
 
-export default function AttendanceSummaryCard({
-  total,
-  attended,
-  loading,
-}: Props) {
-  const percentage = total === 0 ? 0 : Number(((attended / total) * 100).toFixed(2));
+// Hook copied so no dependency loop
+function useCountUp(target: number, duration: number = 1200, trigger: boolean = true) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!trigger) return;
+    let startTime: number | null = null;
+    let animationFrameId: number;
+    const animate = (now: number) => {
+      if (!startTime) startTime = now;
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Number((target * eased).toFixed(1)));
+      if (progress < 1) animationFrameId = requestAnimationFrame(animate);
+    };
+    animationFrameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [target, duration, trigger]);
+  return value;
+}
+
+export default function AttendanceSummaryCard({ total, attended, loading }: Props) {
+  const percentageFloat = total === 0 ? 0 : (attended / total) * 100;
+  const percentage = Number(percentageFloat.toFixed(2));
+  
+  // Custom exact animation logic kept per request: "Keep EXACT animatedPercent useEffect"
+  // but wait in the prompt it says "useCountUp hook... animatedPercent (KEEP the existing implementation there — do not replace, just use this new hook in the other components)"
+  // Okay, maintaining the state then:
   const [animatedPercent, setAnimatedPercent] = useState(0);
 
-  // Animate percentage
   useEffect(() => {
     if (loading) return;
     let start = 0;
@@ -35,7 +57,6 @@ export default function AttendanceSummaryCard({
     requestAnimationFrame(animate);
   }, [percentage, loading]);
 
-  // Determine status color based on percentage
   const getStatusColor = () => {
     if (percentage >= 75.0) return "emerald";
     if (percentage >= 60.0) return "amber";
@@ -43,302 +64,164 @@ export default function AttendanceSummaryCard({
   };
 
   const statusColor = getStatusColor();
+  const actualColorHex = statusColor === "emerald" ? "#00F0A0" : statusColor === "amber" ? "#FFB520" : "#FF4D6D";
 
   if (loading) {
     return <SkeletonSummaryCard />;
   }
 
+  const radius = 90; // 180px diameter -> 90 r
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (animatedPercent / 100) * circumference;
+
   return (
     <div className="w-full">
-      {/* Main Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="
-          relative overflow-hidden
-          rounded-3xl
-          bg-white dark:bg-gray-900
-          shadow-lg
-          border border-gray-100 dark:border-gray-800
-        "
-      >
-        {/* Animated Background Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-pink-500/5 dark:from-indigo-600/10 dark:via-purple-600/10 dark:to-pink-600/10" />
-
-        {/* Content Container */}
-        <div className="relative z-10 p-6">
-          {/* Header Section */}
-          <div className="text-center mb-6">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 mb-3"
-            >
-              <svg
-                className="w-4 h-4 text-indigo-600 dark:text-indigo-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-              <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300">
-                Attendance Overview
-              </span>
-            </motion.div>
-
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              Overall Attendance
-            </h2>
+      <GlassCard className="w-full p-6 text-center">
+        {/* Top Section */}
+        <div className="mb-6 flex flex-col items-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--color-attendmate-primary)]/10 border border-[var(--color-attendmate-primary)]/30">
+            <PieChart className="w-4 h-4 text-[var(--color-attendmate-primary)]" />
+            <span className="text-xs font-semibold text-[var(--color-attendmate-primary)]">Attendance Overview</span>
           </div>
-
-          {/* Circular Progress Section */}
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              {/* Progress Circle with viewBox for proper scaling */}
-              <svg className="w-40 h-40 transform -rotate-90" viewBox="0 0 200 200">
-                {/* Background Circle */}
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="85"
-                  strokeWidth="14"
-                  className="fill-none stroke-gray-200 dark:stroke-gray-800"
-                />
-
-                {/* Progress Circle */}
-                <motion.circle
-                  cx="100"
-                  cy="100"
-                  r="85"
-                  strokeWidth="14"
-                  strokeLinecap="round"
-                  className={`fill-none transition-colors duration-500 ${statusColor === "emerald"
-                    ? "stroke-emerald-500 dark:stroke-emerald-400"
-                    : statusColor === "amber"
-                      ? "stroke-amber-500 dark:stroke-amber-400"
-                      : "stroke-rose-500 dark:stroke-rose-400"
-                    }`}
-                  strokeDasharray={2 * Math.PI * 85}
-                  initial={{ strokeDashoffset: 2 * Math.PI * 85 }}
-                  animate={{
-                    strokeDashoffset:
-                      2 * Math.PI * 85 * (1 - animatedPercent / 100),
-                  }}
-                  transition={{ duration: 1.2, ease: "easeOut" }}
-                  style={{
-                    filter: "drop-shadow(0 0 8px currentColor)",
-                  }}
-                />
-              </svg>
-
-              {/* Center Content */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-                  className="text-center"
-                >
-                  <span
-                    className={`block text-4xl font-bold leading-none ${statusColor === "emerald"
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : statusColor === "amber"
-                        ? "text-amber-600 dark:text-amber-400"
-                        : "text-rose-600 dark:text-rose-400"
-                      }`}
-                  >
-                    {animatedPercent}%
-                  </span>
-                </motion.div>
-              </div>
-
-              {/* Floating Particles */}
-              <motion.div
-                animate={{
-                  y: [0, -8, 0],
-                  opacity: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className={`absolute -top-2 -right-2 w-6 h-6 rounded-full ${statusColor === "emerald"
-                  ? "bg-emerald-400"
-                  : statusColor === "amber"
-                    ? "bg-amber-400"
-                    : "bg-rose-400"
-                  } blur-sm`}
-              />
-              <motion.div
-                animate={{
-                  y: [0, 8, 0],
-                  opacity: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 0.5,
-                }}
-                className={`absolute -bottom-2 -left-2 w-5 h-5 rounded-full ${statusColor === "emerald"
-                  ? "bg-purple-400"
-                  : statusColor === "amber"
-                    ? "bg-indigo-400"
-                    : "bg-pink-400"
-                  } blur-sm`}
-              />
-            </div>
-          </div>
-
-          {/* Stats Section */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Attended Stat */}
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-4 border-2 border-emerald-200 dark:border-emerald-800">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
-                    <svg
-                      className="w-5 h-5 text-emerald-600 dark:text-emerald-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                      Attended
-                    </p>
-                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 leading-none">
-                      {attended}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Total Stat */}
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl p-4 border-2 border-indigo-200 dark:border-indigo-800">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0">
-                    <svg
-                      className="w-5 h-5 text-indigo-600 dark:text-indigo-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                      Total
-                    </p>
-                    <p className="text-2xl font-bold text-indigo-700 dark:text-indigo-300 leading-none">
-                      {total}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Status Message */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-4 text-center"
-          >
-            <div
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${statusColor === "emerald"
-                ? "bg-emerald-100 dark:bg-emerald-900/30"
-                : statusColor === "amber"
-                  ? "bg-amber-100 dark:bg-amber-900/30"
-                  : "bg-rose-100 dark:bg-rose-900/30"
-                }`}
-            >
-              <span
-                className={`text-xs font-semibold ${statusColor === "emerald"
-                  ? "text-emerald-700 dark:text-emerald-300"
-                  : statusColor === "amber"
-                    ? "text-amber-700 dark:text-amber-300"
-                    : "text-rose-700 dark:text-rose-300"
-                  }`}
-              >
-                {percentage >= 75.0
-                  ? "🎉 Excellent! Keep it up!"
-                  : percentage >= 60.0
-                    ? "⚠️ Room for improvement"
-                    : "📉 Attend more classes"}
-              </span>
-            </div>
-          </motion.div>
         </div>
-      </motion.div>
+
+        {/* Circular Progress */}
+        <div className="relative w-[220px] h-[220px] mx-auto flex items-center justify-center">
+          <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 220 220">
+            <defs>
+              <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#00C87A" />
+                <stop offset="100%" stopColor="#00F0A0" />
+              </linearGradient>
+              <linearGradient id="amberGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#FF8C00" />
+                <stop offset="100%" stopColor="#FFB520" />
+              </linearGradient>
+              <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#FF2D55" />
+                <stop offset="100%" stopColor="#FF4D6D" />
+              </linearGradient>
+              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="8" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+            
+            {/* Base Background Circle */}
+            <circle cx="110" cy="110" r={radius} stroke="rgba(255,255,255,0.05)" strokeWidth="16" fill="transparent" />
+            
+            {/* Progress Circle */}
+            <motion.circle
+              cx="110"
+              cy="110"
+              r={radius}
+              stroke={`url(#${statusColor}Gradient)`}
+              strokeWidth="16"
+              strokeLinecap="round"
+              fill="transparent"
+              strokeDasharray={circumference}
+              initial={{ strokeDashoffset: circumference }}
+              animate={{ strokeDashoffset: offset }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+              filter="url(#glow)"
+            />
+          </svg>
+
+          {/* Outer Decorative Rings */}
+          <div className="absolute inset-0 pointer-events-none text-center flex items-center justify-center">
+            <svg className="w-[230px] h-[230px] animate-[spin_20s_linear_infinite]" viewBox="0 0 230 230">
+              <circle cx="115" cy="115" r="105" stroke={actualColorHex} strokeOpacity="0.06" strokeWidth="1" fill="none" strokeDasharray="3 8" />
+            </svg>
+          </div>
+          <div className="absolute inset-0 pointer-events-none text-center flex items-center justify-center">
+             <svg className="w-[210px] h-[210px] animate-[spin_25s_linear_infinite_reverse]" viewBox="0 0 210 210">
+              <circle cx="105" cy="105" r="95" stroke={actualColorHex} strokeOpacity="0.06" strokeWidth="1" fill="none" strokeDasharray="3 8" />
+            </svg>
+          </div>
+
+          <div className="absolute flex flex-col items-center">
+            <span className="text-[44px] font-bold font-mono" style={{ color: actualColorHex }}>
+              {animatedPercent}%
+            </span>
+            <span className="text-[11px] font-[Outfit] text-[var(--color-attendmate-muted)]">
+              overall
+            </span>
+          </div>
+
+          {/* Floating Particles */}
+          <motion.div animate={{ y: [0, -8, 0], opacity: [0.5, 1, 0.5] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-1 -right-1 w-[9px] h-[9px] rounded-full blur-[1px]" style={{ background: actualColorHex, boxShadow: `0 0 10px ${actualColorHex}` }} />
+          <motion.div animate={{ y: [0, 8, 0], opacity: [0.5, 1, 0.5] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }} className="absolute -bottom-1 -left-1 w-[8px] h-[8px] rounded-full blur-[1px]" style={{ background: actualColorHex, boxShadow: `0 0 10px ${actualColorHex}` }} />
+          <motion.div animate={{ x: [0, -6, 0], opacity: [0.4, 0.8, 0.4] }} transition={{ duration: 4, repeat: Infinity, ease: "linear", delay: 1 }} className="absolute top-[30%] -left-3 w-[10px] h-[10px] rounded-full blur-[2px]" style={{ background: actualColorHex, boxShadow: `0 0 10px ${actualColorHex}` }} />
+        </div>
+
+        {/* STATS ROW */}
+        <div className="grid grid-cols-2 gap-4 mt-8">
+          <div className="bg-[rgba(255,255,255,0.02)] p-4 rounded-xl border-l-[2px]" style={{ borderLeftColor: actualColorHex }}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5">
+                <CheckCircle2 className="w-5 h-5" style={{ color: actualColorHex }} />
+              </div>
+              <div className="text-left">
+                <p className="text-[12px] font-medium text-[var(--color-attendmate-muted)]">Attended</p>
+                <p className="text-[28px] font-bold font-mono text-white leading-none mt-1">{attended}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-[rgba(255,255,255,0.02)] p-4 rounded-xl border-l-[2px]" style={{ borderLeftColor: actualColorHex }}>
+            <div className="flex items-center gap-3">
+               <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5">
+                <TrendingUp className="w-5 h-5 text-gray-400" />
+              </div>
+              <div className="text-left">
+                <p className="text-[12px] font-medium text-[var(--color-attendmate-muted)]">Total</p>
+                <p className="text-[28px] font-bold font-mono text-white leading-none mt-1">{total}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* STATUS MESSAGE */}
+        <motion.div
+           initial={{ opacity: 0, y: 10 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ delay: 0.6 }}
+           className="mt-5 w-full text-left flex items-center gap-3 px-5 py-3 rounded-xl border-l-[2px]"
+           style={{ background: `${actualColorHex}14`, borderLeftColor: actualColorHex }} /* 14 is 8% hex opacity approx (.08 * 255 = 20 = 14) */
+        >
+          <span className="text-xl">
+            {percentage >= 75.0 ? "🎉" : percentage >= 60.0 ? "⚠️" : "📉"}
+          </span>
+          <span className="text-sm font-semibold text-white font-[Outfit]">
+            {percentage >= 75.0 ? "Excellent standing. Keep it up!" : percentage >= 60.0 ? "Room for improvement. Watch your classes." : "Critical standing. Attend more classes."}
+          </span>
+        </motion.div>
+      </GlassCard>
     </div>
   );
 }
 
-/* ---------------- SKELETON LOADER ---------------- */
-
 function SkeletonSummaryCard() {
   return (
     <div className="w-full">
-      <div className="rounded-3xl p-6 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 animate-pulse">
-        {/* Header Skeleton */}
-        <div className="text-center mb-6">
-          <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-3" />
-          <div className="h-7 w-40 bg-gray-200 dark:bg-gray-700 rounded-lg mx-auto" />
-        </div>
+      <div className="rounded-[20px] p-6 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)]">
+        <div className="animate-[shimmer_1.5s_infinite_linear] bg-[length:800px_100%] bg-gradient-to-r from-[rgba(255,255,255,0.04)] via-[rgba(255,255,255,0.08)] to-[rgba(255,255,255,0.04)] h-full w-full absolute inset-0 rounded-[20px]" />
+        
+        <div className="relative z-10">
+          <div className="text-center mb-6">
+            <div className="h-6 w-32 bg-[rgba(255,255,255,0.1)] rounded-full mx-auto mb-3" />
+            <div className="h-7 w-40 bg-[rgba(255,255,255,0.1)] rounded-lg mx-auto" />
+          </div>
 
-        {/* Circle Skeleton */}
-        <div className="flex justify-center mb-6">
-          <div className="w-40 h-40 rounded-full bg-gray-200 dark:bg-gray-700" />
-        </div>
+          <div className="flex justify-center mb-6">
+            <div className="w-40 h-40 rounded-full bg-[rgba(255,255,255,0.1)]" />
+          </div>
 
-        {/* Stats Skeleton */}
-        <div className="grid grid-cols-2 gap-3">
-          {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-20 bg-gray-200 dark:bg-gray-700 rounded-2xl"
-            />
-          ))}
-        </div>
+          <div className="grid grid-cols-2 gap-4 mt-8">
+            <div className="h-[76px] bg-[rgba(255,255,255,0.1)] rounded-xl" />
+            <div className="h-[76px] bg-[rgba(255,255,255,0.1)] rounded-xl" />
+          </div>
 
-        {/* Status Skeleton */}
-        <div className="mt-4 flex justify-center">
-          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded-full" />
+          <div className="mt-5 h-[52px] w-full bg-[rgba(255,255,255,0.1)] rounded-xl" />
         </div>
       </div>
     </div>
