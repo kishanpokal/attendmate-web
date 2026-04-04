@@ -304,23 +304,30 @@ export default function CollegeSyncPage() {
     const isError = currentProgress?.step === 'error' || error !== null;
 
     return (
-      <div className="fixed inset-0 z-50 bg-[#050816] text-[#F0F0FF] overflow-hidden flex flex-col md:flex-row font-sans">
+      <div className="fixed inset-0 z-50 bg-[#050816] text-[#F0F0FF] overflow-hidden flex flex-col md:flex-row font-sans" style={{ touchAction: 'manipulation' }}>
         
         {/* Back Button */}
         {!loading && (
            <button 
              onClick={() => setIsImmersionMode(false)}
-             className="absolute top-6 left-6 z-50 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors"
+             className="absolute top-4 left-4 md:top-6 md:left-6 z-50 p-2.5 text-white/60 hover:text-white bg-white/[0.08] hover:bg-white/15 rounded-xl transition-all backdrop-blur-sm border border-white/[0.06]"
+             style={{ touchAction: 'manipulation' }}
            >
              <ArrowLeft className="w-5 h-5" />
            </button>
         )}
 
         {/* LEFT COLUMN: 3D SCENE */}
-        <div className="w-full md:w-[60%] h-[40vh] md:h-screen relative flex-shrink-0">
+        <div 
+          className="w-full md:w-[60%] h-[30vh] md:h-screen relative flex-shrink-0 overflow-hidden"
+          style={{ touchAction: 'none' }}
+        >
           {/* Subtle background glow */}
-          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-[#6C63FF] rounded-full mix-blend-screen filter blur-[128px] opacity-20 pointer-events-none" />
-          <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-[#00D9FF] rounded-full mix-blend-screen filter blur-[128px] opacity-20 pointer-events-none" />
+          <div className="absolute top-1/4 right-1/4 w-48 md:w-96 h-48 md:h-96 bg-[#6C63FF] rounded-full mix-blend-screen filter blur-[80px] md:blur-[128px] opacity-20 pointer-events-none" />
+          <div className="absolute bottom-1/4 left-1/4 w-48 md:w-96 h-48 md:h-96 bg-[#00D9FF] rounded-full mix-blend-screen filter blur-[80px] md:blur-[128px] opacity-20 pointer-events-none" />
+          
+          {/* Gradient fade at bottom on mobile for seamless blend */}
+          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#050816] to-transparent z-10 pointer-events-none md:hidden" />
           
           <SyncScene 
             currentStep={currentProgress?.step || "idle"}
@@ -334,7 +341,7 @@ export default function CollegeSyncPage() {
         </div>
 
         {/* RIGHT COLUMN: UI / FEED */}
-        <div className="w-full md:w-[40%] h-[60vh] md:h-screen p-6 md:p-8 flex flex-col pt-8 md:pt-12 bg-[#050816]/80 backdrop-blur-xl border-l border-white/5 overflow-y-auto overflow-x-hidden">
+        <div className="w-full md:w-[40%] h-[70vh] md:h-screen p-4 md:p-8 flex flex-col pt-4 md:pt-12 bg-[#050816]/90 backdrop-blur-xl md:border-l border-white/5 overflow-y-auto overflow-x-hidden" style={{ touchAction: 'pan-y' }}>
           
           <AnimatePresence mode="wait">
             {isComplete ? (

@@ -2,6 +2,22 @@
   "records": [
     {
       "subject": "CLOUD COMPUTING",
+      "date": "01/04/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "01/04/202614:0015:00windows os image(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
+      "date": "30/03/2026",
+      "fromTime": "14:00",
+      "toTime": "15:00",
+      "topic": "30/03/202614:0015:00winscp(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "CLOUD COMPUTING",
       "date": "18/03/2026",
       "fromTime": "14:00",
       "toTime": "15:00",
@@ -199,6 +215,14 @@
       "toTime": "15:00",
       "topic": "08/01/202614:0015:00who provide services?(Extra)",
       "status": "Present"
+    },
+    {
+      "subject": "MACHINE LEARNING",
+      "date": "30/03/2026",
+      "fromTime": "15:00",
+      "toTime": "16:00",
+      "topic": "30/03/202615:0016:00support vector equations(Extra)",
+      "status": "Absent"
     },
     {
       "subject": "MACHINE LEARNING",
@@ -638,6 +662,38 @@
       "fromTime": "16:00",
       "toTime": "18:00",
       "topic": "01/01/202616:0018:00ml(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "04/04/2026",
+      "fromTime": "14:30",
+      "toTime": "15:30",
+      "topic": "04/04/202614:3015:30practical(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "04/04/2026",
+      "fromTime": "13:30",
+      "toTime": "14:30",
+      "topic": "04/04/202613:3014:30practical(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "04/04/2026",
+      "fromTime": "12:30",
+      "toTime": "13:30",
+      "topic": "04/04/202612:3013:30practical(Extra)",
+      "status": "Present"
+    },
+    {
+      "subject": "DEEP LEARNING",
+      "date": "30/03/2026",
+      "fromTime": "13:00",
+      "toTime": "14:00",
+      "topic": "30/03/202613:0014:00sgd(Extra)",
       "status": "Present"
     },
     {
@@ -1137,8 +1193,8 @@
       "status": "Absent"
     }
   ],
-  "lastSynced": "2026-03-29T11:19:51.804Z",
-  "totalRecords": 142,
+  "lastSynced": "2026-04-04T12:45:41.880Z",
+  "totalRecords": 149,
   "subjects": [
     "CLOUD COMPUTING",
     "MACHINE LEARNING",
