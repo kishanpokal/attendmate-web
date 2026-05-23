@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import GlassCard from "./GlassCard";
 import { PieChart, CheckCircle2, TrendingUp, AlertCircle } from "lucide-react";
 
@@ -111,7 +110,7 @@ export default function AttendanceSummaryCard({ total, attended, loading }: Prop
             <circle cx="110" cy="110" r={radius} stroke="rgba(255,255,255,0.05)" strokeWidth="16" fill="transparent" />
             
             {/* Progress Circle */}
-            <motion.circle
+            <circle
               cx="110"
               cy="110"
               r={radius}
@@ -120,9 +119,6 @@ export default function AttendanceSummaryCard({ total, attended, loading }: Prop
               strokeLinecap="round"
               fill="transparent"
               strokeDasharray={circumference}
-              initial={{ strokeDashoffset: circumference }}
-              animate={{ strokeDashoffset: offset }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
               filter="url(#glow)"
             />
           </svg>
@@ -149,9 +145,9 @@ export default function AttendanceSummaryCard({ total, attended, loading }: Prop
           </div>
 
           {/* Floating Particles */}
-          <motion.div animate={{ y: [0, -8, 0], opacity: [0.5, 1, 0.5] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-1 -right-1 w-[9px] h-[9px] rounded-full blur-[1px]" style={{ background: actualColorHex, boxShadow: `0 0 10px ${actualColorHex}` }} />
-          <motion.div animate={{ y: [0, 8, 0], opacity: [0.5, 1, 0.5] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }} className="absolute -bottom-1 -left-1 w-[8px] h-[8px] rounded-full blur-[1px]" style={{ background: actualColorHex, boxShadow: `0 0 10px ${actualColorHex}` }} />
-          <motion.div animate={{ x: [0, -6, 0], opacity: [0.4, 0.8, 0.4] }} transition={{ duration: 4, repeat: Infinity, ease: "linear", delay: 1 }} className="absolute top-[30%] -left-3 w-[10px] h-[10px] rounded-full blur-[2px]" style={{ background: actualColorHex, boxShadow: `0 0 10px ${actualColorHex}` }} />
+          <div className="absolute -top-1 -right-1 w-[9px] h-[9px] rounded-full blur-[1px]" style={{ background: actualColorHex, boxShadow: `0 0 10px ${actualColorHex}` }} />
+          <div className="absolute -bottom-1 -left-1 w-[8px] h-[8px] rounded-full blur-[1px]" style={{ background: actualColorHex, boxShadow: `0 0 10px ${actualColorHex}` }} />
+          <div className="absolute top-[30%] -left-3 w-[10px] h-[10px] rounded-full blur-[2px]" style={{ background: actualColorHex, boxShadow: `0 0 10px ${actualColorHex}` }} />
         </div>
 
         {/* STATS ROW */}
@@ -181,10 +177,7 @@ export default function AttendanceSummaryCard({ total, attended, loading }: Prop
         </div>
 
         {/* STATUS MESSAGE */}
-        <motion.div
-           initial={{ opacity: 0, y: 10 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ delay: 0.6 }}
+        <div
            className="mt-5 w-full text-left flex items-center gap-3 px-5 py-3 rounded-xl border-l-[2px]"
            style={{ background: `${actualColorHex}14`, borderLeftColor: actualColorHex }} /* 14 is 8% hex opacity approx (.08 * 255 = 20 = 14) */
         >
@@ -194,7 +187,7 @@ export default function AttendanceSummaryCard({ total, attended, loading }: Prop
           <span className="text-sm font-semibold text-white font-[Outfit]">
             {percentage >= 75.0 ? "Excellent standing. Keep it up!" : percentage >= 60.0 ? "Room for improvement. Watch your classes." : "Critical standing. Attend more classes."}
           </span>
-        </motion.div>
+        </div>
       </GlassCard>
     </div>
   );

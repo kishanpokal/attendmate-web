@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { CheckCircle2, Loader2, Database } from "lucide-react";
 import { GlassCard } from "./SyncStats";
 
@@ -31,10 +30,7 @@ export default function SubjectProgressList({
         const isActive = idx === activeSubjectIndex;
         
         return (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.05 }}
+          <div
             key={`sub-${idx}`}
           >
             <GlassCard
@@ -73,7 +69,7 @@ export default function SubjectProgressList({
                 <div className="absolute inset-0 bg-gradient-to-r from-[#6C63FF]/10 to-transparent pointer-events-none" />
               )}
             </GlassCard>
-          </motion.div>
+          </div>
         );
       })}
     </div>

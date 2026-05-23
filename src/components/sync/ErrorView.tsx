@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { AlertCircle, RefreshCw, Home } from "lucide-react";
 
 interface ErrorViewProps {
@@ -10,18 +9,14 @@ interface ErrorViewProps {
 
 export default function ErrorView({ errorMessage, onTryAgain }: ErrorViewProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className="flex flex-col items-center justify-center h-full space-y-6 p-6 text-center"
     >
-      <motion.div
-        animate={{ x: [-5, 5, -5, 5, 0] }}
-        transition={{ duration: 0.4 }}
+      <div
         className="w-20 h-20 bg-[#FF4D6D]/20 rounded-2xl flex items-center justify-center border border-[#FF4D6D]/40 shadow-[0_0_30px_rgba(255,77,109,0.2)]"
       >
         <AlertCircle className="w-10 h-10 text-[#FF4D6D]" />
-      </motion.div>
+      </div>
 
       <div className="space-y-3 max-w-sm">
         <h2 className="text-2xl font-bold font-sans text-[#F0F0FF]">
@@ -49,6 +44,6 @@ export default function ErrorView({ errorMessage, onTryAgain }: ErrorViewProps) 
           <Home className="w-4 h-4" /> Back to Dashboard
         </a>
       </div>
-    </motion.div>
+    </div>
   );
 }

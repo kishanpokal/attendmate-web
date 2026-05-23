@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Check, Loader2 } from "lucide-react";
 import { SyncProgressEvent } from "@/lib/collegeSync";
 
@@ -48,26 +47,7 @@ export default function StepTracker({ currentStep }: StepTrackerProps) {
             )}
 
             <div className="w-10 flex shrink-0 justify-center z-10">
-              <motion.div
-                initial={false}
-                animate={{
-                  backgroundColor:
-                    status === "complete"
-                      ? "#00F5A0"
-                      : status === "active"
-                      ? "#6C63FF"
-                      : "transparent",
-                  borderColor:
-                    status === "complete"
-                      ? "#00F5A0"
-                      : status === "active"
-                      ? "#6C63FF"
-                      : "rgba(255,255,255,0.2)",
-                  color:
-                    status === "complete" || status === "active"
-                      ? "#050816"
-                      : "#8B8FA8",
-                }}
+              <div
                 className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-xs relative ${
                   status === "active" ? "ring-4 ring-[#6C63FF]/30" : ""
                 }`}
@@ -82,7 +62,7 @@ export default function StepTracker({ currentStep }: StepTrackerProps) {
                 {status === "active" && (
                   <span className="absolute w-12 h-12 border-2 border-[#6C63FF] rounded-full animate-ping opacity-20" />
                 )}
-              </motion.div>
+              </div>
             </div>
 
             <div className="pb-8 flex-1 flex flex-col pt-1">

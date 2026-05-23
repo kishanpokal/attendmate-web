@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { 
   Sparkles, 
   Send, 
@@ -437,12 +436,9 @@ export default function AICopilot() {
   return (
     <>
       {/* Chat Interface */}
-      <AnimatePresence>
+      
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20, transformOrigin: "bottom right" }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          <div
             // Height constrained, bottom adjusted
             className="fixed bottom-[100px] right-6 md:bottom-8 md:right-8 z-[100] w-[calc(100vw-3rem)] sm:w-[400px] h-[550px] max-h-[80vh] bg-white dark:bg-[#09090b] rounded-[2rem] shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col"
           >
@@ -511,9 +507,9 @@ export default function AICopilot() {
                         <Bot className="w-4 h-4" />
                       </div>
                       <div className="p-4 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-xl flex gap-1.5 items-center rounded-tl-none">
-                        <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1 }} className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                       </div>
                     </div>
                   </div>
@@ -537,12 +533,9 @@ export default function AICopilot() {
               </div>
 
               <div className="relative group">
-                <AnimatePresence>
+                
                   {input.startsWith("/") && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
+                    <div
                       className="absolute bottom-full left-0 w-full mb-3 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden z-50 transform origin-bottom"
                     >
                       <div className="flex flex-col">
@@ -563,9 +556,9 @@ export default function AICopilot() {
                           </button>
                         ))}
                       </div>
-                    </motion.div>
+                    </div>
                   )}
-                </AnimatePresence>
+                
 
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/30 to-purple-600/30 rounded-[1.5rem] blur opacity-0 group-focus-within:opacity-100 transition duration-300" />
                 <div className="relative flex items-end gap-2 bg-white dark:bg-zinc-900 rounded-[1.5rem] p-1.5 shadow-md border border-gray-200 dark:border-zinc-800">
@@ -600,9 +593,9 @@ export default function AICopilot() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      
     </>
   );
 }
@@ -620,7 +613,7 @@ function AiResponseCard({ type, data }: { type: string, data?: any }) {
             <span className="text-sm font-black text-primary">{data?.percentage}%</span>
           </div>
           <div className="h-1.5 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden shadow-inner">
-            <motion.div initial={{ width: 0 }} animate={{ width: `${data?.percentage || 0}%` }} transition={{ duration: 1 }} className="h-full bg-primary" />
+            <div className="h-full bg-primary" />
           </div>
         </div>
       );
