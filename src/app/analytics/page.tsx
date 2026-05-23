@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { collection, getDocs, Timestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { motion, AnimatePresence } from "framer-motion";
+
 import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
 import {
   BarChart3,
@@ -221,18 +221,13 @@ export default function AnalyticsPage() {
 
         {/* Content */}
         <div className="relative">
-          <AnimatePresence mode="wait">
+          <div>
             {loading ? (
-              <LoadingState key="loading" />
+              <LoadingState />
             ) : attendance.length === 0 ? (
-              <EmptyState key="empty" />
+              <EmptyState />
             ) : (
-              <motion.div
-                key="content"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-8"
+              <div className="space-y-8"
               >
                 {/* ── Top Row: Overview & Streak ── */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -242,14 +237,13 @@ export default function AnalyticsPage() {
                     <div className="relative w-40 h-40 flex-shrink-0 flex items-center justify-center">
                       <svg className="w-full h-full transform -rotate-90 absolute inset-0">
                         <circle cx="50%" cy="50%" r="42%" className="stroke-gray-100 dark:stroke-zinc-800" strokeWidth="10" fill="transparent" />
-                        <motion.circle
+                        <circle
                           cx="50%" cy="50%" r="42%" fill="transparent"
                           className={theme.stroke}
                           strokeWidth="10" strokeLinecap="round"
                           strokeDasharray="264"
-                          initial={{ strokeDashoffset: 264 }}
-                          animate={{ strokeDashoffset: 264 - (percentage / 100) * 264 }}
-                          transition={{ duration: 1.5, ease: "easeOut" }}
+                          strokeDashoffset={264 - (percentage / 100) * 264}
+                          style={{ transition: 'stroke-dashoffset 1s ease-out' }}
                         />
                       </svg>
                       <div className="flex flex-col items-center justify-center z-10 text-center">
@@ -299,11 +293,9 @@ export default function AnalyticsPage() {
                         <span className="text-2xl font-bold text-primary">{currentStreak} <span className="text-sm font-medium text-gray-500">Days</span></span>
                       </div>
                       <div className="w-full bg-gray-100 dark:bg-zinc-800 h-2.5 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min((currentStreak / 30) * 100, 100)}%` }}
-                          transition={{ duration: 1 }}
+                        <div
                           className="bg-primary h-full rounded-full"
+                          style={{ width: `${Math.min((currentStreak / 30) * 100, 100)}%`, transition: 'width 0.8s ease-out' }}
                         />
                       </div>
                       <p className="text-xs text-gray-500 dark:text-zinc-500 pt-1">Personal Best: {maxStreak} days</p>
@@ -340,15 +332,13 @@ export default function AnalyticsPage() {
                 {/* ── Forecasting Section ── */}
                 <SkipPrediction present={present} total={total} bySubject={bySubject} />
 
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+          </div>
         </div>
 
         {/* Date Dialog Modal */}
-        <AnimatePresence>
           {selectedDate && <DateDialog date={selectedDate} attendance={attendance} onClose={() => setSelectedDate(null)} router={router} />}
-        </AnimatePresence>
       </div>
     </ProfessionalPageLayout>
   );
@@ -446,12 +436,7 @@ function TrendLineChart({ attendance, themeHex }: { attendance: AnalyticsAttenda
               <stop offset="100%" stopColor={themeHex} stopOpacity="0" />
             </linearGradient>
             <clipPath id="revealVelocity">
-              <motion.rect
-                x="0" y="0" width={svgWidth} height={svgHeight}
-                initial={{ width: 0 }}
-                animate={{ width: svgWidth }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-              />
+              <rect x="0" y="0" width={svgWidth} height={svgHeight} />
             </clipPath>
           </defs>
 
@@ -558,16 +543,16 @@ function TimeOfDayAnalysis({ attendance }: { attendance: AnalyticsAttendance[] }
 
               {/* Background track relative to max classes */}
               <div className="w-full h-2.5 rounded-full flex items-center">
-                <motion.div
-                  initial={{ width: 0 }} animate={{ width: `${width}%` }} transition={{ duration: 0.8 }}
-                  className="h-full bg-gray-100 dark:bg-zinc-800 rounded-full relative overflow-hidden flex"
+                <div
+                  className="h-full bg-gray-100 dark:bg-gray-700 rounded-full relative overflow-hidden flex"
+                  style={{ width: `${width}%`, transition: 'width 0.8s ease-out' }}
                 >
-                  <motion.div
-                    initial={{ width: 0 }} animate={{ width: `${pWidth}%` }} transition={{ duration: 1, delay: 0.1 }}
-                    className={`h-full ${total > 0 ? theme.fill : 'bg-gray-300 dark:bg-zinc-700'}`}
+                  <div
+                    className={`h-full ${total > 0 ? theme.fill : 'bg-gray-300 dark:bg-gray-600'}`}
+                    style={{ width: `${pWidth}%`, transition: 'width 0.8s ease-out' }}
                   />
                   <div className="flex-1 bg-transparent h-full" />
-                </motion.div>
+                </div>
               </div>
             </div>
           );
@@ -608,11 +593,9 @@ function SubjectBarGraph({ data }: { data: Record<string, AnalyticsAttendance[]>
               </div>
               <div className="relative h-2 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                 <div className="absolute top-0 bottom-0 left-[75%] w-[2px] bg-gray-300 dark:bg-zinc-600 z-10" />
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${percent}%` }}
-                  transition={{ duration: 1 }}
+                <div
                   className={`h-full rounded-full ${theme.fill} relative z-0`}
+                  style={{ width: `${percent}%`, transition: 'width 0.8s ease-out' }}
                 />
               </div>
             </div>
@@ -800,17 +783,13 @@ function DateDialog({ date, attendance, onClose, router }: any) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      <div
         onClick={onClose}
-        className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/30 dark:bg-black/50"
       />
 
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 10 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0, y: 10 }}
-        className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-800 overflow-hidden"
+      <div
+        className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -865,7 +844,7 @@ function DateDialog({ date, attendance, onClose, router }: any) {
             View Full Timeline
           </button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

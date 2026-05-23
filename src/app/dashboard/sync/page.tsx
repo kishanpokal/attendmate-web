@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
   RefreshCw, Lock, Link, AlertCircle, CheckCircle2, ChevronRight,
   GraduationCap, XCircle, CloudOff, Search, Filter, ArrowUpDown,
@@ -13,12 +13,9 @@ import {
   Loader2, LogIn, Navigation, Settings2, BookOpen, Clock,
   CalendarDays, Eye, SlidersHorizontal, X, ArrowUp, ArrowDown, ArrowLeft, ArrowRight
 } from "lucide-react";
-import dynamic from 'next/dynamic';
 
-const SyncScene = dynamic(() => import('@/components/sync/SyncScene'), { 
-  ssr: false, 
-  loading: () => <div className="h-full w-full flex items-center justify-center"><Loader2 className="w-8 h-8 text-[#6C63FF] animate-spin" /></div> 
-});
+
+
 
 import StepTracker from '@/components/sync/StepTracker';
 import SyncStats, { GlassCard } from '@/components/sync/SyncStats';
@@ -318,32 +315,19 @@ export default function CollegeSyncPage() {
         )}
 
         {/* LEFT COLUMN: 3D SCENE */}
-        <div 
-          className="w-full md:w-[60%] h-[30vh] md:h-screen relative flex-shrink-0 overflow-hidden"
-          style={{ touchAction: 'none' }}
-        >
-          {/* Subtle background glow */}
-          <div className="absolute top-1/4 right-1/4 w-48 md:w-96 h-48 md:h-96 bg-[#6C63FF] rounded-full mix-blend-screen filter blur-[80px] md:blur-[128px] opacity-20 pointer-events-none" />
-          <div className="absolute bottom-1/4 left-1/4 w-48 md:w-96 h-48 md:h-96 bg-[#00D9FF] rounded-full mix-blend-screen filter blur-[80px] md:blur-[128px] opacity-20 pointer-events-none" />
-          
-          {/* Gradient fade at bottom on mobile for seamless blend */}
-          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#050816] to-transparent z-10 pointer-events-none md:hidden" />
-          
-          <SyncScene 
-            currentStep={currentProgress?.step || "idle"}
-            subjects={subjects}
-            activeSubjectIndex={activeSubjectIndex}
-            completedSubjects={completedSubjects}
-            overallProgress={overallProgress}
-            recordsFound={recordsFound}
-            activeSubjectRecords={activeSubjectRecords}
-          />
+        <div className="w-full md:w-[60%] h-[30vh] md:h-screen relative flex-shrink-0 overflow-hidden bg-gray-900 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-full bg-indigo-600/20 flex items-center justify-center mx-auto mb-4">
+              <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+            </div>
+            <p className="text-white/70 text-sm">Syncing {subjects.length} subjects...</p>
+            <p className="text-white/40 text-xs mt-1">{recordsFound} records found</p>
+          </div>
         </div>
 
         {/* RIGHT COLUMN: UI / FEED */}
-        <div className="w-full md:w-[40%] h-[70vh] md:h-screen p-4 md:p-8 flex flex-col pt-4 md:pt-12 bg-[#050816]/90 backdrop-blur-xl md:border-l border-white/5 overflow-y-auto overflow-x-hidden" style={{ touchAction: 'pan-y' }}>
+        <div className="w-full md:w-[40%] h-[70vh] md:h-screen p-4 md:p-8 flex flex-col pt-4 md:pt-12 bg-gray-950 md:border-l border-gray-800 overflow-y-auto" style={{ touchAction: 'pan-y' }}>
           
-          <AnimatePresence mode="wait">
             {isComplete ? (
               <SuccessView 
                 key="success"
@@ -360,11 +344,7 @@ export default function CollegeSyncPage() {
                 onTryAgain={() => handleSync()}
               />
             ) : (
-              <motion.div 
-                key="progress"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
+              <div 
                 className="flex flex-col h-full space-y-4"
               >
                 <OverallProgressBar progress={overallProgress} />
@@ -390,9 +370,8 @@ export default function CollegeSyncPage() {
                     totalRecordsScraped={recordsFound}
                   />
                 </div>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
 
         </div>
       </div>
@@ -456,67 +435,58 @@ export default function CollegeSyncPage() {
         )}
 
         {/* ── Credential Form (STATE A) ── */}
-        <AnimatePresence>
         {showForm && (
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="max-w-md mx-auto mt-12 bg-[#050816] rounded-3xl p-1 shadow-2xl relative overflow-hidden">
-            
-            {/* Background Orbs */}
-            <div className="absolute top-[-50px] right-[-50px] w-48 h-48 bg-[#6C63FF] opacity-30 blur-[80px] pointer-events-none" />
-            <div className="absolute bottom-[-50px] left-[-50px] w-48 h-48 bg-[#00D9FF] opacity-30 blur-[80px] pointer-events-none" />
-
-            <div className="bg-white/[0.04] border border-white/[0.08] backdrop-blur-[20px] rounded-[1.4rem] p-8 shadow-xl relative z-10 w-full h-full">
-              <div className="w-16 h-16 bg-[#6C63FF]/10 rounded-2xl flex items-center justify-center mb-6 mx-auto relative group">
-                <GraduationCap className="w-8 h-8 text-[#6C63FF] transition-transform group-hover:-translate-y-1" />
+          <div className="max-w-md mx-auto mt-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
+              <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl flex items-center justify-center mb-5 mx-auto">
+                <GraduationCap className="w-7 h-7 text-indigo-600" />
               </div>
-              <h2 className="text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-[#6C63FF] to-[#00D9FF] mb-2 font-sans">College Sync</h2>
-              <p className="text-xs text-center text-[#8B8FA8] mb-6 px-2">
+              <h2 className="text-xl font-semibold text-center text-gray-900 dark:text-white mb-2">College Sync</h2>
+              <p className="text-sm text-center text-gray-500 mb-6">
                 Securely stream and sync official college attendance records with AttendMate.
               </p>
 
-              <div className="mb-8 flex justify-center">
-                 <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] uppercase tracking-wider font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+              <div className="mb-6 flex justify-center">
+                 <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 text-xs font-medium px-3 py-1.5 rounded-full flex items-center gap-1.5">
                    <Lock className="w-3 h-3" /> Credentials are never stored
                  </div>
               </div>
 
-              <form onSubmit={handleSync} className="space-y-5">
+              <form onSubmit={handleSync} className="space-y-4">
                 {error && (
-                  <div className="p-3 bg-[#FF4D6D]/10 text-[#FF4D6D] border border-[#FF4D6D]/20 rounded-xl text-xs font-semibold flex items-center gap-2">
+                  <div className="p-3 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg text-sm flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" /> {error}
                   </div>
                 )}
-                <div className="space-y-1.5 group relative">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[#8B8FA8] ml-1 transition-colors group-focus-within:text-[#00D9FF]">Portal Email</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-500">Portal Email</label>
                   <input
                     type="text" required value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className="w-full bg-[#050816]/50 border border-white/10 rounded-xl p-3.5 text-sm text-[#F0F0FF] focus:outline-none focus:ring-1 focus:ring-[#00D9FF] focus:border-[#00D9FF] transition-all"
+                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
-                <div className="space-y-1.5 group relative">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[#8B8FA8] ml-1 flex items-center gap-1.5 transition-colors group-focus-within:text-[#00D9FF]">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
                     <Lock className="w-3 h-3" /> Portal Password
                   </label>
                   <input
                     type="password" required value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="w-full bg-[#050816]/50 border border-white/10 rounded-xl p-3.5 text-sm text-[#F0F0FF] focus:outline-none focus:ring-1 focus:ring-[#00D9FF] focus:border-[#00D9FF] transition-all"
+                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
                 <button type="submit"
-                  className="w-full mt-2 py-4 rounded-xl bg-gradient-to-r from-[#6C63FF] to-[#00D9FF] text-white font-bold transition-transform active:scale-[0.98] shadow-[0_0_20px_rgba(108,99,255,0.3)] flex items-center justify-center gap-2 hover:opacity-90 group"
+                  className="w-full mt-2 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
                 >
-                  Start College Sync <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  Start College Sync <ArrowRight className="w-4 h-4" />
                 </button>
               </form>
-            </div>
-          </motion.div>
+          </div>
         )}
-        </AnimatePresence>
 
         {/* ── Results Area ── */}
         {hasData && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          <div className="space-y-5">
 
             {/* Summary Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -527,25 +497,23 @@ export default function CollegeSyncPage() {
             </div>
 
             {/* Tab Bar */}
-            <div className="flex items-center gap-1 bg-gray-100 dark:bg-zinc-800/60 p-1 rounded-xl w-fit">
+            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit">
               <TabButton active={activeTab === "college"} onClick={() => setActiveTab("college")} icon={Database} label="College Data" />
               <TabButton active={activeTab === "compare"} onClick={() => setActiveTab("compare")} icon={GitCompare} label="Comparison" />
             </div>
 
             {/* Tab Content */}
-            <AnimatePresence mode="wait">
               {activeTab === "college" && (
-                <motion.div key="college" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
+                <div>
                   <CollegeDataTab data={scrapedData} />
-                </motion.div>
+                </div>
               )}
               {activeTab === "compare" && (
-                <motion.div key="compare" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
+                <div>
                   <ComparisonTab summary={summary} scrapedData={scrapedData} />
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
-          </motion.div>
+          </div>
         )}
       </div>
     </ProfessionalPageLayout>
@@ -679,10 +647,8 @@ function CollegeDataTab({ data }: { data: CollegeAttendanceRecord[] }) {
       </div>
 
       {/* Advanced Filters Panel */}
-      <AnimatePresence>
-        {showFilters && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden">
+      {showFilters && (
+          <div className="overflow-hidden">
             <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 flex flex-wrap gap-4 items-end">
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">From Date</label>
@@ -701,9 +667,8 @@ function CollegeDataTab({ data }: { data: CollegeAttendanceRecord[] }) {
                 </button>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+      )}
 
       {/* Data Table — Desktop */}
       <div className="hidden sm:block bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
@@ -909,9 +874,8 @@ function ComparisonTab({ summary, scrapedData }: { summary: SyncSummary | null; 
       </div>
 
       {/* Advanced Filters */}
-      <AnimatePresence>
-        {showFilters && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+      {showFilters && (
+          <div className="overflow-hidden">
             <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 flex flex-wrap gap-4 items-end">
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Category</label>
@@ -941,9 +905,8 @@ function ComparisonTab({ summary, scrapedData }: { summary: SyncSummary | null; 
                 </button>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+      )}
 
       {/* Count */}
       <div className="text-[11px] font-bold text-gray-400">{filtered.length} comparison results</div>

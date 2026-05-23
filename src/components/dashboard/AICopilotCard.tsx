@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, ChevronRight, MessageSquare, BookOpen, AlertCircle, ArrowUpRight } from "lucide-react";
-import GlassCard from "./GlassCard";
+import { Sparkles, ChevronRight, AlertCircle, ArrowUpRight, BookOpen } from "lucide-react";
 
 type Insight = {
   type: "positive" | "warning" | "neutral" | "suggestion";
@@ -13,9 +11,7 @@ type Insight = {
 export default function AICopilotCard({ percentage, present, absent }: any) {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Simple static insights based on rules
   const insights: Insight[] = [];
-  
   if (percentage >= 75) {
     insights.push({ type: "positive", text: "You're doing great! Keep attending your core subjects to maintain this buffer." });
     insights.push({ type: "suggestion", text: "Consider reviewing notes for upcoming practicals to stay ahead." });
@@ -27,79 +23,56 @@ export default function AICopilotCard({ percentage, present, absent }: any) {
     insights.push({ type: "suggestion", text: "Talk to your professors about makeup assignments or extra credit." });
   }
 
-  return (
-    <GlassCard className="w-full relative overflow-hidden group">
-      {/* Background Gradient Animation */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-attendmate-primary)]/10 via-transparent to-[var(--color-attendmate-cyan)]/10 opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
-      
-      {/* Moving glow blob */}
-      <div className="absolute -inset-x-[100%] top-0 h-full w-[300%] animate-[slide_10s_linear_infinite] opacity-30 pointer-events-none">
-        <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-[var(--color-attendmate-primary)]/20 to-transparent blur-xl" />
-      </div>
+  const getInsightStyles = (type: string) => {
+    switch (type) {
+      case "positive": return { bg: "bg-green-50 dark:bg-green-950/20", border: "border-green-200 dark:border-green-800", icon: ArrowUpRight, color: "text-green-600" };
+      case "warning": return { bg: "bg-red-50 dark:bg-red-950/20", border: "border-red-200 dark:border-red-800", icon: AlertCircle, color: "text-red-600" };
+      default: return { bg: "bg-indigo-50 dark:bg-indigo-950/20", border: "border-indigo-200 dark:border-indigo-800", icon: BookOpen, color: "text-indigo-600" };
+    }
+  };
 
-      <div className="relative z-10 p-6 flex flex-col md:flex-row items-center md:items-start gap-5">
-        
-        {/* Left Icon Area */}
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[var(--color-attendmate-primary)] to-[var(--color-attendmate-cyan)] flex items-center justify-center shadow-[0_0_20px_rgba(91,95,238,0.4)] flex-shrink-0">
-          <Sparkles className="w-6 h-6 text-white" />
+  return (
+    <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-6">
+      <div className="flex flex-col md:flex-row items-center md:items-start gap-5">
+        <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-white flex-shrink-0">
+          <Sparkles className="w-6 h-6" />
         </div>
 
-        {/* Text Details Area */}
         <div className="flex-1 text-center md:text-left">
-          <h3 className="text-xl font-bold text-white font-[Outfit] mb-1 flex items-center justify-center md:justify-start gap-2">
-            AttendMate AI <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-full text-[var(--color-attendmate-cyan)] font-mono border border-white/5">BETA</span>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center justify-center md:justify-start gap-2">
+            AttendMate AI
+            <span className="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-xs px-2 py-0.5 rounded-md font-medium">BETA</span>
           </h3>
-          <p className="text-sm text-[var(--color-attendmate-muted)] max-w-lg mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400 max-w-lg mt-1 mb-4">
             Based on your patterns, you have {percentage >= 75 ? "a comfortable buffer" : "a deficit"}. Here is what you should focus on next.
           </p>
 
-          <AnimatePresence>
-            {!isOpen ? (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsOpen(true)}
-                className="text-sm text-[var(--color-attendmate-primary)] hover:text-white transition-colors flex items-center justify-center md:justify-start gap-1 mx-auto md:mx-0 font-semibold"
-              >
-                Reveal Insights <ChevronRight className="w-4 h-4" />
-              </motion.button>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="space-y-3 mt-4"
-              >
-                {insights.map((insight, idx) => (
-                  <motion.div
+          {!isOpen ? (
+            <button
+              onClick={() => setIsOpen(true)}
+              className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 transition-colors flex items-center justify-center md:justify-start gap-1 font-medium"
+            >
+              Reveal Insights <ChevronRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <div className="space-y-3 mt-2">
+              {insights.map((insight, idx) => {
+                const styles = getInsightStyles(insight.type);
+                const Icon = styles.icon;
+                return (
+                  <div
                     key={idx}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className={`flex items-start gap-3 p-3 rounded-lg border ${
-                      insight.type === "positive" 
-                        ? "bg-[rgba(0,240,160,0.05)] border-[rgba(0,240,160,0.2)]" 
-                        : insight.type === "warning"
-                        ? "bg-[rgba(255,77,109,0.05)] border-[rgba(255,77,109,0.2)]"
-                        : "bg-[rgba(91,95,238,0.05)] border-[rgba(91,95,238,0.2)]"
-                    }`}
+                    className={`flex items-start gap-3 p-3 rounded-lg border ${styles.bg} ${styles.border}`}
                   >
-                    {insight.type === "positive" ? (
-                      <ArrowUpRight className="w-4 h-4 text-[var(--color-attendmate-green)] mt-0.5 flex-shrink-0" />
-                    ) : insight.type === "warning" ? (
-                      <AlertCircle className="w-4 h-4 text-[var(--color-attendmate-red)] mt-0.5 flex-shrink-0" />
-                    ) : (
-                      <BookOpen className="w-4 h-4 text-[var(--color-attendmate-primary)] mt-0.5 flex-shrink-0" />
-                    )}
-                    <span className="text-[13px] text-gray-300 leading-snug">{insight.text}</span>
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${styles.color}`} />
+                    <span className="text-sm text-gray-700 dark:text-gray-300 leading-snug">{insight.text}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
-    </GlassCard>
+    </div>
   );
 }

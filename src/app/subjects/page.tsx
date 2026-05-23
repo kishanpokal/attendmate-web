@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
   collection,
   addDoc,
@@ -140,10 +140,8 @@ export default function SubjectsPage() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
           {/* ADD SUBJECT CARD */}
           <div className="xl:col-span-1 space-y-6">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="premium-glass rounded-[3rem] p-8 sm:p-10 shadow-2xl relative overflow-hidden group premium-card border-primary/10"
+            <div
+              className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-200 dark:border-gray-700 relative overflow-hidden group"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
@@ -172,22 +170,20 @@ export default function SubjectsPage() {
                     />
                   </div>
 
-                  <motion.button
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
+                  <button
                     onClick={addSubject}
                     disabled={adding || !subjectName.trim()}
-                    className="w-full py-5 rounded-[1.8rem] bg-foreground text-background font-black text-xs tracking-[0.4em] uppercase shadow-2xl hover:opacity-90 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                    className="w-full py-4 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {adding ? (
                       <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <>Add Subject</>
                     )}
-                  </motion.button>
+                  </button>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* QUICK TIPS */}
             <div className="p-8 premium-glass rounded-[2.5rem] border-primary/5 space-y-4 opacity-60">
@@ -202,15 +198,10 @@ export default function SubjectsPage() {
           <div className="xl:col-span-2">
             {!pageLoading && subjects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <AnimatePresence mode="popLayout">
                   {subjects.map((s, index) => (
-                    <motion.div
+                    <div
                       key={s.id}
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.8, opacity: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className="group relative bg-bg-subtle dark:bg-white/[0.03] rounded-[2.5rem] p-8 border border-border-color hover:border-primary/30 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 overflow-hidden"
+                      className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md transition-all overflow-hidden"
                     >
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                       
@@ -225,14 +216,12 @@ export default function SubjectsPage() {
                           </h4>
                         </div>
 
-                        <motion.button
-                          whileHover={{ scale: 1.1, rotate: 5 }}
-                          whileTap={{ scale: 0.9 }}
+                        <button
                           onClick={() => setDeleteConfirm(s.id)}
-                          className="w-12 h-12 rounded-[1.2rem] bg-rose-500/10 flex items-center justify-center text-rose-500 hover:bg-rose-500 overflow-hidden hover:text-white transition-all duration-300 border border-rose-500/20 group-hover:translate-x-0 sm:translate-x-12 opacity-0 group-hover:opacity-100"
+                          className="w-10 h-10 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all sm:opacity-0 sm:group-hover:opacity-100"
                         >
                           <Trash2 className="w-5 h-5" />
-                        </motion.button>
+                        </button>
                       </div>
 
                       <div className="mt-8 pt-6 border-t border-border-color/30 flex items-center justify-between relative z-10">
@@ -242,9 +231,8 @@ export default function SubjectsPage() {
                         </div>
                         <span className="text-[10px] font-black text-primary uppercase tracking-widest">Details ➔</span>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
-                </AnimatePresence>
               </div>
             ) : !pageLoading && (
               <div className="h-full min-h-[400px] flex flex-col items-center justify-center premium-glass rounded-[3.5rem] p-12 text-center border-2 border-dashed border-primary/10">
@@ -262,22 +250,11 @@ export default function SubjectsPage() {
       </div>
 
       {/* DELETE CONFIRMATION DIALOG */}
-      <AnimatePresence>
         {deleteConfirm && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
-              exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-              onClick={() => setDeleteConfirm(null)}
-              className="absolute inset-0 bg-black/60 dark:bg-black/80"
-            />
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 40 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 40 }}
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/30 dark:bg-black/50" onClick={() => setDeleteConfirm(null)}>
+            <div
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-md premium-glass rounded-[3.5rem] p-10 border border-primary/10 shadow-3xl text-center premium-card"
+              className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-xl text-center"
             >
               <div className="w-20 h-20 mx-auto mb-8 rounded-[2rem] bg-rose-500/10 flex items-center justify-center text-rose-500 border border-rose-500/20">
                 <ShieldAlert className="w-10 h-10" />
@@ -287,43 +264,34 @@ export default function SubjectsPage() {
                 Deleting "<span className="text-foreground">{subjects.find((s) => s.id === deleteConfirm)?.name}</span>" will permanently erase all related attendance records.
               </p>
               <div className="flex gap-4">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 py-5 rounded-[1.8rem] bg-white/5 border border-white/10 text-foreground font-black text-[10px] uppercase tracking-[0.3em] transition-all"
+                  className="flex-1 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Cancel
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                </button>
+                <button
                   onClick={() => removeSubject(deleteConfirm)}
-                  className="flex-1 py-5 rounded-[1.8rem] bg-rose-500 text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-rose-500/30 transition-all border border-white/10"
+                  className="flex-1 py-3 rounded-lg bg-red-600 text-white font-medium text-sm hover:bg-red-700 transition-colors"
                 >
                   Confirm
-                </motion.button>
+                </button>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
 
       {/* FULL PAGE LOADER */}
-      <AnimatePresence>
         {pageLoading && (
-          <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-center space-y-6"
+          <div className="fixed inset-0 z-[100] bg-white/80 dark:bg-gray-900/80 backdrop-blur-md flex items-center justify-center">
+            <div
+              className="text-center space-y-4"
             >
-              <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto shadow-[0_0_20px_var(--primary-glow)]" />
-              <p className="text-gray-400 font-black uppercase tracking-[0.4em] text-[10px]">Loading Subjects...</p>
-            </motion.div>
+              <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-gray-500 font-semibold text-sm">Loading Subjects...</p>
+            </div>
           </div>
         )}
-      </AnimatePresence>
     </ProfessionalPageLayout>
   );
 }

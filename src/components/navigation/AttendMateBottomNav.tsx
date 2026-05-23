@@ -1,32 +1,18 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  HomeRounded,
-  ListAltRounded,
-  BarChartRounded,
-  SettingsRounded,
-  AddRounded,
-} from "@mui/icons-material";
+import { Home, ClipboardList, BarChart3, Settings, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
 
 type RouteKey = "home" | "attendance" | "analytics" | "settings";
 
-const navItems: {
-  key: RouteKey;
-  label: string;
-  icon: any;
-  path: string;
-  accent: string;
-  lightAccent: string;
-}[] = [
-    { key: "home", label: "Home", icon: HomeRounded, path: "/dashboard", accent: "#6366f1", lightAccent: "rgba(99, 102, 241, 0.12)" },
-    { key: "attendance", label: "Attend", icon: ListAltRounded, path: "/attendance", accent: "#0ea5e9", lightAccent: "rgba(14, 165, 233, 0.12)" },
-    { key: "analytics", label: "Analytics", icon: BarChartRounded, path: "/analytics", accent: "#10b981", lightAccent: "rgba(16, 185, 129, 0.12)" },
-    { key: "settings", label: "Settings", icon: SettingsRounded, path: "/settings", accent: "#f59e0b", lightAccent: "rgba(245, 158, 11, 0.12)" },
-  ];
+const navItems = [
+  { key: "home" as RouteKey, label: "Home", icon: Home, path: "/dashboard" },
+  { key: "attendance" as RouteKey, label: "Attend", icon: ClipboardList, path: "/attendance" },
+  { key: "analytics" as RouteKey, label: "Analytics", icon: BarChart3, path: "/analytics" },
+  { key: "settings" as RouteKey, label: "Settings", icon: Settings, path: "/settings" },
+];
 
 export default function AttendMateBottomNav() {
   const router = useRouter();
@@ -43,67 +29,40 @@ export default function AttendMateBottomNav() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        /* Ensures the bar doesn't get cut off by iOS home indicator */
-        .safe-padding { 
-          padding-bottom: env(safe-area-inset-bottom); 
-        }
-      `}} />
+      {/* AD SLOT: mobile bottom banner */}
+      <div className="fixed bottom-[72px] left-0 right-0 z-40 flex justify-center md:hidden">
+        {/* AdSense ad unit will be placed here - 320x50 mobile banner */}
+      </div>
 
-      {/* Responsive Positioning Container:
-        Mobile: Fixed to exact bottom, full width.
-        Desktop: Floating center dock.
-      */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center md:bottom-6">
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center">
+        <div className="w-full bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="w-full max-w-lg mx-auto h-[68px] grid grid-cols-6 px-2">
 
-        {/* Main Glass Background:
-          Mobile: Safe-padding expands the glass to the bottom edge. Rounded top corners.
-          Desktop: Fully rounded floating pill. 
-        */}
-        <div className="pointer-events-auto w-full md:w-auto safe-padding bg-white/85 dark:bg-[#0f1423]/85 backdrop-blur-2xl border-t md:border border-gray-200/50 dark:border-gray-800/60 shadow-[0_-8px_30px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_-8px_30px_-15px_rgba(0,0,0,0.5)] md:shadow-2xl rounded-t-3xl md:rounded-[2rem] transition-colors duration-500">
-
-          {/* 6-column grid: 4 nav + FAB + theme toggle */}
-          <div className="w-full max-w-lg mx-auto md:max-w-none h-[72px] md:h-[68px] grid grid-cols-6 md:flex md:items-center md:gap-2 px-2 sm:px-4">
-
-            {/* 1. Home */}
             <NavItem item={navItems[0]} isActive={active === navItems[0].key} onClick={() => router.push(navItems[0].path)} />
-
-            {/* 2. Attendance */}
             <NavItem item={navItems[1]} isActive={active === navItems[1].key} onClick={() => router.push(navItems[1].path)} />
 
-            {/* 3. Center Floating Action Button (FAB) */}
-            <div className="relative flex justify-center items-center h-full w-full md:w-20">
-              <motion.button
-                whileHover={{ scale: 1.05, translateY: -2 }}
-                whileTap={{ scale: 0.95, rotate: 45 }}
+            {/* FAB */}
+            <div className="relative flex justify-center items-center h-full">
+              <button
                 onClick={() => router.push("/attendance/add")}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="absolute bottom-4 md:bottom-auto w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 text-white border border-white/20 dark:border-white/10 z-10"
+                className="absolute bottom-4 w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg text-white hover:bg-indigo-700 active:scale-95 transition-all"
               >
-                <AddRounded sx={{ fontSize: 32 }} />
-              </motion.button>
+                <Plus className="w-6 h-6" />
+              </button>
             </div>
 
-            {/* 4. Analytics */}
             <NavItem item={navItems[2]} isActive={active === navItems[2].key} onClick={() => router.push(navItems[2].path)} />
-
-            {/* 5. Settings */}
             <NavItem item={navItems[3]} isActive={active === navItems[3].key} onClick={() => router.push(navItems[3].path)} />
 
-            {/* 6. Theme Toggle */}
-            <div className="flex items-center justify-center h-full w-full md:w-16">
+            <div className="flex items-center justify-center h-full">
               <ThemeToggle />
             </div>
-
           </div>
         </div>
       </div>
     </>
   );
 }
-
-/* ─────────────────── NAV ITEM COMPONENT ─────────────────── */
 
 function NavItem({
   item,
@@ -119,59 +78,13 @@ function NavItem({
   return (
     <button
       onClick={onClick}
-      className="relative flex flex-col items-center justify-center w-full h-full md:w-20 md:h-16 rounded-2xl select-none outline-none group transition-all"
+      className={`relative flex flex-col items-center justify-center w-full h-full select-none outline-none transition-colors ${
+        isActive ? "text-indigo-600" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+      }`}
     >
-      {/* Animated Liquid Background Pill */}
-      <div className="absolute inset-1 sm:inset-1.5 md:inset-1 rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center">
-        <AnimatePresence>
-          {isActive && (
-            <motion.div
-              layoutId="active-nav-pill"
-              className="absolute inset-0"
-              style={{ backgroundColor: item.lightAccent }}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            />
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Content Container */}
-      <motion.div
-        className="relative z-10 flex flex-col items-center justify-center gap-1 w-full"
-        animate={{ y: isActive ? -2 : 0 }}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      >
-        <motion.div
-          animate={{ scale: isActive ? 1.1 : 1 }}
-          transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        >
-          <Icon
-            className={`transition-colors duration-300 ${isActive
-                ? "drop-shadow-sm"
-                : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
-              }`}
-            style={{
-              fontSize: 26,
-              color: isActive ? item.accent : undefined,
-            }}
-          />
-        </motion.div>
-
-        <span
-          className={`text-[10px] sm:text-[11px] font-bold tracking-wide transition-colors duration-300 ${isActive
-              ? ""
-              : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
-            }`}
-          style={{
-            color: isActive ? item.accent : undefined,
-          }}
-        >
-          {item.label}
-        </span>
-      </motion.div>
+      <Icon className="w-5 h-5" />
+      <span className="text-[10px] font-medium mt-1">{item.label}</span>
+      {isActive && <div className="absolute bottom-2 w-1 h-1 rounded-full bg-indigo-600" />}
     </button>
   );
 }

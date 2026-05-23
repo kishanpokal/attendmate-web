@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { 
   collection, doc, getDocs, getDoc, query, where, setDoc, deleteDoc 
 } from "firebase/firestore";
@@ -155,13 +155,13 @@ export default function FriendsPage() {
           </div>
 
           {/* LIST */}
-          <AnimatePresence mode="wait">
+          <div>
             {loading ? (
-              <LoadingState key="loading" />
+              <LoadingState />
             ) : filteredFriends.length === 0 ? (
-              <EmptyState key="empty" hasSearch={searchQuery.length > 0} />
+              <EmptyState hasSearch={searchQuery.length > 0} />
             ) : (
-              <motion.div key="list" className="space-y-3">
+              <div className="space-y-3">
                 {filteredFriends.map((friend, i) => (
                   <FriendCard 
                     key={friend.uid} 
@@ -171,32 +171,24 @@ export default function FriendsPage() {
                     onClick={() => router.push(`/friends/${friend.uid}`)} 
                   />
                 ))}
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+          </div>
         </div>
       </div>
 
       {/* --- ADD FRIEND FAB --- */}
-      <AnimatePresence>
         {!loading && (
-          <motion.button
-            initial={{ scale: 0, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0, opacity: 0, y: 20 }}
+          <button
             onClick={() => setShowAddDialog(true)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="fixed bottom-24 right-6 md:bottom-12 md:right-12 z-40 bg-primary hover:bg-primary/90 text-white p-5 rounded-[2rem] shadow-[0_0_40px_var(--primary-glow)] flex items-center gap-3 transition-all border border-white/20 group"
+            className="fixed bottom-24 right-6 md:bottom-12 md:right-12 z-40 bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-xl shadow-lg flex items-center gap-3 transition-colors"
           >
-            <UserPlus className="w-6 h-6 group-hover:rotate-12 transition-transform" />
-            <span className="font-black text-xs uppercase tracking-[0.2em] hidden sm:block pr-2">Add Friend</span>
-          </motion.button>
+            <UserPlus className="w-5 h-5" />
+            <span className="font-medium text-sm hidden sm:block">Add Friend</span>
+          </button>
         )}
-      </AnimatePresence>
 
       {/* --- DIALOGS --- */}
-      <AnimatePresence>
         {showAddDialog && (
           <AddFriendDialog
             currentCount={friends.length}
@@ -217,7 +209,6 @@ export default function FriendsPage() {
             onConfirm={handleRemoveFriend}
           />
         )}
-      </AnimatePresence>
     </ProfessionalPageLayout>
   );
 }
@@ -228,81 +219,75 @@ function FriendCard({ friend, index, onClick, onDelete }: any) {
   const avatarColor = getAvatarColor(friend.uid);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.05, type: "spring", stiffness: 300, damping: 24 }}
-      className="group relative flex items-center premium-glass border border-white/5 rounded-[2.5rem] p-6 shadow-xl hover:shadow-2xl hover:border-primary/20 transition-all cursor-pointer overflow-hidden premium-card"
+    <div
+      className="group relative flex items-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition-all cursor-pointer"
       onClick={onClick}
     >
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-      
       <div 
-        className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-inner shrink-0 border border-white/10"
+        className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-xl shrink-0"
         style={{ background: `linear-gradient(135deg, ${avatarColor}CC, ${avatarColor})` }}
       >
         {friend.username.charAt(0).toUpperCase()}
       </div>
 
-      <div className="ml-6 flex-1 min-w-0 z-10">
-        <h3 className="font-black text-foreground text-xl truncate uppercase tracking-tight">
+      <div className="ml-4 flex-1 min-w-0">
+        <h3 className="font-semibold text-gray-900 dark:text-white text-base truncate">
           {friend.username}
         </h3>
         {friend.email && (
-          <p className="text-[10px] text-gray-400 font-bold tracking-widest truncate mt-1">
+          <p className="text-xs text-gray-500 truncate mt-0.5">
             {friend.email}
           </p>
         )}
       </div>
 
-      <div className="flex items-center gap-2 pl-4 z-10">
+      <div className="flex items-center gap-2 pl-4">
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          className="p-3 text-gray-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 border border-transparent hover:border-rose-500/20"
+          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
           aria-label="Remove Friend"
         >
-          <UserMinus className="w-5 h-5" />
+          <UserMinus className="w-4 h-4" />
         </button>
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 group-hover:text-primary transition-colors border border-white/5 group-hover:border-primary/20 bg-white/5 shrink-0">
-          <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 group-hover:text-indigo-600 transition-colors">
+          <ChevronRight className="w-4 h-4" />
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 function LoadingState() {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+    <div className="space-y-4">
       {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="flex items-center premium-glass border border-white/5 rounded-[2.5rem] p-6 animate-pulse">
-          <div className="w-14 h-14 rounded-2xl bg-white/10 shrink-0" />
-          <div className="ml-6 space-y-3 flex-1">
-            <div className="h-5 bg-white/10 rounded-full w-1/3" />
-            <div className="h-4 bg-white/5 rounded-full w-1/4" />
+        <div key={i} className="flex items-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 animate-pulse">
+          <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-700 shrink-0" />
+          <div className="ml-4 space-y-2 flex-1">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+            <div className="h-3 bg-gray-100 dark:bg-gray-600 rounded w-1/4" />
           </div>
         </div>
       ))}
-    </motion.div>
+    </div>
   );
 }
 
 function EmptyState({ hasSearch }: { hasSearch: boolean }) {
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-      className="flex flex-col items-center justify-center text-center py-20 px-4 premium-glass rounded-[3.5rem] border-2 border-dashed border-primary/10 min-h-[400px]"
+    <div 
+      className="flex flex-col items-center justify-center text-center py-16 px-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 min-h-[300px]"
     >
-      <div className="w-24 h-24 bg-primary/5 rounded-[2.5rem] flex items-center justify-center mb-8 border border-primary/10">
-        <Users className="w-12 h-12 text-primary/40" />
+      <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl flex items-center justify-center mb-6">
+        <Users className="w-8 h-8 text-indigo-400" />
       </div>
-      <h3 className="text-3xl font-black text-foreground mb-4 uppercase tracking-tight">
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
         {hasSearch ? "No Results Found" : "No Friends Yet"}
       </h3>
-      <p className="text-gray-400 font-bold max-w-sm mx-auto leading-relaxed">
+      <p className="text-gray-500 max-w-sm mx-auto text-sm">
         {hasSearch ? "Try searching with a different name or email" : "Tap the Add Friend button below to find and connect with your classmates."}
       </p>
-    </motion.div>
+    </div>
   );
 }
 
@@ -402,23 +387,19 @@ function AddFriendDialog({ currentCount, existingUids, currentUser, onClose, onS
       </div>
 
       <div className="flex gap-4 mt-8">
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <button
           onClick={onClose}
-          className="flex-1 py-4 rounded-[1.5rem] bg-white/5 border border-white/10 text-foreground font-black text-[10px] uppercase tracking-[0.3em] transition-all"
+          className="flex-1 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
         >
           Cancel
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        </button>
+        <button
           onClick={handleAdd}
           disabled={searching}
-          className="flex-1 py-4 rounded-[1.5rem] bg-header-gradient text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-primary/30 transition-all border border-white/10 disabled:opacity-50"
+          className="flex-1 py-3 rounded-lg bg-indigo-600 text-white font-medium text-sm hover:bg-indigo-700 transition-colors disabled:opacity-50"
         >
           {searching ? "Adding..." : "Add Friend"}
-        </motion.button>
+        </button>
       </div>
     </Modal>
   );
@@ -437,22 +418,18 @@ function ConfirmDeleteDialog({ friend, onClose, onConfirm }: any) {
         </p>
       </div>
       <div className="flex gap-4">
-        <motion.button 
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <button 
           onClick={onClose} 
-          className="flex-1 py-5 rounded-[1.8rem] bg-white/5 border border-white/10 text-foreground font-black text-[10px] uppercase tracking-[0.3em] transition-all"
+          className="flex-1 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
         >
           Keep
-        </motion.button>
-        <motion.button 
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        </button>
+        <button 
           onClick={onConfirm} 
-          className="flex-1 py-5 rounded-[1.8rem] bg-rose-500 text-white font-black text-[10px] uppercase tracking-[0.3em] border border-white/10 shadow-2xl shadow-rose-500/30 transition-all"
+          className="flex-1 py-3 rounded-lg bg-red-600 text-white font-medium text-sm hover:bg-red-700 transition-colors"
         >
           Remove
-        </motion.button>
+        </button>
       </div>
     </Modal>
   );
@@ -460,22 +437,16 @@ function ConfirmDeleteDialog({ friend, onClose, onConfirm }: any) {
 
 function Modal({ children, onClose }: any) {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
-      exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 dark:bg-black/80"
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/30 dark:bg-black/50"
       onClick={onClose}
     >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 40 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 40 }}
+      <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md premium-glass rounded-[3.5rem] p-10 border border-primary/10 shadow-3xl premium-card"
+        className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-xl"
       >
         {children}
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }

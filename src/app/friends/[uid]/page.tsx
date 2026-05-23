@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { motion, AnimatePresence } from "framer-motion";
 
 // --- TYPES ---
 type FriendLecture = {
@@ -115,19 +114,6 @@ export default function FriendProfilePage() {
   return (
     <main className="min-h-screen relative bg-[#f8fafc] dark:bg-[#0b0f19] overflow-x-hidden selection:bg-indigo-500/30 pb-20">
       
-      {/* --- BACKGROUND ORBS --- */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <motion.div
-          animate={{ y: [0, 24, 0], opacity: [0.05, 0.13, 0.05] }}
-          transition={{ duration: 5.8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-12 -left-20 w-[360px] h-[360px] bg-indigo-500 rounded-full blur-[100px]"
-        />
-        <motion.div
-          animate={{ y: [0, -20, 0], opacity: [0.03, 0.09, 0.03] }}
-          transition={{ duration: 6.2, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-96 right-12 w-[280px] h-[280px] bg-purple-500 rounded-full blur-[90px]"
-        />
-      </div>
 
       <div className="relative z-10">
         {/* --- HEADER --- */}
@@ -147,15 +133,14 @@ export default function FriendProfilePage() {
 
         {/* --- DYNAMIC CONTENT --- */}
         <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
-          <AnimatePresence mode="wait">
+          <div>
             {loading ? (
               <ProfileSkeleton key="skeleton" />
             ) : errorMsg ? (
               <ProfileError key="error" message={errorMsg} onRetry={loadProfile} />
             ) : (
-              <motion.div 
+              <div 
                 key="content"
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                 className="space-y-6 sm:space-y-8"
               >
                 {/* 1. Header Card */}
@@ -185,9 +170,9 @@ export default function FriendProfilePage() {
                     ))}
                   </div>
                 )}
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+          </div>
         </div>
       </div>
     </main>
@@ -206,8 +191,7 @@ function ProfileHeaderCard({ username, email, percentage }: any) {
   const avatarColor = getAvatarColor(username);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+    <div
       className="relative overflow-hidden bg-white dark:bg-gray-800 rounded-[28px] shadow-lg border border-gray-100 dark:border-gray-700/50"
     >
       <div className="absolute inset-0 opacity-20" style={{ background: `linear-gradient(135deg, ${avatarColor}40, transparent)` }} />
@@ -232,7 +216,7 @@ function ProfileHeaderCard({ username, email, percentage }: any) {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -253,8 +237,7 @@ function AttendanceSummaryCard({ total, attended, percentage }: any) {
   const offset = circ - (animated / 100) * circ;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}
+    <div
       className={`bg-white dark:bg-gray-800 rounded-[32px] shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700/50`}
     >
       <div className={`p-6 sm:p-8 bg-gradient-to-b from-${accent}-500/5 to-transparent`}>
@@ -314,7 +297,7 @@ function AttendanceSummaryCard({ total, attended, percentage }: any) {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -337,8 +320,7 @@ function FriendLectureCard({ lecture, index }: any) {
   const theme = isPresent ? "emerald" : "red";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.05, type: "spring" }}
+    <div
       className={`flex items-center gap-4 p-4 rounded-[20px] bg-white dark:bg-gray-800 border border-${theme}-500/20 shadow-sm`}
     >
       <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-${theme}-500/10 text-${theme}-500 shrink-0`}>
@@ -356,19 +338,19 @@ function FriendLectureCard({ lecture, index }: any) {
       <div className={`px-3 py-1.5 rounded-full bg-${theme}-500/10 text-${theme}-600 dark:text-${theme}-400 font-bold text-xs shrink-0`}>
         {isPresent ? "Present" : "Absent"}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 function NoLecturesToday() {
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="py-12 px-6 text-center bg-white dark:bg-gray-800 rounded-[28px] border border-gray-100 dark:border-gray-700 shadow-sm">
+    <div className="py-12 px-6 text-center bg-white dark:bg-gray-800 rounded-[28px] border border-gray-100 dark:border-gray-700 shadow-sm">
       <div className="w-20 h-20 mx-auto bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-4">
         <svg className="w-10 h-10 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
       </div>
       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Lectures Today</h3>
       <p className="text-sm text-gray-500 dark:text-gray-400">This friend has no recorded attendance for today yet.</p>
-    </motion.div>
+    </div>
   );
 }
 

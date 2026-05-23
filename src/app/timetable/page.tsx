@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
   collection,
   getDocs,
@@ -362,13 +362,10 @@ export default function TimetablePage() {
               <div className="p-0">
                 {lectures.length > 0 ? (
                   <div className="divide-y divide-gray-200 dark:divide-zinc-800">
-                    <AnimatePresence>
+                    <div>
                       {lectures.map((lec) => (
-                        <motion.div
+                        <div
                           key={lec.id}
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
                           className="group flex flex-col sm:flex-row sm:items-center justify-between p-6 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
                         >
                           <div className="flex items-start gap-4 mb-4 sm:mb-0">
@@ -396,9 +393,9 @@ export default function TimetablePage() {
                           >
                             Remove
                           </button>
-                        </motion.div>
+                        </div>
                       ))}
-                    </AnimatePresence>
+                    </div>
                   </div>
                 ) : (
                   <div className="p-12 text-center">
@@ -421,22 +418,16 @@ export default function TimetablePage() {
       </div>
 
       {/* DIALOGS */}
-      <AnimatePresence>
+      <div>
 
         {/* ADD CLASS MODAL */}
         {showAdd && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setShowAdd(false)}
-              className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/30 dark:bg-black/50"
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+            <div
               className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-xl shadow-2xl overflow-hidden border border-gray-200 dark:border-zinc-800"
             >
               <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
@@ -533,24 +524,18 @@ export default function TimetablePage() {
                   Add Schedule
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
 
         {/* DELETE CONFIRM MODAL */}
         {deleteConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setDeleteConfirm(null)}
-              className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/30 dark:bg-black/50"
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+            <div
               className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-xl shadow-2xl p-6 border border-gray-200 dark:border-zinc-800"
             >
               <div className="flex items-start gap-4 mb-5">
@@ -585,16 +570,13 @@ export default function TimetablePage() {
                   Remove Class
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
 
         {/* TOAST */}
         {toast.message && (
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 50, opacity: 0 }}
+          <div
             className="fixed bottom-6 right-6 z-[100]"
           >
             <div className={`flex items-center gap-2.5 px-4 py-3 rounded-lg shadow-lg border ${toast.type === 'success'
@@ -608,9 +590,9 @@ export default function TimetablePage() {
               )}
               <span className="text-sm font-medium">{toast.message}</span>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </ProfessionalPageLayout>
   );
 }

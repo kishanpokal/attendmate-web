@@ -5,13 +5,9 @@ import { useRouter } from "next/navigation";
 import { collection, doc, getDocs, getDoc, query, where, runTransaction, Timestamp, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
-import { motion, AnimatePresence } from "framer-motion";
 import ProfessionalPageLayout from "@/components/ProfessionalPageLayout";
 import { Calendar, RefreshCw } from "lucide-react";
-import dynamic from "next/dynamic";
 
-// Dynamic imports for UI components
-const DashboardBackground = dynamic(() => import("@/components/dashboard/DashboardBackground"), { ssr: false });
 import QuickStatsGrid from "@/components/dashboard/QuickStatsGrid";
 import AttendanceOverviewCard from "@/components/dashboard/AttendanceOverviewCard";
 import TodayLecturesSection from "@/components/dashboard/TodayLecturesSection";
@@ -19,6 +15,7 @@ import SubjectPerformanceCard from "@/components/dashboard/SubjectPerformanceCar
 import AICopilotCard from "@/components/dashboard/AICopilotCard";
 import AttendanceDialog from "@/components/dashboard/AttendanceDialog";
 import DashboardSkeleton from "@/components/dashboard/DashboardSkeleton";
+import AdBanner from "@/components/ads/AdBanner";
 import type { TodayLecture } from "@/components/dashboard/TodayLectureCard";
 
 type ActiveLecture = {
@@ -49,7 +46,6 @@ export default function DashboardPage() {
   const [activeLecture, setActiveLecture] = useState<ActiveLecture | null>(null);
   const [showDialog, setShowDialog] = useState(false);
 
-  /* 🔒 SCROLL LOCK */
   useEffect(() => {
     if (showDialog) {
       document.body.style.overflow = "hidden";
@@ -59,12 +55,10 @@ export default function DashboardPage() {
     return () => { document.body.style.overflow = ""; };
   }, [showDialog]);
 
-  /* 🔐 AUTH GUARD */
   useEffect(() => {
     if (!authLoading && !user) router.replace("/login");
   }, [user, authLoading, router]);
 
-  /* 🔄 DATA LOAD */
   useEffect(() => {
     if (!user) return;
 
@@ -163,89 +157,65 @@ export default function DashboardPage() {
 
   return (
     <ProfessionalPageLayout>
-      <DashboardBackground />
-      
-      <div className="relative z-10 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* HEADER */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-[32px] sm:text-[40px] font-bold text-white font-[Outfit] leading-tight flex items-center gap-3">
-              Dashboard {" "}
-              <span className="relative flex h-3 w-3 mt-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-attendmate-primary)] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-[var(--color-attendmate-primary)]"></span>
-              </span>
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+              Dashboard
             </h1>
-            <p className="text-[var(--color-attendmate-muted)] text-sm sm:text-base mt-2">
-              Welcome back, <span className="text-white font-semibold">{username}</span>. Your attendance overview.
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Welcome back, <span className="font-medium text-gray-900 dark:text-white">{username}</span>
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-[rgba(255,255,255,0.03)] border border-white/10 px-4 py-2.5 rounded-2xl backdrop-blur-md">
-            <div className="w-8 h-8 rounded-full bg-[var(--color-attendmate-primary)]/20 flex items-center justify-center text-[var(--color-attendmate-primary)]">
-              <Calendar className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-[var(--color-attendmate-muted)] uppercase tracking-wider mb-0.5">Today</p>
-              <p className="text-sm font-bold text-white font-mono">
-                {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-              </p>
-            </div>
+          <div className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-lg">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            </span>
           </div>
         </header>
 
-        <AnimatePresence mode="wait">
-          {error ? (
-            <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-8 text-center bg-[rgba(255,77,109,0.1)] border border-[rgba(255,77,109,0.2)] rounded-2xl backdrop-blur-md">
-              <p className="text-[var(--color-attendmate-red)] font-bold mb-2">Error loading dashboard</p>
-              <p className="text-rose-200/80 text-sm mb-4">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-4 inline-flex items-center gap-2 px-6 py-2 bg-[rgba(255,77,109,0.15)] text-white rounded-lg text-sm font-medium border border-[rgba(255,77,109,0.3)] hover:bg-[rgba(255,77,109,0.25)] transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" /> Try Again
-              </button>
-            </motion.div>
-          ) : loading ? (
-            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <DashboardSkeleton />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="content"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-              className="space-y-6 md:space-y-8"
+        {error ? (
+          <div className="p-6 text-center bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-xl">
+            <p className="text-red-700 dark:text-red-400 font-medium mb-2">Error loading dashboard</p>
+            <p className="text-red-600/70 dark:text-red-400/70 text-sm mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
             >
-              {/* TOP ROW: QUICK STATS */}
-              <QuickStatsGrid total={total} attended={attended} percentage={percentage} todayCount={todayLectures.length} />
+              <RefreshCw className="w-4 h-4" /> Try Again
+            </button>
+          </div>
+        ) : loading ? (
+          <DashboardSkeleton />
+        ) : (
+          <div className="space-y-6">
+            {/* Quick Stats */}
+            <QuickStatsGrid total={total} attended={attended} percentage={percentage} todayCount={todayLectures.length} />
 
-              {/* MAIN LAYOUT */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-12">
-                <div className="lg:col-span-2 space-y-6 md:space-y-8">
-                  {/* Attendance Details */}
-                  <AttendanceOverviewCard total={total} attended={attended} percentage={percentage} />
+            {/* AD SLOT: dashboard leaderboard */}
+            <div className="my-6 flex justify-center">
+              <AdBanner dataAdSlot="dashboard-leaderboard" dataAdFormat="horizontal" />
+            </div>
 
-                  {/* AI Copilot Card */}
-                  <AICopilotCard percentage={percentage} present={attended} absent={total - attended} />
-                </div>
-
-                <div className="space-y-6 md:space-y-8">
-                  {/* Timeline section */}
-                  <TodayLecturesSection lectures={todayLectures} />
-
-                  {/* Subject List */}
-                  <SubjectPerformanceCard subjects={subjectStats} />
-                </div>
+            {/* Main Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-12">
+              <div className="lg:col-span-2 space-y-6">
+                <AttendanceOverviewCard total={total} attended={attended} percentage={percentage} />
+                <AICopilotCard percentage={percentage} present={attended} absent={total - attended} />
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
+              <div className="space-y-6">
+                <TodayLecturesSection lectures={todayLectures} />
+                <SubjectPerformanceCard subjects={subjectStats} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* POPUP: ATTENDANCE DIALOG */}
       {activeLecture && (
         <AttendanceDialog
           isOpen={showDialog}

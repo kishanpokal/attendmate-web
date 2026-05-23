@@ -1,9 +1,6 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
-import { Clock, MoreHorizontal } from "lucide-react";
-import GlassCard from "./GlassCard";
 
 export type TodayLecture = {
   subjectName: string;
@@ -15,66 +12,39 @@ export type TodayLecture = {
 
 export default function TodayLectureCard({
   lecture,
-  index = 0,
 }: {
   lecture: TodayLecture;
   index?: number;
 }) {
   const isPresent = lecture.status === "PRESENT";
-  const glowColor = isPresent ? "rgba(0,240,160,0.15)" : "rgba(255,77,109,0.15)";
-  const borderColor = isPresent ? "rgba(0,240,160,0.2)" : "rgba(255,77,109,0.2)";
-  const bgColor = isPresent ? "rgba(0,240,160,0.12)" : "rgba(255,77,109,0.12)";
-  const textColor = isPresent ? "var(--color-attendmate-green)" : "var(--color-attendmate-red)";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.08, type: "spring", stiffness: 300, damping: 25 }}
-    >
-      <GlassCard hoverLift={true} glowColor={glowColor} className="w-full">
-        {/* Accent Glow inside card */}
-        <div 
-          className="absolute top-0 left-0 w-32 h-32 blur-[50px] rounded-full pointer-events-none"
-          style={{ background: isPresent ? "rgba(0,240,160,0.1)" : "rgba(255,77,109,0.1)" }}
-        />
+    <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+      {/* Time */}
+      <div className="w-[100px] flex-shrink-0">
+        <span className="text-sm text-gray-500">
+          {lecture.startTime} – {lecture.endTime}
+        </span>
+      </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-5 relative z-10">
-          
-          {/* LEFT COLUMN: TIME */}
-          <div className="w-[120px] flex-shrink-0">
-            <span className="text-[13px] font-mono font-medium text-[var(--color-attendmate-muted)]">
-              {lecture.startTime} – {lecture.endTime}
-            </span>
-          </div>
+      {/* Subject */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+          {lecture.subjectName}
+        </p>
+        {lecture.note && (
+          <p className="text-xs text-gray-400 mt-0.5 truncate">{lecture.note}</p>
+        )}
+      </div>
 
-          {/* CENTER COLUMN: SUBJECT */}
-          <div className="flex-1 min-w-0">
-            <h4 className="text-base font-bold text-white font-[Outfit] truncate">
-              {lecture.subjectName}
-            </h4>
-            {lecture.note && (
-              <p className="text-[13px] text-[var(--color-attendmate-muted)] italic mt-1 flex items-start gap-1.5">
-                <MoreHorizontal className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                <span className="truncate">{lecture.note}</span>
-              </p>
-            )}
-          </div>
-
-          {/* RIGHT COLUMN: STATUS PILL */}
-          <div className="flex-shrink-0">
-            <div 
-              className="px-3 py-1.5 rounded-lg flex items-center gap-1.5 border"
-              style={{ background: bgColor, borderColor, color: textColor }}
-            >
-              <Clock className="w-3 h-3" />
-              <span className="text-[11px] font-bold font-mono tracking-[1px] leading-none uppercase pt-0.5">
-                {lecture.status}
-              </span>
-            </div>
-          </div>
-        </div>
-      </GlassCard>
-    </motion.div>
+      {/* Status */}
+      <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+        isPresent
+          ? "bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400"
+          : "bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400"
+      }`}>
+        {lecture.status}
+      </span>
+    </div>
   );
 }

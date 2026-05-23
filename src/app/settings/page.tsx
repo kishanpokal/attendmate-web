@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
   EmailAuthProvider,
   reauthenticateWithCredential,
@@ -222,7 +222,7 @@ export default function SettingsPage() {
       </div>
 
       {/* MODALS */}
-      <AnimatePresence>
+
         {showUsername && (
           <UsernameDialog
             initial={username}
@@ -252,7 +252,7 @@ export default function SettingsPage() {
             onConfirm={logout}
           />
         )}
-      </AnimatePresence>
+
     </ProfessionalPageLayout>
   );
 }
@@ -324,12 +324,9 @@ function UsernameDialog({ initial, onSave, onClose }: { initial: string, onSave:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm" />
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 10 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0, y: 10 }}
-        className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-zinc-800"
+      <div onClick={onClose} className="absolute inset-0 bg-black/30 dark:bg-black/50" />
+      <div
+        className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700"
       >
         <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center bg-gray-50 dark:bg-zinc-900/50">
           <h3 className="text-lg font-bold text-gray-900 dark:text-zinc-50">Change Name</h3>
@@ -358,7 +355,7 @@ function UsernameDialog({ initial, onSave, onClose }: { initial: string, onSave:
             {loading ? "Saving..." : "Save Changes"}
           </button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -391,12 +388,9 @@ function PasswordDialog({ email, onClose }: { email: string, onClose: () => void
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm" />
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 10 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0, y: 10 }}
-        className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-zinc-800"
+      <div onClick={onClose} className="absolute inset-0 bg-black/30 dark:bg-black/50" />
+      <div
+        className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700"
       >
         <div className="px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center bg-gray-50 dark:bg-zinc-900/50">
           <h3 className="text-lg font-bold text-gray-900 dark:text-zinc-50">Update Password</h3>
@@ -419,7 +413,7 @@ function PasswordDialog({ email, onClose }: { email: string, onClose: () => void
             {loading ? "Updating..." : "Update Password"}
           </button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -447,12 +441,9 @@ function PasswordInput({ label, value, onChange }: { label: string, value: strin
 function LogoutDialog({ onClose, onConfirm }: { onClose: () => void, onConfirm: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm" />
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-6 text-center border border-gray-200 dark:border-zinc-800"
+      <div onClick={onClose} className="absolute inset-0 bg-black/30 dark:bg-black/50" />
+      <div
+        className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 text-center border border-gray-200 dark:border-gray-700"
       >
         <div className="w-12 h-12 mx-auto bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
           <LogOut className="w-6 h-6 text-red-600 dark:text-red-400" />
@@ -469,7 +460,7 @@ function LogoutDialog({ onClose, onConfirm }: { onClose: () => void, onConfirm: 
             Sign Out
           </button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

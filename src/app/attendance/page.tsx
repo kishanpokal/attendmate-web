@@ -10,7 +10,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
   CheckCircle,
   XCircle,
@@ -437,10 +437,9 @@ function AttendanceContent() {
                 <div className="relative w-32 h-32 flex-shrink-0">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
                     <circle cx="60" cy="60" r={radius} fill="none" stroke="currentColor" strokeWidth="8" className="text-gray-100 dark:text-zinc-800" />
-                    <motion.circle
-                      initial={{ strokeDashoffset: circ }} animate={{ strokeDashoffset: offset }} transition={{ duration: 1 }}
+                    <circle
                       cx="60" cy="60" r={radius} fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round"
-                      strokeDasharray={circ} className="text-primary drop-shadow-md"
+                      strokeDasharray={circ} strokeDashoffset={offset} className="text-primary" style={{ transition: 'stroke-dashoffset 0.8s ease-out' }}
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -476,25 +475,16 @@ function AttendanceContent() {
       </div>
 
       {/* ── DETAIL MODAL / BOTTOM SHEET ── */}
-      {mounted && createPortal(
-        <AnimatePresence>
-          {selectedAttendance && (
+      {mounted && selectedAttendance && createPortal(
             <div className="fixed inset-0 z-[99999] flex flex-col justify-end sm:justify-center items-center sm:p-6 pb-0">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+              <div
                 onClick={() => setSelectedAttendance(null)}
-                className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/30 dark:bg-black/50"
               />
 
-              <motion.div
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
-                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              <div
                 onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-zinc-800 overflow-hidden mt-auto sm:mt-0 pb-6 sm:pb-0"
+                className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden mt-auto sm:mt-0 pb-6 sm:pb-0"
               >
                 {/* Mobile drag handle */}
                 <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
@@ -572,10 +562,8 @@ function AttendanceContent() {
                     Delete
                   </button>
                 </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>,
+              </div>
+            </div>,
         document.body
       )}
     </ProfessionalPageLayout>

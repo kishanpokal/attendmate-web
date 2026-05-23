@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { 
   Sparkles, 
   Send, 
@@ -505,9 +505,9 @@ export default function AIPage() {
                   <Bot className="w-6 h-6" />
                 </div>
                 <div className="p-6 rounded-[2rem] bg-white dark:bg-zinc-900 flex gap-2 items-center rounded-tl-none border border-gray-200 dark:border-zinc-800 shadow-xl">
-                  <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1 }} className="w-2 h-2 rounded-full bg-primary" />
-                  <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-2 h-2 rounded-full bg-primary" />
-                  <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-2 h-2 rounded-full bg-primary" />
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: '0.2s' }} />
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: '0.4s' }} />
                 </div>
               </div>
             </div>
@@ -532,14 +532,8 @@ export default function AIPage() {
               </div>
 
               <div className="relative group">
-                <AnimatePresence>
                   {input.startsWith("/") && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      className="absolute bottom-full left-0 w-full mb-3 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden z-50 transform origin-bottom"
-                    >
+                    <div className="absolute bottom-full left-0 w-full mb-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden z-50">
                       <div className="flex flex-col">
                         {[
                           { cmd: "/timetable", label: "Show today's schedule" },
@@ -551,16 +545,15 @@ export default function AIPage() {
                           <button
                             key={cmd.cmd}
                             onClick={() => setInput(cmd.cmd + " ")}
-                            className="text-left px-5 py-4 hover:bg-gray-50 dark:hover:bg-zinc-800 border-b border-gray-100 dark:border-zinc-800/50 last:border-0 transition-colors flex items-center justify-between"
+                            className="text-left px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-700 last:border-0 transition-colors flex items-center justify-between"
                           >
                             <span className="font-bold text-primary text-base">{cmd.cmd}</span>
                             <span className="text-sm font-semibold text-gray-500">{cmd.label}</span>
                           </button>
                         ))}
                       </div>
-                    </motion.div>
+                    </div>
                   )}
-                </AnimatePresence>
 
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/30 to-purple-600/30 rounded-[2rem] blur opacity-0 group-focus-within:opacity-100 transition duration-300" />
               <div className="relative flex items-end gap-3 bg-white dark:bg-zinc-900 rounded-[2rem] p-2 shadow-lg border border-gray-200 dark:border-zinc-800">
@@ -612,7 +605,7 @@ function AiResponseCard({ type, data }: { type: string, data?: any }) {
             <span className="text-xl font-black text-primary line-clamp-1">{data?.percentage}%</span>
           </div>
           <div className="h-2 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden shadow-inner">
-            <motion.div initial={{ width: 0 }} animate={{ width: `${data?.percentage || 0}%` }} transition={{ duration: 1 }} className="h-full bg-primary" />
+            <div className="h-full bg-primary" style={{ width: `${data?.percentage || 0}%`, transition: 'width 0.8s ease-out' }} />
           </div>
           <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Likelihood of maintaining threshold</p>
         </div>
