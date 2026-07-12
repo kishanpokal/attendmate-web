@@ -2,11 +2,11 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Home, ClipboardList, BarChart3, Settings, Plus, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Home, ClipboardList, BarChart3, Settings, Plus, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useAuth } from "@/context/AuthContext";
 
-type NavKey = "home" | "attendance" | "analytics" | "ai" | "sync" | "settings";
+type NavKey = "home" | "attendance" | "analytics" | "sync" | "settings";
 
 interface NavItem {
   key: NavKey;
@@ -20,8 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: "home", label: "Dashboard", icon: Home, path: "/dashboard" },
   { key: "attendance", label: "Attendance", icon: ClipboardList, path: "/attendance" },
   { key: "analytics", label: "Analytics", icon: BarChart3, path: "/analytics" },
-  { key: "ai", label: "AI Copilot", icon: Sparkles, path: "/ai" },
-  { key: "sync", label: "College Sync", icon: BarChart3, path: "/dashboard/sync" },
+  { key: "sync", label: "College Sync", icon: RefreshCw, path: "/dashboard/sync" },
   { key: "settings", label: "Settings", icon: Settings, path: "/settings" },
 ];
 

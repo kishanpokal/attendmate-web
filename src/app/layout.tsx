@@ -10,10 +10,31 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "AttendMate | Smart Attendance Tracking",
-  description: "Track your college attendance, get AI insights, and never fall below 75% again.",
-  keywords: ["attendance", "tracker", "college", "dashboard", "analytics", "AI"],
-  authors: [{ name: "AttendMate Team" }],
+  metadataBase: new URL("https://attendmateweb.vercel.app"),
+  title: {
+    default: "AttendMate — Smart College Attendance Tracker",
+    template: "%s · AttendMate",
+  },
+  description:
+    "Track your college attendance, calculate exactly how many classes you can skip, and never fall below the 75% requirement. Free attendance calculators and tools for students.",
+  keywords: [
+    "attendance tracker",
+    "attendance calculator",
+    "75 percent attendance",
+    "college attendance",
+    "bunk calculator",
+    "how many classes can I skip",
+    "student tools",
+  ],
+  authors: [{ name: "AttendMate" }],
+  openGraph: {
+    title: "AttendMate — Smart College Attendance Tracker",
+    description:
+      "Track attendance, calculate safe skips, and stay above 75%. Free tools for college students.",
+    url: "https://attendmateweb.vercel.app",
+    siteName: "AttendMate",
+    type: "website",
+  },
 };
 
 export const viewport = {
@@ -30,7 +51,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
       <head>
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4169484162979613" crossOrigin="anonymous"></script>
+        {/* AdSense is loaded only on public content pages (via PublicShell),
+            never on the app or auth screens — AdSense policy compliance. */}
         <script
           dangerouslySetInnerHTML={{
             __html: `

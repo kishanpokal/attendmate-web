@@ -1,67 +1,60 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { siteConfig } from "@/lib/siteConfig";
 
 interface AdBannerProps {
-  dataAdSlot: string;
-  dataAdFormat?: string;
-  dataFullWidthResponsive?: string;
+  /** AdSense ad unit slot ID (create in your AdSense dashboard). */
+  slot: string;
+  format?: string;
   className?: string;
 }
 
-export default function AdBanner({
-  dataAdSlot,
-  dataAdFormat = "auto",
-  dataFullWidthResponsive = "true",
-  className = "",
-}: AdBannerProps) {
-  const pathname = usePathname();
-  const adRef = useRef<HTMLModElement>(null);
+/**
+ * A single in-content ad unit. Only use inside real content (articles, tools) —
+ * never on app screens or above-the-fold with no surrounding content.
+ */
+export default function AdBanner({ slot, format = "auto", className = "" }: AdBannerProps) {
+  const ref = useRef<HTMLModElement>(null);
 
   useEffect(() => {
-    if (pathname === "/login" || pathname === "/register") return;
-    
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
 
-    const pushAd = () => {
-      try {
-        if (adRef.current && adRef.current.offsetWidth > 0) {
-          // @ts-ignore
-          if (typeof window !== "undefined" && window.adsbygoogle) {
-            // @ts-ignore
-            window.adsbygoogle.push({});
-          }
-        } else {
-          // If width is 0 (e.g. flex shrink or display none), wait for layout
-          timer = setTimeout(pushAd, 200);
+    const push = () => {
+      const el = ref.current;
+      if (el && el.offsetWidth > 0) {
+        try {
+          // @ts-expect-error adsbygoogle is injected by the AdSense script
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch {
+          /* ignore — script may still be loading */
         }
-      } catch (err) {
-        console.error("AdSense Error", err);
+      } else {
+        // Width can be 0 before layout settles; retry shortly.
+        timer = setTimeout(push, 200);
       }
     };
 
-    // Add a tiny initial delay to ensure CSS layout is fully painted
-    timer = setTimeout(pushAd, 100);
-
+    timer = setTimeout(push, 120);
     return () => clearTimeout(timer);
-  }, [pathname]);
-
-  if (pathname === "/login" || pathname === "/register") {
-    return null;
-  }
+  }, []);
 
   return (
-    <div className={`w-full min-h-[90px] flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg p-2 ${className}`}>
-      <ins
-        ref={adRef}
-        className="adsbygoogle"
-        style={{ display: "block", width: "100%", minHeight: "90px" }}
-        data-ad-client="ca-pub-4169484162979613"
-        data-ad-slot={dataAdSlot}
-        data-ad-format={dataAdFormat}
-        data-full-width-responsive={dataFullWidthResponsive}
-      />
+    <div className={`my-8 ${className}`}>
+      <p className="text-[11px] uppercase tracking-wider text-gray-400 text-center mb-1.5">
+        Advertisement
+      </p>
+      <div className="min-h-[100px] flex items-center justify-center overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
+        <ins
+          ref={ref}
+          className="adsbygoogle"
+          style={{ display: "block", width: "100%", minHeight: "100px" }}
+          data-ad-client={siteConfig.adsensePublisherId}
+          data-ad-slot={slot}
+          data-ad-format={format}
+          data-full-width-responsive="true"
+        />
+      </div>
     </div>
   );
 }

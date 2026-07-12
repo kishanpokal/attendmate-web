@@ -12,10 +12,8 @@ import QuickStatsGrid from "@/components/dashboard/QuickStatsGrid";
 import AttendanceOverviewCard from "@/components/dashboard/AttendanceOverviewCard";
 import TodayLecturesSection from "@/components/dashboard/TodayLecturesSection";
 import SubjectPerformanceCard from "@/components/dashboard/SubjectPerformanceCard";
-import AICopilotCard from "@/components/dashboard/AICopilotCard";
 import AttendanceDialog from "@/components/dashboard/AttendanceDialog";
 import DashboardSkeleton from "@/components/dashboard/DashboardSkeleton";
-import AdBanner from "@/components/ads/AdBanner";
 import type { TodayLecture } from "@/components/dashboard/TodayLectureCard";
 
 type ActiveLecture = {
@@ -195,16 +193,10 @@ export default function DashboardPage() {
             {/* Quick Stats */}
             <QuickStatsGrid total={total} attended={attended} percentage={percentage} todayCount={todayLectures.length} />
 
-            {/* AD SLOT: dashboard leaderboard */}
-            <div className="my-6 flex justify-center">
-              <AdBanner dataAdSlot="dashboard-leaderboard" dataAdFormat="horizontal" />
-            </div>
-
             {/* Main Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-12">
               <div className="lg:col-span-2 space-y-6">
                 <AttendanceOverviewCard total={total} attended={attended} percentage={percentage} />
-                <AICopilotCard percentage={percentage} present={attended} absent={total - attended} />
               </div>
 
               <div className="space-y-6">

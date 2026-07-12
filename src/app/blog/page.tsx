@@ -1,70 +1,59 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { ChevronRight, Clock } from "lucide-react";
+import PublicShell from "@/components/site/PublicShell";
+import Container from "@/components/ui/Container";
 import { blogPosts } from "@/lib/blogData";
-import { ChevronRight, BookOpen, ArrowLeft } from "lucide-react";
 
-export const metadata = {
-  title: "Blog | AttendMate",
-  description: "Read articles about student productivity, attendance tracking, and college life.",
+export const metadata: Metadata = {
+  title: "Blog — Attendance Tips & College Advice",
+  description:
+    "Practical articles on managing college attendance, staying above 75%, study strategies, and balancing student life.",
+  alternates: { canonical: "/blog" },
 };
 
 export default function BlogIndexPage() {
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20 pb-16">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        
-        <div className="mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
-        </div>
-
-        <div className="mb-12">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-4">
-            AttendMate Blog
+    <PublicShell>
+      <Container size="narrow" className="py-14 lg:py-20">
+        <header>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+            The AttendMate Blog
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl">
-            Strategies, tips, and insights to help you manage your college attendance, ace your exams, and maintain a healthy work-life balance.
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+            Practical strategies for managing your attendance, staying above the
+            75% line, and getting through college with your sanity intact.
           </p>
-        </div>
+        </header>
 
-        <div className="space-y-8">
+        <div className="mt-12 divide-y divide-gray-200 dark:divide-gray-800">
           {blogPosts.map((post) => (
-            <article 
-              key={post.slug} 
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mb-4">
-                <span className="flex items-center gap-1.5 font-medium bg-gray-100 dark:bg-gray-700/50 px-2.5 py-1 rounded-md">
-                  <BookOpen className="w-4 h-4" />
-                  {post.readTime}
-                </span>
-                <span>•</span>
+            <article key={post.slug} className="py-7 first:pt-0">
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                 <time>{post.date}</time>
+                <span>·</span>
+                <span className="inline-flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" /> {post.readTime}
+                </span>
               </div>
-              
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                <Link href={`/blog/${post.slug}`}>
+              <h2 className="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
+                <Link href={`/blog/${post.slug}`} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                   {post.title}
                 </Link>
               </h2>
-              
-              <p className="text-gray-600 dark:text-gray-300 mb-6 line-clamp-2 leading-relaxed">
+              <p className="mt-2 text-gray-600 dark:text-gray-400 leading-relaxed">
                 {post.excerpt}
               </p>
-              
-              <Link 
+              <Link
                 href={`/blog/${post.slug}`}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"
               >
-                Read Article
-                <ChevronRight className="w-4 h-4" />
+                Read article <ChevronRight className="w-4 h-4" />
               </Link>
             </article>
           ))}
         </div>
-        
-      </div>
-    </main>
+      </Container>
+    </PublicShell>
   );
 }
