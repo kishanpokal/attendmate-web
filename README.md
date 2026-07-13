@@ -9,15 +9,13 @@
 
 # AttendMate
 
-**Attendance, finally smart.**
+**Never drop below 75% attendance again.**
 
-AI-powered attendance management for college students — track your percentage, predict safe skips, and stay ahead of the 75% threshold.
+A simple, accurate attendance tracker for college students — track your percentage per subject, know exactly how many classes you can safely skip, and stay above the 75% requirement.
 
 <br />
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-attendmateweb.vercel.app-7c3aed?style=flat-square&logo=vercel&logoColor=white)](https://attendmateweb.vercel.app)
-&nbsp;
-[![GitHub Stars](https://img.shields.io/github/stars/kishanpokal/attendmate-web?style=flat-square&color=f59e0b&logo=github)](https://github.com/kishanpokal/attendmate-web)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-attendmateweb.vercel.app-4f46e5?style=flat-square&logo=vercel&logoColor=white)](https://attendmateweb.vercel.app)
 &nbsp;
 [![License](https://img.shields.io/badge/License-MIT-10b981?style=flat-square)](LICENSE)
 &nbsp;
@@ -33,7 +31,12 @@ AI-powered attendance management for college students — track your percentage,
 
 Most college students track attendance mentally — "I think I've attended enough." That guesswork leads to shortages, debarment notices, and last-minute panic.
 
-**AttendMate replaces guesswork with real-time, AI-powered clarity.** Know your exact percentage per subject, get AI predictions on how many classes you can safely skip, and see your friends' attendance — all from a beautiful, dark-themed dashboard built for speed.
+**AttendMate replaces guesswork with real-time clarity.** Know your exact percentage per subject, see how many classes you can safely skip before dropping below 75%, and track everything from a clean dashboard that works on both mobile and desktop.
+
+The site has two parts:
+
+- **A public content site** — a landing page, free calculator tools, a blog, and legal pages. No login required, and where advertising is served.
+- **The app** — the logged-in attendance tracker (dashboard, subjects, timetable, analytics). No ads.
 
 > **Try it now →** [attendmateweb.vercel.app](https://attendmateweb.vercel.app)
 
@@ -43,12 +46,22 @@ Most college students track attendance mentally — "I think I've attended enoug
 
 | Feature | Description |
 |---|---|
-| ⚡ **One-Click Attendance** | Mark Present or Absent in under 10 seconds. No forms, no friction. |
-| 📊 **Live Analytics** | Subject-wise breakdowns and trend lines that update in real-time. |
-| 🤖 **AI Copilot** | Powered by Gemini — ask how many classes you can safely skip. |
-| 👥 **Friends Tracking** | See your friends' attendance live. Know who made the 8 AM lecture. |
+| ⚡ **One-Click Attendance** | Mark Present or Absent in seconds. No forms, no friction. |
+| 📊 **Live Analytics** | Subject-wise breakdowns that update in real time. |
+| 🧮 **Free Calculators** | Attendance %, safe-skip, and CGPA↔% tools — no login needed. |
 | ☁️ **Cloud Sync** | Firebase-backed, synced instantly across all your devices. |
 | 📅 **Smart Timetable** | Set your weekly schedule once. Get auto-prompted when class starts. |
+| 🌗 **Light & Dark** | Clean, responsive UI with full light/dark theme support. |
+
+---
+
+## Free Tools
+
+Public, no-login calculators that also serve as SEO content:
+
+- **Attendance Percentage Calculator** — `/tools/attendance-calculator`
+- **Safe Skip Calculator** ("how many classes can I miss?") — `/tools/safe-skip-calculator`
+- **CGPA ↔ Percentage Converter** — `/tools/cgpa-percentage-converter`
 
 ---
 
@@ -56,74 +69,14 @@ Most college students track attendance mentally — "I think I've attended enoug
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| **Framework** | Next.js 16 (App Router) | Full-stack rendering with SSR and API routes |
-| **UI Library** | React 19 | Component-based UI with concurrent features |
-| **Language** | TypeScript 5 | Type-safe development across the entire codebase |
-| **Backend & DB** | Firebase 12 | Auth, Firestore database, real-time cloud sync |
-| **AI Engine** | Gemini AI | Skip predictions, natural language insights |
-| **Styling** | Tailwind CSS 4 + MUI | Utility-first CSS and Material UI components |
-| **3D & Motion** | Three.js + Framer Motion + GSAP | Particle scenes, transitions, scroll animations |
+| **Framework** | Next.js 16 (App Router) | SSR/SSG rendering and API routes |
+| **UI Library** | React 19 | Component-based UI |
+| **Language** | TypeScript 5 | Type-safe development |
+| **Backend & DB** | Firebase 12 | Auth, Firestore, real-time cloud sync |
+| **Styling** | Tailwind CSS 4 | Utility-first CSS |
+| **Icons** | lucide-react | Consistent icon set |
+| **Ads** | Google AdSense | Advertising on public content pages only |
 | **Deployment** | Vercel | CI/CD with automatic deploys on every push |
-
----
-
-## Dashboard Metrics
-
-The dashboard provides a live glassmorphism-styled overview of:
-
-- **Per-subject attendance %** — e.g. Mathematics 82%, DSA 76%
-- **Overall attendance** — Aggregate across all subjects
-- **AI skip prediction** — Classes you can skip before dropping below 75%
-- **Quick mark** — One-tap marking in under 10 seconds
-- **Today's lectures** — Auto-populated from your timetable with live status
-- **Friends feed** — Real-time attendance status of connected friends
-
----
-
-## How It Works
-
-```
-Step 01 — Sign In
-   ├── Login with Google or email
-   └── Set up your subjects and weekly timetable
-
-Step 02 — Mark Attendance
-   ├── Get auto-prompted when a class starts
-   └── Tap Present / Absent — done in under 10 seconds
-
-Step 03 — Get AI Insights
-   ├── View real-time analytics on your dashboard
-   └── Ask the AI: "How many can I skip this week?"
-```
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────┐
-│                  CLIENT (Browser)                   │
-│                                                     │
-│   Next.js 16     React 19      Three.js / R3F       │
-│   App Router     Components    3D Scenes            │
-│        │              │             │               │
-│   Framer Motion + GSAP + Lenis Smooth Scroll        │
-└──────────────────────┬──────────────────────────────┘
-                       │
-              ┌────────┴────────┐
-              │   Firebase SDK  │
-              │  (Client Auth)  │
-              └────────┬────────┘
-                       │
-         ┌─────────────┼──────────────┐
-         │             │              │
-   ┌─────┴──────┐ ┌────┴─────┐ ┌─────┴──────┐
-   │ Firestore  │ │ Firebase │ │ Gemini AI  │
-   │  Database  │ │   Auth   │ │  Copilot   │
-   │ (Realtime) │ │ (Google  │ │Predictions │
-   │            │ │ + Email) │ │ & Insights │
-   └────────────┘ └──────────┘ └────────────┘
-```
 
 ---
 
@@ -135,51 +88,34 @@ attendmate-web/
 │   ├── app/                        # Next.js App Router
 │   │   ├── page.tsx                # Landing page
 │   │   ├── layout.tsx              # Root layout
-│   │   ├── globals.css             # Global styles
-│   │   ├── login/                  # Authentication — Login
-│   │   ├── register/               # Authentication — Register
-│   │   ├── forgot-password/        # Password recovery
+│   │   ├── globals.css             # Global styles + design tokens
+│   │   ├── sitemap.ts              # SEO sitemap
+│   │   ├── robots.ts               # Robots rules (app routes disallowed)
+│   │   ├── login/ register/ forgot-password/   # Auth
+│   │   ├── tools/                  # Free public calculators
+│   │   ├── blog/                   # Articles
+│   │   ├── about/ contact/         # Info pages
+│   │   ├── privacy/ terms/         # Legal (required for AdSense)
 │   │   ├── dashboard/              # Main dashboard (protected)
-│   │   ├── attendance/             # Attendance marking & history
-│   │   ├── subjects/               # Subject management
-│   │   ├── timetable/              # Weekly schedule setup
-│   │   ├── friends/                # Friends tracking
-│   │   ├── analytics/              # Charts & performance
-│   │   ├── ai/                     # AI Copilot interface
-│   │   ├── settings/               # User settings
+│   │   ├── attendance/ subjects/ timetable/    # Core app (protected)
+│   │   ├── analytics/ friends/ settings/       # App (protected)
 │   │   └── api/                    # API routes
 │   ├── components/
-│   │   ├── landing/                # Landing page components
-│   │   │   ├── SmoothNav.tsx       # Animated navigation bar
-│   │   │   ├── HeroScene.tsx       # 3D Three.js hero scene
-│   │   │   ├── FloatingDashboard.tsx
-│   │   │   ├── FeatureCards.tsx
-│   │   │   ├── HowItWorks.tsx
-│   │   │   ├── StatsBar.tsx
-│   │   │   ├── TechStack.tsx
-│   │   │   └── FinalCTA.tsx
-│   │   ├── dashboard/              # Dashboard UI components
-│   │   │   ├── DashboardBackground.tsx
-│   │   │   ├── GlassCard.tsx
-│   │   │   ├── QuickStatsGrid.tsx
-│   │   │   ├── AttendanceSummaryCard.tsx
-│   │   │   ├── SubjectPerformanceCard.tsx
-│   │   │   ├── TodayLecturesSection.tsx
-│   │   │   ├── AICopilotCard.tsx
-│   │   │   └── AttendanceDialog.tsx
-│   │   ├── navigation/
-│   │   └── sync/
+│   │   ├── ui/                     # Button, Container, Logo
+│   │   ├── site/                   # SiteHeader, SiteFooter, PublicShell
+│   │   ├── tools/                  # Calculators + ToolLayout
+│   │   ├── ads/                    # AdBanner, AdSenseScript
+│   │   ├── dashboard/ navigation/ sync/
 │   ├── context/                    # React context providers
 │   ├── hooks/                      # Custom React hooks
 │   └── lib/                        # Utilities & configuration
 │       ├── firebase.ts
-│       ├── collegeSync.ts
-│       └── ai/                     # Gemini integration
-├── data/                           # Static & seed data
+│       ├── siteConfig.ts           # Site + AdSense config
+│       ├── toolsData.ts
+│       ├── blogData.ts
+│       └── collegeSync.ts
 ├── public/
-│   └── screenshots/
 ├── next.config.ts
-├── tailwind.config.ts
 ├── tsconfig.json
 └── package.json
 ```
@@ -195,7 +131,6 @@ attendmate-web/
 | Node.js | `v18+` |
 | npm / yarn / pnpm | Latest |
 | Firebase Project | Firestore + Authentication enabled |
-| Gemini API Key | [Get one here](https://ai.google.dev/) |
 
 ### Installation
 
@@ -207,8 +142,7 @@ cd attendmate-web
 # 2. Install dependencies
 npm install
 
-# 3. Set up environment variables
-cp .env.example .env.local
+# 3. Set up environment variables (see below)
 
 # 4. Start the development server
 npm run dev
@@ -228,10 +162,15 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-
-# Gemini AI
-NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 ```
+
+### Configuration
+
+Site-wide settings live in `src/lib/siteConfig.ts`:
+
+- `email` — your contact email (shown on Privacy & Contact pages)
+- `adsensePublisherId` — your AdSense publisher ID
+- `adSlots` — ad unit slot IDs (paste real ones after AdSense approval)
 
 ### Available Scripts
 
@@ -244,39 +183,21 @@ NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 
 ---
 
-## Deployment
+## Advertising & AdSense
 
-This project is deployed on **Vercel** with automatic CI/CD. Every push to `main` triggers a new production deployment.
+Ads are served **only** on public content pages (landing, tools, blog) via
+`PublicShell`, which loads the AdSense script. The logged-in app and auth
+screens never load ads — this keeps the site compliant with AdSense's content
+policies. Search engines are told (via `robots.ts`) not to index app routes.
 
-**Deploy your own instance:**
-
-1. Fork this repository
-2. Connect it to [Vercel](https://vercel.com)
-3. Add your environment variables in the Vercel dashboard
-4. Push to `main` — deployed automatically
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/kishanpokal/attendmate-web)
+After AdSense approves the site, create display ad units in your AdSense
+dashboard and paste their slot IDs into `src/lib/siteConfig.ts`.
 
 ---
 
-## Contributing
+## Deployment
 
-Contributions, issues, and feature requests are welcome.
-
-```bash
-# 1. Fork the repository
-
-# 2. Create your feature branch
-git checkout -b feature/your-feature-name
-
-# 3. Commit your changes
-git commit -m "feat: add your feature"
-
-# 4. Push and open a Pull Request
-git push origin feature/your-feature-name
-```
-
-Check the [issues page](https://github.com/kishanpokal/attendmate-web/issues) for open tasks.
+This project is deployed on **Vercel** with automatic CI/CD. Every push to `main` triggers a new production deployment. Add your Firebase environment variables in the Vercel dashboard.
 
 ---
 
@@ -286,7 +207,7 @@ Check the [issues page](https://github.com/kishanpokal/attendmate-web/issues) fo
 
 [![GitHub](https://img.shields.io/badge/GitHub-kishanpokal-181717?style=flat-square&logo=github)](https://github.com/kishanpokal)
 &nbsp;
-[![Live App](https://img.shields.io/badge/Live%20App-attendmateweb.vercel.app-7c3aed?style=flat-square&logo=vercel)](https://attendmateweb.vercel.app)
+[![Live App](https://img.shields.io/badge/Live%20App-attendmateweb.vercel.app-4f46e5?style=flat-square&logo=vercel)](https://attendmateweb.vercel.app)
 
 ---
 
@@ -298,6 +219,6 @@ This project is open source and available under the [MIT License](LICENSE).
 
 <div align="center">
 
-<sub>Built with ❤️ by <a href="https://github.com/kishanpokal">Kishan Pokal</a> · © 2026 AttendMate</sub>
+<sub>Built by <a href="https://github.com/kishanpokal">Kishan Pokal</a> · © 2026 AttendMate</sub>
 
 </div>
