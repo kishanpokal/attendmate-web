@@ -67,12 +67,32 @@ export default function CollegeSyncPage() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [timeTakenMs, setTimeTakenMs] = useState(0);
 
-  // Restore saved credentials
+  // Configuration State
+  const [syncSemester, setSyncSemester] = useState<string>("Sem8");
+  const [syncTargetSubjects, setSyncTargetSubjects] = useState<string[]>([]);
+  const [isConfigured, setIsConfigured] = useState(false);
+  const [setupStep, setSetupStep] = useState<"credentials" | "semester" | "fetching" | "subjects">("credentials");
+  const [fetchedSubjects, setFetchedSubjects] = useState<string[]>([]);
+
+  // Restore saved credentials and config
   useEffect(() => {
     const savedEmail = localStorage.getItem("syncEmail");
     const savedPass = localStorage.getItem("syncPass");
+    const savedSem = localStorage.getItem("syncSemester");
+    const savedSubjStr = localStorage.getItem("syncTargetSubjects");
+    
     if (savedEmail) setEmail(savedEmail);
     if (savedPass) setPassword(savedPass);
+    if (savedSem) setSyncSemester(savedSem);
+    if (savedSubjStr) {
+      try {
+        const parsed = JSON.parse(savedSubjStr);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSyncTargetSubjects(parsed);
+          setIsConfigured(true);
+        }
+      } catch (e) {}
+    }
   }, []);
 
   // Load app records from Firestore
@@ -135,6 +155,59 @@ export default function CollegeSyncPage() {
     }
   }, [scrapedData, appData]);
 
+  const handleFetchSubjects = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!email || !password || !syncSemester) {
+      setError("Please enter your portal credentials and semester.");
+      return;
+    }
+    
+    setSetupStep("fetching");
+    setError(null);
+    localStorage.setItem("syncEmail", email);
+    localStorage.setItem("syncPass", password);
+
+    try {
+      const res = await fetch("/api/sync-college", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, userId: user?.uid, semester: syncSemester, mode: "fetchSubjects" })
+      });
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      if (!reader) throw new Error("No response stream");
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const event: SyncProgressEvent = JSON.parse(line.slice(6));
+              if (event.step === "subjects_fetched" && event.subjects) {
+                setFetchedSubjects(event.subjects);
+                setSyncTargetSubjects(event.subjects);
+                setSetupStep("subjects");
+                return;
+              }
+              if (event.step === "error") {
+                setError(event.message);
+                setSetupStep("semester");
+              }
+            } catch {}
+          }
+        }
+      }
+    } catch (err: any) {
+      setError(err.message);
+      setSetupStep("semester");
+    }
+  };
+
   const handleSync = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!email || !password) {
@@ -167,7 +240,13 @@ export default function CollegeSyncPage() {
       const res = await fetch("/api/sync-college", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, userId: user.uid })
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          userId: user.uid, 
+          semester: syncSemester, 
+          targetSubjects: syncTargetSubjects 
+        })
       });
 
       const reader = res.body?.getReader();
@@ -434,7 +513,7 @@ export default function CollegeSyncPage() {
           </div>
         )}
 
-        {/* ── Credential Form (STATE A) ── */}
+        {/* ── Credential & Config Form (STATE A) ── */}
         {showForm && (
           <div className="max-w-md mx-auto mt-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
               <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl flex items-center justify-center mb-5 mx-auto">
@@ -445,42 +524,134 @@ export default function CollegeSyncPage() {
                 Securely stream and sync official college attendance records with AttendMate.
               </p>
 
-              <div className="mb-6 flex justify-center">
-                 <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 text-xs font-medium px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                   <Lock className="w-3 h-3" /> Credentials are never stored
-                 </div>
-              </div>
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg text-sm flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+                </div>
+              )}
 
-              <form onSubmit={handleSync} className="space-y-4">
-                {error && (
-                  <div className="p-3 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg text-sm flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+              {isConfigured ? (
+                // ── Configured View ──
+                <form onSubmit={handleSync} className="space-y-4">
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border border-gray-200 dark:border-gray-600 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{syncSemester}</p>
+                      <p className="text-xs text-gray-500">{syncTargetSubjects.length} subjects selected</p>
+                    </div>
+                    <button type="button" onClick={() => { setIsConfigured(false); setSetupStep("semester"); }} className="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title="Settings">
+                      <Settings2 className="w-5 h-5" />
+                    </button>
                   </div>
-                )}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-500">Portal Email</label>
-                  <input
-                    type="text" required value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-500">Portal Email</label>
+                    <input type="text" required value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-500 flex items-center gap-1.5"><Lock className="w-3 h-3" /> Portal Password</label>
+                    <input type="password" required value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  </div>
+                  <button type="submit" className="w-full mt-2 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
+                    Start College Sync <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
+              ) : (
+                // ── Wizard View ──
+                <div className="space-y-4">
+                  {setupStep === "credentials" && (
+                    <form onSubmit={e => { e.preventDefault(); setSetupStep("semester"); }} className="space-y-4">
+                      <div className="mb-6 flex justify-center">
+                         <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 text-xs font-medium px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                           <Lock className="w-3 h-3" /> Credentials are never stored
+                         </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-gray-500">Portal Email</label>
+                        <input type="text" required value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-gray-500 flex items-center gap-1.5"><Lock className="w-3 h-3" /> Portal Password</label>
+                        <input type="password" required value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      </div>
+                      <button type="submit" className="w-full mt-2 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors">
+                        Next
+                      </button>
+                    </form>
+                  )}
+
+                  {setupStep === "semester" && (
+                    <form onSubmit={handleFetchSubjects} className="space-y-4">
+                      <button type="button" onClick={() => setSetupStep("credentials")} className="text-xs text-indigo-500 flex items-center gap-1 mb-2 hover:underline">
+                        <ArrowLeft className="w-3 h-3" /> Back
+                      </button>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Select Your Semester</p>
+                      <p className="text-xs text-gray-500 mb-2">We need this to fetch the list of available subjects.</p>
+                      <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                        {Array.from({ length: 10 }, (_, i) => `Sem${i + 1}`).map(sem => (
+                          <button
+                            key={sem} type="button"
+                            onClick={() => setSyncSemester(sem)}
+                            className={`p-2.5 rounded-lg border text-sm font-medium transition-all ${syncSemester === sem ? "bg-indigo-50 dark:bg-indigo-900/30 border-indigo-500 text-indigo-700 dark:text-indigo-300" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"}`}
+                          >
+                            {sem}
+                          </button>
+                        ))}
+                      </div>
+                      <button type="submit" className="w-full mt-2 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors">
+                        Fetch Subjects
+                      </button>
+                    </form>
+                  )}
+
+                  {setupStep === "fetching" && (
+                    <div className="py-8 flex flex-col items-center justify-center space-y-4">
+                      <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Logging in to fetch subjects...</p>
+                    </div>
+                  )}
+
+                  {setupStep === "subjects" && (
+                    <div className="space-y-4">
+                      <button type="button" onClick={() => setSetupStep("semester")} className="text-xs text-indigo-500 flex items-center gap-1 mb-2 hover:underline">
+                        <ArrowLeft className="w-3 h-3" /> Back
+                      </button>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Select Your Subjects</p>
+                      <p className="text-xs text-gray-500 mb-2">Uncheck electives or unrelated subjects to speed up syncing.</p>
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                        {fetchedSubjects.map(subj => {
+                          const isSelected = syncTargetSubjects.includes(subj);
+                          return (
+                            <label key={subj} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${isSelected ? "bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600"}`}>
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  if (e.target.checked) setSyncTargetSubjects(prev => [...prev, subj]);
+                                  else setSyncTargetSubjects(prev => prev.filter(s => s !== subj));
+                                }}
+                                className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                              />
+                              <span className={`text-sm font-medium ${isSelected ? "text-indigo-900 dark:text-indigo-200" : "text-gray-700 dark:text-gray-300"}`}>{subj}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      <button
+                        type="button"
+                        disabled={syncTargetSubjects.length === 0}
+                        onClick={() => {
+                          localStorage.setItem("syncSemester", syncSemester);
+                          localStorage.setItem("syncTargetSubjects", JSON.stringify(syncTargetSubjects));
+                          setIsConfigured(true);
+                          setSetupStep("credentials");
+                        }}
+                        className="w-full mt-2 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Save Configuration
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
-                    <Lock className="w-3 h-3" /> Portal Password
-                  </label>
-                  <input
-                    type="password" required value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-                <button type="submit"
-                  className="w-full mt-2 py-3 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
-                >
-                  Start College Sync <ArrowRight className="w-4 h-4" />
-                </button>
-              </form>
+              )}
           </div>
         )}
 

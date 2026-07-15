@@ -1,0 +1,17 @@
+[
+  {
+    "name": "replace_file_content",
+    "args": {
+      "AllowMultiple": false,
+      "Description": "Updated useEffect to load configuration",
+      "EndLine": 83,
+      "Instruction": "Load config vars from localStorage in useEffect",
+      "ReplacementContent": "  // Restore saved credentials and config\n  useEffect(() => {\n    const savedEmail = localStorage.getItem(\"syncEmail\");\n    const savedPass = localStorage.getItem(\"syncPass\");\n    const savedSem = localStorage.getItem(\"syncSemester\");\n    const savedSubjStr = localStorage.getItem(\"syncTargetSubjects\");\n    \n    if (savedEmail) setEmail(savedEmail);\n    if (savedPass) setPassword(savedPass);\n    if (savedSem) setSyncSemester(savedSem);\n    if (savedSubjStr) {\n      try {\n        const parsed = JSON.parse(savedSubjStr);\n        if (Array.isArray(parsed) && parsed.length > 0) {\n          setSyncTargetSubjects(parsed);\n          setIsConfigured(true);\n        }\n      } catch (e) {}\n    }\n  }, []);",
+      "StartLine": 76,
+      "TargetContent": "  // Restore saved credentials\n  useEffect(() => {\n    const savedEmail = localStorage.getItem(\"syncEmail\");\n    const savedPass = localStorage.getItem(\"syncPass\");\n    if (savedEmail) setEmail(savedEmail);\n    if (savedPass) setPassword(savedPass);\n  }, []);",
+      "TargetFile": "c:\\AttendMate-web\\attendmate-web\\src\\app\\dashboard\\sync\\page.tsx",
+      "toolAction": "Loading config in useEffect",
+      "toolSummary": "Update useEffect in page.tsx"
+    }
+  }
+]

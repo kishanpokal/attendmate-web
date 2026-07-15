@@ -17,7 +17,7 @@ export interface AppAttendanceRecord {
 export type SyncResultCategory = "MATCHED" | "MISMATCHED" | "MISSING_IN_APP" | "MISSING_IN_COLLEGE";
 
 export interface SyncProgressEvent {
-  step: 'login' | 'navigate' | 'select_params' | 'scraping_subject' | 'complete' | 'error';
+  step: 'login' | 'navigate' | 'select_params' | 'subjects_fetched' | 'scraping_subject' | 'complete' | 'error';
   message: string;
   subject?: string;
   page?: number;
@@ -26,6 +26,8 @@ export interface SyncProgressEvent {
   totalSubjects?: number;
   currentSubjectIndex?: number;
   totalRecords?: CollegeAttendanceRecord[];
+  /** Populated by the fetchSubjects mode — list of subjects found on the portal. */
+  subjects?: string[];
 }
 
 export interface SyncComparisonResult {
@@ -136,6 +138,20 @@ export function compareAttendanceData(
        if (matches.length > 0) {
          bestMatch = matches.reduce((a, b) => a.length > b.length ? a : b);
        }
+    }
+
+    // If still no match, check for abbreviation/initials match (e.g. "NLP" -> "Natural Language Processing")
+    if (!bestMatch) {
+      let matches = allScrapedSubjects.filter(scrapedSubj => {
+        const initials = scrapedSubj.split(/[\s_\-]+/)
+            .filter(w => w.length > 0)
+            .map(w => w[0].toLowerCase())
+            .join('');
+        return s1 === initials || s1.includes(initials) || initials.includes(s1);
+      });
+      if (matches.length > 0) {
+        bestMatch = matches[0];
+      }
     }
     
     appToScrapedSubjectMap[appSubj] = bestMatch || appSubj; // fallback

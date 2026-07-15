@@ -1,0 +1,40 @@
+[
+  {
+    "name": "multi_replace_file_content",
+    "args": {
+      "ArtifactMetadata": {
+        "RequestFeedback": false,
+        "Summary": "Updated page.tsx with Configuration UI",
+        "UserFacing": false
+      },
+      "Description": "Added Configuration UI with multiple steps (credentials, semester, fetch subjects) and modified `handleSync` to pass config parameters.",
+      "Instruction": "Insert wizard state variables, add handleFetchSubjects method, and create the multi-step form view.",
+      "ReplacementChunks": [
+        {
+          "AllowMultiple": false,
+          "EndLine": 69,
+          "ReplacementContent": "  const [startTime, setStartTime] = useState<number | null>(null);\n  const [timeTakenMs, setTimeTakenMs] = useState(0);\n\n  // Configuration State\n  const [syncSemester, setSyncSemester] = useState<string>(\"Sem8\");\n  const [syncTargetSubjects, setSyncTargetSubjects] = useState<string[]>([]);\n  const [isConfigured, setIsConfigured] = useState(false);\n  const [setupStep, setSetupStep] = useState<\"credentials\" | \"semester\" | \"fetching\" | \"subjects\">(\"credentials\");\n  const [fetchedSubjects, setFetchedSubjects] = useState<string[]>([]);\n\n  // Restore saved credentials",
+          "StartLine": 67,
+          "TargetContent": "  const [startTime, setStartTime] = useState<number | null>(null);\n  const [timeTakenMs, setTimeTakenMs] = useState(0);\n\n  // Restore saved credentials"
+        },
+        {
+          "AllowMultiple": false,
+          "EndLine": 77,
+          "ReplacementContent": "  // Restore saved credentials and config\n  useEffect(() => {\n    const savedEmail = localStorage.getItem(\"syncEmail\");\n    const savedPass = localStorage.getItem(\"syncPass\");\n    const savedSem = localStorage.getItem(\"syncSemester\");\n    const savedSubjStr = localStorage.getItem(\"syncTargetSubjects\");\n    \n    if (savedEmail) setEmail(savedEmail);\n    if (savedPass) setPassword(savedPass);\n    if (savedSem) setSyncSemester(savedSem);\n    if (savedSubjStr) {\n      try {\n        const parsed = JSON.parse(savedSubjStr);\n        if (Array.isArray(parsed) && parsed.length > 0) {\n          setSyncTargetSubjects(parsed);\n          setIsConfigured(true);\n        }\n      } catch (e) {}\n    }\n  }, []);",
+          "StartLine": 70,
+          "TargetContent": "  // Restore saved credentials\n  useEffect(() => {\n    const savedEmail = localStorage.getItem(\"syncEmail\");\n    const savedPass = localStorage.getItem(\"syncPass\");\n    if (savedEmail) setEmail(savedEmail);\n    if (savedPass) setPassword(savedPass);\n  }, []);"
+        },
+        {
+          "AllowMultiple": false,
+          "EndLine": 171,
+          "ReplacementContent": "  const handleFetchSubjects = async (e?: React.FormEvent) => {\n    if (e) e.preventDefault();\n    if (!email || !password || !syncSemester) {\n      setError(\"Please enter your portal credentials and semester.\");\n      return;\n    }\n    \n    setSetupStep(\"fetching\");\n    setError(null);\n    localStorage.setItem(\"syncEmail\", email);\n    localStorage.setItem(\"syncPass\", password);\n\n    try {\n      const res = await fetch(\"/api/sync-college\", {\n        method: \"POST\",\n        headers: { \"Content-Type\": \"application/json\" },\n        body: JSON.stringify({ email, password, userId: user?.uid, semester: syncSemester, mode: \"fetchSubjects\" })\n      });\n      const reader = res.body?.getReader();\n      const decoder = new TextDecoder();\n      let buffer = \"\";\n      if (!reader) throw new Error(\"No response stream\");\n\n      while (true) {\n        const { done, value } = await reader.read();\n        if (done) break;\n        buffer += decoder.decode(value, { stream: true });\n        const lines = buffer.split(\"\\n\");\n        buffer = lines.pop() || \"\";\n        for (const line of lines) {\n          if (line.startsWith(\"data: \")) {\n            try {\n              const event: SyncProgressEvent = JSON.parse(line.slice(6));\n              if (event.step === \"subjects_fetched\" && event.subjects) {\n                setFetchedSubjects(event.subjects);\n                setSyncTargetSubjects(event.subjects);\n                setSetupStep(\"subjects\");\n                return;\n              }\n              if (event.step === \"error\") {\n                setError(event.message);\n                setSetupStep(\"semester\");\n              }\n            } catch {}\n          }\n        }\n      }\n    } catch (err: any) {\n      setError(err.message);\n      setSetupStep(\"semester\");\n    }\n  };\n\n  const handleSync = async (e?: React.FormEvent) => {\n    if (e) e.preventDefault();\n    if (!email || !password) {\n      setScrapedData([]);\n      setSummary(null);\n      setError(\"Please enter your portal credentials to sync.\");\n      setIsImmersionMode(false);\n      return;\n    }\n    if (!user) return;\n\n    // Reset all state for new sync\n    setLoading(true);\n    setIsImmersionMode(true);\n    setError(null);\n    setProgressEvents([]);\n    setCurrentProgress(null);\n    setSubjects([]);\n    setCompletedSubjects([]);\n    setActiveSubjectIndex(-1);\n    setRecordsFound(0);\n    setActiveSubjectRecords(0);\n    setStartTime(Date.now());\n    setTimeTakenMs(0);\n\n    localStorage.setItem(\"syncEmail\", email);\n    localStorage.setItem(\"syncPass\", password);\n\n    try {\n      const res = await fetch(\"/api/sync-college\", {\n        method: \"POST\",\n        headers: { \"Content-Type\": \"application/json\" },\n        body: JSON.stringify({ \n          email, \n          password, \n          userId: user.uid, \n          semester: syncSemester, \n          targetSubjects: syncTargetSubjects \n        })\n      });",
+          "StartLine": 138,
+          "TargetContent": "  const handleSync = async (e?: React.FormEvent) => {\n    if (e) e.preventDefault();\n    if (!email || !password) {\n      setScrapedData([]);\n      setSummary(null);\n      setError(\"Please enter your portal credentials to sync.\");\n      setIsImmersionMode(false);\n      return;\n    }\n    if (!user) return;\n\n    // Reset all state for new sync\n    setLoading(true);\n    setIsImmersionMode(true);\n    setError(null);\n    setProgressEvents([]);\n    setCurrentProgress(null);\n    setSubjects([]);\n    setCompletedSubjects([]);\n    setActiveSubjectIndex(-1);\n    setRecordsFound(0);\n    setActiveSubjectRecords(0);\n    setStartTime(Date.now());\n    setTimeTakenMs(0);\n\n    localStorage.setItem(\"syncEmail\", email);\n    localStorage.setItem(\"syncPass\", password);\n\n    try {\n      const res = await fetch(\"/api/sync-college\", {\n        method: \"POST\",\n        headers: { \"Content-Type\": \"application/json\" },\n        body: JSON.stringify({ email, password, userId: user.uid })\n      });"
+        }
+      ],
+      "TargetFile": "c:\\AttendMate-web\\attendmate-web\\src\\app\\dashboard\\sync\\page.tsx",
+      "toolAction": "Adding Config state to page.tsx",
+      "toolSummary": "Update page.tsx config"
+    }
+  }
+]
